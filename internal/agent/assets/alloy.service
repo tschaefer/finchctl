@@ -1,0 +1,17 @@
+[Unit]
+Description= Vendor-agnostic OpenTelemetry Collector distribution with programmable pipelines
+Documentation=https://grafana.com/docs/alloy
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Restart=always
+Environment=HOSTNAME=%H
+WorkingDirectory=/var/lib/alloy
+ExecStart=/usr/bin/alloy run --storage.path=/var/lib/alloy/data --disable-reporting=true /etc/alloy/alloy.config
+ExecReload=/usr/bin/env kill -HUP $MAINPID
+TimeoutStopSec=20s
+SendSIGKILL=no
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,10 @@
+---
+http:
+  routers:
+    cert-only:
+      rule: Host(`{{ .Host }}`)
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      service: noop@internal

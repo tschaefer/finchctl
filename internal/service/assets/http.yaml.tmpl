@@ -1,0 +1,61 @@
+---
+http:
+  routers:
+    grafana:
+      rule: PathPrefix(`/grafana`) {{ .HostRule }}
+      entrypoints:
+        - websecure
+      service: grafana
+      tls: true
+
+    loki:
+      rule: PathPrefix(`/loki`) {{ .HostRule }}
+      entrypoints:
+        - websecure
+      service: loki
+      middlewares:
+        - strip-loki-prefix
+        - loki-auth
+      tls: true
+
+    finch:
+      rule: PathPrefix(`/finch`) {{ .HostRule }}
+      entrypoints:
+        - websecure
+      service: finch
+      middlewares:
+        - strip-finch-prefix
+      tls: true
+
+  services:
+    grafana:
+      loadBalancer:
+        servers:
+          - url: http://grafana:3000
+
+    loki:
+      loadBalancer:
+        servers:
+          - url: http://loki:3100
+
+    finch:
+      loadBalancer:
+        servers:
+          - url: http://finch:3000
+
+  middlewares:
+    strip-loki-prefix:
+      stripprefix:
+        prefixes:
+          - "/loki"
+
+    strip-finch-prefix:
+      stripprefix:
+        prefixes:
+          - "/finch"
+
+
+tls:
+  certificates:
+    - certfile: /etc/traefik/certs.d/cert.pem
+      keyfile: /etc/traefik/certs.d/key.pem

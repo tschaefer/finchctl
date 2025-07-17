@@ -1,0 +1,7 @@
+---
+http:
+  middlewares:
+    loki-auth:
+      basicAuth:
+        users:
+        - {{ .Username }}:{{ .Password }}

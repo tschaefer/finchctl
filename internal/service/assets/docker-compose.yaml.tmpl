@@ -1,0 +1,97 @@
+---
+services:
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:12.0.2
+    environment:
+      - GF_SECURITY_ADMIN_USER={{ .Username }}
+      - GF_SECURITY_ADMIN_PASSWORD={{ .Password }}
+      - GF_SERVER_ROOT_URL={{ .RootUrl }}/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    volumes:
+      - /var/lib/finch/grafana:/var/lib/grafana
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: false
+          version: 1
+          editable: false
+        EOF
+        mkdir -p /etc/grafana/provisioning/dashboards
+        cat <<EOF > /etc/grafana/provisioning/dashboards/db.yaml
+        apiVersion: 1
+        providers:
+        - name: 'Finch default dashboards'
+          folder: ''
+          type: file
+          options:
+            path: /var/lib/grafana/dashboards
+        EOF
+        /run.sh
+    restart: always
+
+  loki:
+    container_name: loki
+    image: grafana/loki:3.5.1
+    command:
+      - "-config.file=/etc/loki/loki.yaml"
+      - "-target=all"
+      - "-log.level=info"
+    volumes:
+      - /var/lib/finch/loki/etc:/etc/loki
+      - /var/lib/finch/loki/data:/var/lib/loki
+    restart: always
+
+  traefik:
+    container_name: traefik
+    image: traefik:v3.4
+    command:
+      - "--configfile=/etc/traefik/traefik.yaml"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/finch/traefik/etc:/etc/traefik
+    restart: always
+
+  alloy:
+    container_name: alloy
+    image: grafana/alloy:v1.9.2
+    volumes:
+      - /var/lib/finch/alloy/etc:/etc/alloy
+      - /var/lib/finch/alloy/data:/var/lib/alloy/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - "run"
+      - "--storage.path=/var/lib/alloy/data"
+      - "--disable-reporting=true"
+      - "/etc/alloy/alloy.config"
+    restart: always
+
+  finch:
+    container_name: finch
+    image: ghcr.io/tschaefer/finch:latest
+    volumes:
+      - /var/lib/finch:/var/lib/finch
+    restart: always
+
+networks:
+  default:
+    name: finch
+    driver: bridge
+    attachable: true
+    enable_ipv6: true
+    driver_opts:
+      com.docker.network.container_iface_prefix: "finch"

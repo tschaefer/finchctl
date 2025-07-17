@@ -1,0 +1,38 @@
+---
+entrypoints:
+  web:
+    address: :80
+    http:
+      redirections:
+        entrypoint:
+          to: websecure
+          scheme: https
+          permanent: true
+  websecure:
+    address: :443
+
+providers:
+  file:
+    directory: /etc/traefik/conf.d
+    watch: true
+
+log:
+  level: INFO
+
+accesslog:
+  format: json
+
+certificatesresolvers:
+  letsencrypt:
+    acme:
+      email: {{ .Email }}
+      storage: /etc/traefik/certs.d/acme.json
+      httpchallenge:
+        entrypoint: web
+
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /etc/traefik/certs.d/cert.pem
+        keyFile: /etc/traefik/certs.d/key.pem
