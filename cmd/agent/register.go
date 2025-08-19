@@ -12,10 +12,11 @@ import (
 )
 
 var registerCmd = &cobra.Command{
-	Use:   "register service-name",
-	Short: "Register a new agent with a finch service",
-	Args:  cobra.ExactArgs(1),
-	Run:   runRegisterCmd,
+	Use:               "register service-name",
+	Short:             "Register a new agent with a finch service",
+	Args:              cobra.ExactArgs(1),
+	Run:               runRegisterCmd,
+	ValidArgsFunction: completeStackName,
 }
 
 func init() {

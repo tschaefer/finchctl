@@ -38,7 +38,7 @@ type Stack struct {
 func UpdateStackAuth(name, username, password string) error {
 	var config Config
 	if fileExists() {
-		cfg, err := readFile()
+		cfg, err := ReadConfig()
 		if err != nil {
 			return &ConfigError{Message: err.Error(), Reason: ""}
 		}
@@ -64,7 +64,7 @@ func UpdateStackAuth(name, username, password string) error {
 		Token: encodeToken(username, password),
 	})
 
-	return writeFile(&config)
+	return WriteConfig(&config)
 }
 
 func LookupStackAuth(name string) (string, string, error) {
@@ -72,7 +72,7 @@ func LookupStackAuth(name string) (string, string, error) {
 		return "", "", &ConfigError{Message: "config file does not exist", Reason: ""}
 	}
 
-	config, err := readFile()
+	config, err := ReadConfig()
 	if err != nil {
 		return "", "", &ConfigError{Message: "failed to read config", Reason: err.Error()}
 	}
@@ -101,7 +101,7 @@ func RemoveStackAuth(name string) error {
 		return &ConfigError{Message: "config file does not exist", Reason: ""}
 	}
 
-	config, err := readFile()
+	config, err := ReadConfig()
 	if err != nil {
 		return &ConfigError{Message: "failed to read config", Reason: err.Error()}
 	}
@@ -120,7 +120,7 @@ func RemoveStackAuth(name string) error {
 
 	config.Stacks = slices.Delete(config.Stacks, index, index+1)
 
-	return writeFile(config)
+	return WriteConfig(config)
 }
 
 func fileExists() bool {
@@ -133,7 +133,7 @@ func fileExists() bool {
 	return true
 }
 
-func writeFile(config *Config) error {
+func WriteConfig(config *Config) error {
 	data, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		return &ConfigError{Message: err.Error(), Reason: ""}
@@ -142,7 +142,7 @@ func writeFile(config *Config) error {
 	return os.WriteFile(configFile(), data, 0600)
 }
 
-func readFile() (*Config, error) {
+func ReadConfig() (*Config, error) {
 	configFile := configFile()
 
 	data, err := os.ReadFile(configFile)

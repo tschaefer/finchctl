@@ -16,10 +16,11 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:   "list service-name",
-	Short: "List agents registered with a finch service",
-	Args:  cobra.ExactArgs(1),
-	Run:   runListCmd,
+	Use:               "list service-name",
+	Short:             "List agents registered with a finch service",
+	Args:              cobra.ExactArgs(1),
+	Run:               runListCmd,
+	ValidArgsFunction: completeStackName,
 }
 
 func init() {

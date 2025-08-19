@@ -10,10 +10,11 @@ import (
 )
 
 var deregisterCmd = &cobra.Command{
-	Use:   "deregister service-name",
-	Short: "Deregister an agent from a finch service",
-	Args:  cobra.ExactArgs(1),
-	Run:   runDeregisterCmd,
+	Use:               "deregister service-name",
+	Short:             "Deregister an agent from a finch service",
+	Args:              cobra.ExactArgs(1),
+	Run:               runDeregisterCmd,
+	ValidArgsFunction: completeStackName,
 }
 
 func init() {
