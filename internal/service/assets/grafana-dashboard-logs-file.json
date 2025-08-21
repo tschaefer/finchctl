@@ -139,7 +139,7 @@
           "datasource": "Loki",
           "direction": "backward",
           "editorMode": "code",
-          "expr": "sum(count_over_time({filename=\"$filename\", host=~\"$host\"} |= \"$query\" [$__interval]))",
+          "expr": "sum(count_over_time({service_name=\"loki.source.file.files\", filename=\"$filename\", host=~\"$host\"} |= \"$query\" [$__interval]))",
           "instant": false,
           "legendFormat": "Log count",
           "queryType": "range",
@@ -176,7 +176,7 @@
           "datasource": "Loki",
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{filename=~\"$filename\", host=~\"$host\"} |= \"$query\"",
+          "expr": "{service_name=\"loki.source.file.files\", filename=~\"$filename\", host=~\"$host\"} |= \"$query\"",
           "queryType": "range",
           "refId": "A"
         }
