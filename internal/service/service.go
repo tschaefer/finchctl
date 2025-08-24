@@ -5,8 +5,14 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package service
 
 import (
+	"os"
+
 	"github.com/tschaefer/finchctl/internal/config"
 	"github.com/tschaefer/finchctl/internal/target"
+)
+
+const (
+	ServiceLibEnv string = "FINCH_SERVICE_LIB"
 )
 
 type Service interface {
@@ -123,4 +129,15 @@ func (s *service) Update() error {
 	}
 
 	return nil
+}
+
+func (s *service) libDir() string {
+	var dir string
+	dir = os.Getenv(ServiceLibEnv)
+
+	if dir == "" {
+		dir = "/var/lib/finch"
+	}
+
+	return dir
 }

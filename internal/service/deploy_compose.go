@@ -42,7 +42,7 @@ func (s *service) composeRender() (string, error) {
 }
 
 func (s *service) composeCopy(compose string) error {
-	dest := "/var/lib/finch/docker-compose.yaml"
+	dest := fmt.Sprintf("%s/docker-compose.yaml", s.libDir())
 
 	f, err := os.CreateTemp("", "docker-compose.yaml")
 	if err != nil {
@@ -64,9 +64,7 @@ func (s *service) composeCopy(compose string) error {
 }
 
 func (s *service) composeRun() error {
-	workdir := "/var/lib/finch"
-
-	out, err := s.target.Run(fmt.Sprintf("cd %s && sudo docker compose up -d", workdir))
+	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml up --detach", s.libDir()))
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 	}

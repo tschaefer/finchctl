@@ -4,15 +4,17 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 */
 package service
 
+import "fmt"
+
 func (s *service) persistenceMkdir() error {
 	directories := []string{
-		"/var/lib/finch/grafana/dashboards",
-		"/var/lib/finch/loki/{data,etc}",
-		"/var/lib/finch/alloy/{data,etc}",
-		"/var/lib/finch/traefik/etc/{certs.d,conf.d}",
+		"grafana/dashboards",
+		"loki/{data,etc}",
+		"alloy/{data,etc}",
+		"traefik/etc/{certs.d,conf.d}",
 	}
 	for _, dir := range directories {
-		out, err := s.target.Run("sudo mkdir -p " + dir)
+		out, err := s.target.Run(fmt.Sprintf("sudo mkdir -p %s/%s", s.libDir(), dir))
 		if err != nil {
 			return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 		}
@@ -23,14 +25,14 @@ func (s *service) persistenceMkdir() error {
 
 func (s *service) persistenceChown() error {
 	ownership := map[string]string{
-		"/var/lib/finch/grafana": "472:472",
-		"/var/lib/finch/loki":    "10001:10001",
-		"/var/lib/finch/alloy":   "0:0",
-		"/var/lib/finch/traefik": "0:0",
+		"grafana": "472:472",
+		"loki":    "10001:10001",
+		"alloy":   "0:0",
+		"traefik": "0:0",
 	}
 
 	for path, owner := range ownership {
-		out, err := s.target.Run("sudo chown -R " + owner + " " + path)
+		out, err := s.target.Run(fmt.Sprintf("sudo chown -R %s %s/%s", owner, s.libDir(), path))
 		if err != nil {
 			return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 		}

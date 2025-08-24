@@ -33,7 +33,7 @@ type Config struct {
 }
 
 func (s *service) configLoki() error {
-	dest := "/var/lib/finch/loki/etc/loki.yaml"
+	dest := fmt.Sprintf("%s/loki/etc/loki.yaml", s.libDir())
 
 	content, err := fs.ReadFile(Assets, "loki.yaml")
 	if err != nil {
@@ -72,7 +72,7 @@ func (s *service) configLokiUser() error {
 		Password: string(hash),
 	}
 
-	dest := "/var/lib/finch/traefik/etc/conf.d/loki-users.yaml"
+	dest := fmt.Sprintf("%s/traefik/etc/conf.d/loki-users.yaml", s.libDir())
 
 	content, err := fs.ReadFile(Assets, "loki-users.yaml.tmpl")
 	if err != nil {
@@ -109,7 +109,7 @@ func (s *service) configLokiUser() error {
 }
 
 func (s *service) configTraefik() error {
-	dest := "/var/lib/finch/traefik/etc/traefik.yaml"
+	dest := fmt.Sprintf("%s/traefik/etc/traefik.yaml", s.libDir())
 
 	content, err := fs.ReadFile(Assets, "traefik.yaml.tmpl")
 	if err != nil {
@@ -156,7 +156,7 @@ func (s *service) configTraefik() error {
 }
 
 func (s *service) configTraefikHttp() error {
-	dest := "/var/lib/finch/traefik/etc/conf.d/http.yaml"
+	dest := fmt.Sprintf("%s/traefik/etc/conf.d/http.yaml", s.libDir())
 
 	data := struct {
 		HostRule string
@@ -209,7 +209,7 @@ func (s *service) configTraefikHttpTls() error {
 			Host: s.config.Hostname,
 		}
 
-		dest := "/var/lib/finch/traefik/etc/conf.d/letsencrypt.yaml"
+		dest := fmt.Sprintf("%s/traefik/etc/conf.d/letsencrypt.yaml", s.libDir())
 
 		content, err := fs.ReadFile(Assets, "letsencrypt.yaml.tmpl")
 		if err != nil {
@@ -250,7 +250,8 @@ func (s *service) configTraefikHttpTls() error {
 			"key":  s.config.CustomTLS.KeyFilePath,
 		}
 		for k, v := range assets {
-			if err := s.target.Copy(v, "/var/lib/finch/traefik/etc/certs.d/"+k+".pem", "400", "root:root"); err != nil {
+			pem := fmt.Sprintf("%s/traefik/etc/certs.d/%s.pem", s.libDir(), k)
+			if err := s.target.Copy(v, pem, "400", "root:root"); err != nil {
 				return &DeployServiceError{Message: err.Error(), Reason: ""}
 			}
 		}
@@ -260,7 +261,7 @@ func (s *service) configTraefikHttpTls() error {
 }
 
 func (s *service) configAlloy() error {
-	dest := "/var/lib/finch/alloy/etc/alloy.config"
+	dest := fmt.Sprintf("%s/alloy/etc/alloy.config", s.libDir())
 
 	data := struct {
 		Hostname string
@@ -303,7 +304,7 @@ func (s *service) configAlloy() error {
 }
 
 func (s *service) configFinch() error {
-	dest := "/var/lib/finch/finch.json"
+	dest := fmt.Sprintf("%s/finch.json", s.libDir())
 
 	key := make([]byte, 32)
 	if _, err := rand.Read(key); err != nil {
@@ -363,7 +364,7 @@ func (s *service) configFinch() error {
 }
 
 func (s *service) configGrafanaDashboards() error {
-	dest := "/var/lib/finch/grafana/dashboards"
+	dest := fmt.Sprintf("%s/grafana/dashboards", s.libDir())
 
 	dashboards := []string{
 		"grafana-dashboard-logs-docker.json",
@@ -386,7 +387,8 @@ func (s *service) configGrafanaDashboards() error {
 		if _, err := f.Write(content); err != nil {
 			return &DeployServiceError{Message: err.Error(), Reason: ""}
 		}
-		if err := s.target.Copy(f.Name(), dest+"/"+dashboard, "400", "472:472"); err != nil {
+		dashboardFile := fmt.Sprintf("%s/%s", dest, dashboard)
+		if err := s.target.Copy(f.Name(), dashboardFile, "400", "472:472"); err != nil {
 			return &DeployServiceError{Message: err.Error(), Reason: ""}
 		}
 	}
