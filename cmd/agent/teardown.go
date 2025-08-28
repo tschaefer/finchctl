@@ -29,7 +29,7 @@ func runTeardownCmd(cmd *cobra.Command, args []string) {
 	cobra.CheckErr(err)
 	targetUrl := args[0]
 
-	a, err := agent.NewAgent("", targetUrl, format, dryRun)
+	a, err := agent.New("", targetUrl, format, dryRun)
 	cobra.CheckErr(err)
 
 	err = a.Teardown()

@@ -36,7 +36,7 @@ func runDeployCmd(cmd *cobra.Command, args []string) {
 	cobra.CheckErr(err)
 	targetUrl := args[0]
 
-	a, err := agent.NewAgent(config, targetUrl, format, dryRun)
+	a, err := agent.New(config, targetUrl, format, dryRun)
 	cobra.CheckErr(err)
 
 	err = a.Deploy()

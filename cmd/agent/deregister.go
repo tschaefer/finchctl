@@ -35,7 +35,7 @@ func runDeregisterCmd(cmd *cobra.Command, args []string) {
 		cobra.CheckErr("agent resource identifier is required")
 	}
 
-	agent, err := agent.NewAgent("", "local", format, false)
+	agent, err := agent.New("", "local", format, false)
 	cobra.CheckErr(err)
 
 	err = agent.Deregister(serviceName, rid)

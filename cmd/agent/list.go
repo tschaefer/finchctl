@@ -38,7 +38,7 @@ func runListCmd(cmd *cobra.Command, args []string) {
 	format, err := getRunFormat(cmd)
 	cobra.CheckErr(err)
 
-	a, err := agent.NewAgent("", "localhost", format, dryRun)
+	a, err := agent.New("", "localhost", format, dryRun)
 	cobra.CheckErr(err)
 
 	list, err := a.List(serviceName)

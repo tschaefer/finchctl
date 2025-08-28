@@ -23,7 +23,7 @@ type agent struct {
 	dryRun bool
 }
 
-func NewAgent(config, targetUrl string, format target.Format, dryRun bool) (Agent, error) {
+func New(config, targetUrl string, format target.Format, dryRun bool) (Agent, error) {
 	target, err := target.NewTarget(targetUrl, format, dryRun)
 	if err != nil {
 		return nil, err

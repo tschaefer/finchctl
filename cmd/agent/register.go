@@ -38,7 +38,7 @@ func runRegisterCmd(cmd *cobra.Command, args []string) {
 	format, err := getRunFormat(cmd)
 	cobra.CheckErr(err)
 
-	a, err := agent.NewAgent("", "localhost", format, false)
+	a, err := agent.New("", "localhost", format, false)
 	cobra.CheckErr(err)
 
 	config, err := a.Register(serviceName, data)
