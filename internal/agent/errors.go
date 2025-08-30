@@ -1,6 +1,9 @@
 package agent
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type DeployAgentError struct {
 	Message string
@@ -8,7 +11,7 @@ type DeployAgentError struct {
 }
 
 func (e *DeployAgentError) Error() string {
-	return fmt.Sprintf("Failed to deploy agent: %s %s", e.Message, e.Reason)
+	return strings.TrimSpace(fmt.Sprintf("Failed to deploy agent: %s %s", e.Message, e.Reason))
 }
 
 type RegisterAgentError struct {
@@ -17,7 +20,7 @@ type RegisterAgentError struct {
 }
 
 func (e *RegisterAgentError) Error() string {
-	return fmt.Sprintf("Failed to register agent: %s %s", e.Message, e.Reason)
+	return strings.TrimSpace(fmt.Sprintf("Failed to register agent: %s %s", e.Message, e.Reason))
 }
 
 type TeardownAgentError struct {
@@ -26,7 +29,7 @@ type TeardownAgentError struct {
 }
 
 func (e *TeardownAgentError) Error() string {
-	return fmt.Sprintf("Failed to teardown agent: %s %s", e.Message, e.Reason)
+	return strings.TrimSpace(fmt.Sprintf("Failed to teardown agent: %s %s", e.Message, e.Reason))
 }
 
 type ListAgentsError struct {
@@ -35,7 +38,7 @@ type ListAgentsError struct {
 }
 
 func (e *ListAgentsError) Error() string {
-	return fmt.Sprintf("Failed to list agents: %s %s", e.Message, e.Reason)
+	return strings.TrimSpace(fmt.Sprintf("Failed to list agents: %s %s", e.Message, e.Reason))
 }
 
 type DeregisterAgentError struct {
@@ -44,5 +47,5 @@ type DeregisterAgentError struct {
 }
 
 func (e *DeregisterAgentError) Error() string {
-	return fmt.Sprintf("Failed to deregister agent: %s %s", e.Message, e.Reason)
+	return strings.TrimSpace(fmt.Sprintf("Failed to deregister agent: %s %s", e.Message, e.Reason))
 }

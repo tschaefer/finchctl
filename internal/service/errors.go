@@ -4,7 +4,10 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 */
 package service
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type DeployServiceError struct {
 	Message string
@@ -12,7 +15,7 @@ type DeployServiceError struct {
 }
 
 func (e *DeployServiceError) Error() string {
-	return fmt.Sprintf("Failed to deploy service: %s %s", e.Message, e.Reason)
+	return strings.TrimSpace(fmt.Sprintf("Failed to deploy service: %s %s", e.Message, e.Reason))
 }
 
 type TeardownServiceError struct {
@@ -21,7 +24,7 @@ type TeardownServiceError struct {
 }
 
 func (e *TeardownServiceError) Error() string {
-	return fmt.Sprintf("Failed to teardown service: %s %s", e.Message, e.Reason)
+	return strings.TrimSpace(fmt.Sprintf("Failed to teardown service: %s %s", e.Message, e.Reason))
 }
 
 type UpdateServiceError struct {
@@ -30,5 +33,5 @@ type UpdateServiceError struct {
 }
 
 func (e *UpdateServiceError) Error() string {
-	return fmt.Sprintf("Failed to update service: %s %s", e.Message, e.Reason)
+	return strings.TrimSpace(fmt.Sprintf("Failed to update service: %s %s", e.Message, e.Reason))
 }
