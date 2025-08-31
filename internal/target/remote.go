@@ -81,7 +81,7 @@ func (s *remote) Request(method string, url *url.URL, data []byte) ([]byte, erro
 }
 
 func NewRemote(host *url.URL, format Format, dryRun bool) (Target, error) {
-	auth, err := authorize(host)
+	auth, err := authorize()
 	if err != nil {
 		return nil, fmt.Errorf("failed to authorize: %w", err)
 	}
@@ -122,20 +122,11 @@ func NewRemote(host *url.URL, format Format, dryRun bool) (Target, error) {
 	}, nil
 }
 
-func authorize(host *url.URL) (goph.Auth, error) {
+func authorize() (goph.Auth, error) {
 	var auth goph.Auth
 	var err error
 
-	password, _ := host.User.Password()
-	key := host.Query().Get("key")
-	passphrase := host.Query().Get("passphrase")
-
 	switch {
-	case key != "":
-		auth, err = goph.Key(key, passphrase)
-		if err != nil {
-			return nil, err
-		}
 
 	case goph.HasAgent():
 		auth, err = goph.UseAgent()
@@ -144,13 +135,12 @@ func authorize(host *url.URL) (goph.Auth, error) {
 		}
 
 	default:
-		if password != "" {
-			password, err = ask("Enter SSH password: ")
-			if err != nil {
-				return nil, err
-			}
+		password, err := ask("Enter SSH password: ")
+		if err != nil {
+			return nil, err
 		}
 		auth = goph.Password(password)
+
 	}
 
 	return auth, nil
