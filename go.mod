@@ -3,6 +3,7 @@ module github.com/tschaefer/finchctl
 go 1.24.5
 
 require (
+	github.com/brianvoe/gofakeit/v7 v7.5.1
 	github.com/jedib0t/go-pretty/v6 v6.6.7
 	github.com/melbahja/goph v1.4.0
 	github.com/spf13/cobra v1.9.1

@@ -19,7 +19,7 @@ type ConfigError struct {
 }
 
 func (e *ConfigError) Error() string {
-	return fmt.Sprintf("Config error: %s %s", e.Message, e.Reason)
+	return strings.TrimSpace(fmt.Sprintf("Config error: %s %s", e.Message, e.Reason))
 }
 
 const (
@@ -40,7 +40,7 @@ func UpdateStackAuth(name, username, password string) error {
 	if fileExists() {
 		cfg, err := ReadConfig()
 		if err != nil {
-			return &ConfigError{Message: err.Error(), Reason: ""}
+			return err
 		}
 		config = *cfg
 	}
