@@ -7,18 +7,12 @@ package service
 import (
 	"bytes"
 	"fmt"
-	"io/fs"
 	"os"
 	"text/template"
 )
 
 func (s *service) composeRender() (string, error) {
-	content, err := fs.ReadFile(Assets, "docker-compose.yaml.tmpl")
-	if err != nil {
-		return "", &DeployServiceError{Message: err.Error(), Reason: ""}
-	}
-
-	tmpl, err := template.New("compose").Parse(string(content))
+	tmpl, err := template.New("docker-compose.yaml.tmpl").ParseFS(Assets, "docker-compose.yaml.tmpl")
 	if err != nil {
 		return "", &DeployServiceError{Message: err.Error(), Reason: ""}
 	}

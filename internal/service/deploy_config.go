@@ -74,12 +74,7 @@ func (s *service) configLokiUser() error {
 
 	dest := fmt.Sprintf("%s/traefik/etc/conf.d/loki-users.yaml", s.libDir())
 
-	content, err := fs.ReadFile(Assets, "loki-users.yaml.tmpl")
-	if err != nil {
-		return &DeployServiceError{Message: err.Error(), Reason: ""}
-	}
-
-	tmpl, err := template.New("loki-users").Parse(string(content))
+	tmpl, err := template.New("loki-users.yaml.tmpl").ParseFS(Assets, "loki-users.yaml.tmpl")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
@@ -111,12 +106,7 @@ func (s *service) configLokiUser() error {
 func (s *service) configTraefik() error {
 	dest := fmt.Sprintf("%s/traefik/etc/traefik.yaml", s.libDir())
 
-	content, err := fs.ReadFile(Assets, "traefik.yaml.tmpl")
-	if err != nil {
-		return &DeployServiceError{Message: err.Error(), Reason: ""}
-	}
-
-	tmpl, err := template.New("traefik").Parse(string(content))
+	tmpl, err := template.New("traefik.yaml.tmpl").ParseFS(Assets, "traefik.yaml.tmpl")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
@@ -167,12 +157,7 @@ func (s *service) configTraefikHttp() error {
 		data.HostRule = fmt.Sprintf("&& Host(`%s`)", s.config.Hostname)
 	}
 
-	content, err := fs.ReadFile(Assets, "http.yaml.tmpl")
-	if err != nil {
-		return &DeployServiceError{Message: err.Error(), Reason: ""}
-	}
-
-	tmpl, err := template.New("http").Parse(string(content))
+	tmpl, err := template.New("http.yaml.tmpl").ParseFS(Assets, "http.yaml.tmpl")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
@@ -211,12 +196,7 @@ func (s *service) configTraefikHttpTls() error {
 
 		dest := fmt.Sprintf("%s/traefik/etc/conf.d/letsencrypt.yaml", s.libDir())
 
-		content, err := fs.ReadFile(Assets, "letsencrypt.yaml.tmpl")
-		if err != nil {
-			return &DeployServiceError{Message: err.Error(), Reason: ""}
-		}
-
-		tmpl, err := template.New("letsencrypt").Parse(string(content))
+		tmpl, err := template.New("letsencrypt.yaml.tmpl").ParseFS(Assets, "letsencrypt.yaml.tmpl")
 		if err != nil {
 			return &DeployServiceError{Message: err.Error(), Reason: ""}
 		}
@@ -269,12 +249,7 @@ func (s *service) configAlloy() error {
 		Hostname: s.config.Hostname,
 	}
 
-	content, err := fs.ReadFile(Assets, "alloy.config.tmpl")
-	if err != nil {
-		return &DeployServiceError{Message: err.Error(), Reason: ""}
-	}
-
-	tmpl, err := template.New("alloy").Parse(string(content))
+	tmpl, err := template.New("alloy.config.tmpl").ParseFS(Assets, "alloy.config.tmpl")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
@@ -329,12 +304,7 @@ func (s *service) configFinch() error {
 		},
 	}
 
-	content, err := fs.ReadFile(Assets, "finch.json.tmpl")
-	if err != nil {
-		return &DeployServiceError{Message: err.Error(), Reason: ""}
-	}
-
-	tmpl, err := template.New("finch").Parse(string(content))
+	tmpl, err := template.New("finch.json.tmpl").ParseFS(Assets, "finch.json.tmpl")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
