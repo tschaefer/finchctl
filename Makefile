@@ -35,7 +35,7 @@ checksum:
 
 .PHONY: test
 test:
-	go test -v ./...
+	test -z $(shell go test -v ./... 2>&1 >/dev/null || echo 1) || (echo "[WARN] Fix test issues" && exit 1)
 
 .PHONY: clean
 clean:
