@@ -14,6 +14,7 @@ import (
 	"os/exec"
 
 	"github.com/tschaefer/finchctl/internal/config"
+	"github.com/tschaefer/finchctl/internal/version"
 )
 
 type local struct {
@@ -79,6 +80,7 @@ func (l *local) Request(method string, url *url.URL, data []byte) ([]byte, error
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("User-Agent", fmt.Sprintf("finchctl/%s", version.Release()))
 	req.SetBasicAuth(username, password)
 	resp, err := client.Do(req)
 	if err != nil {
