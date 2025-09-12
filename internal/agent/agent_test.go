@@ -9,69 +9,46 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
 func Test_Deploy(t *testing.T) {
 	a, err := New("", "localhost", target.FormatDocumentation, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err, "create agent")
 
 	record := capture(func() {
 		err = a.Deploy()
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	tracks := strings.Split(record, "\n")
-	if len(tracks) != 8 {
-		t.Fatalf("expected at 8 lines of output, got %d", len(tracks))
-	}
+	assert.Len(t, tracks, 8, "number of log lines")
 
 	wanted := "Running 'uname -sm' as tschaefer@localhost"
-	got := tracks[0]
-	if got != wanted {
-		t.Fatalf("expected first line to be '%s', got '%s'", wanted, got)
-	}
+	assert.Equal(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'sudo systemctl enable --now alloy' as tschaefer@localhost"
-	got = tracks[len(tracks)-2]
-	if got != wanted {
-		t.Fatalf("expected last line to be '%s', got '%s'", wanted, got)
-	}
+	assert.Equal(t, wanted, tracks[len(tracks)-2], "last log line")
 }
 
 func Test_Teardown(t *testing.T) {
 	a, err := New("", "localhost", target.FormatDocumentation, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err, "create agent")
 
 	record := capture(func() {
 		err = a.Teardown()
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err, "teardown agent")
 
 	tracks := strings.Split(record, "\n")
-	if len(tracks) != 6 {
-		t.Fatalf("expected at 6 lines of output, got %d", len(tracks))
-	}
+	assert.Len(t, tracks, 6, "number of log lines mismatch")
 
 	wanted := "Running 'sudo systemctl stop alloy.service' as tschaefer@localhost"
-	got := tracks[0]
-	if got != wanted {
-		t.Fatalf("expected first line to be '%s', got '%s'", wanted, got)
-	}
+	assert.Equal(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'sudo rm -rf /var/lib/alloy' as tschaefer@localhost"
-	got = tracks[len(tracks)-2]
-	if got != wanted {
-		t.Fatalf("expected last line to be '%s', got '%s'", wanted, got)
-	}
+	assert.Equal(t, wanted, tracks[len(tracks)-2], "last log line")
 }
 
 func capture(f func()) string {

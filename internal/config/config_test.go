@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v7"
+	"github.com/stretchr/testify/assert"
 )
 
 type stack struct {
@@ -23,30 +24,21 @@ func Test_ErrorString(t *testing.T) {
 		Reason:  "test reason",
 	}
 
-	expected := "Config error: test message test reason"
-	if err.Error() != expected {
-		t.Fatalf("expected error string %q, got %q", expected, err.Error())
-	}
+	wanted := "Config error: test message test reason"
+	assert.Equal(t, wanted, err.Error(), "error message")
 }
 
 func Test_UpdateStackAuthFailIfPermissionDenied(t *testing.T) {
 	cfgLoc := setup(t)
 	defer teardown(cfgLoc, t)
 
-	if err := os.Chmod(cfgLoc, 0000); err != nil {
-		t.Fatalf("failed to change permissions: %v", err)
-	}
+	err := os.Chmod(cfgLoc, 0000)
+	assert.NoError(t, err, "change permissions of config directory")
 
 	stack := newStack()
-	err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
-	if err == nil {
-		t.Fatalf("expected error")
-	}
-
+	err = UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
 	wanted := "Config error: open " + cfgLoc + "/config.json: permission denied"
-	if err.Error() != wanted {
-		t.Fatalf("expected error %q, got %q", wanted, err.Error())
-	}
+	assert.EqualError(t, err, wanted, "update stack")
 }
 
 func Test_UpdateStackAuthCreateConfigIfNotExist(t *testing.T) {
@@ -54,13 +46,11 @@ func Test_UpdateStackAuthCreateConfigIfNotExist(t *testing.T) {
 	defer teardown(cfgLoc, t)
 
 	stack := newStack()
-	if err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password); err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
+	err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
+	assert.NoError(t, err, "update stack")
 
-	if _, err := os.Stat(cfgLoc + "/config.json"); os.IsNotExist(err) {
-		t.Fatalf("expected config file to be created")
-	}
+	_, err = os.Stat(cfgLoc + "/config.json")
+	assert.False(t, os.IsNotExist(err), "create config file")
 }
 
 func Test_LookupStackAuthReturnErrorIfStackNotExist(t *testing.T) {
@@ -69,20 +59,12 @@ func Test_LookupStackAuthReturnErrorIfStackNotExist(t *testing.T) {
 
 	stack := newStack()
 	err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err, "update stack")
 
 	hostname := gofakeit.DomainName()
 	_, _, err = LookupStackAuth(hostname)
-	if err == nil {
-		t.Fatalf("expected error")
-	}
-
 	wanted := "Config error: stack not found"
-	if err.Error() != wanted {
-		t.Fatalf("expected error %q, got %q", wanted, err.Error())
-	}
+	assert.EqualError(t, err, wanted, "lookup stack")
 }
 
 func Test_LookupStackAuthReturnCredentialsIfStackExist(t *testing.T) {
@@ -91,22 +73,13 @@ func Test_LookupStackAuthReturnCredentialsIfStackExist(t *testing.T) {
 
 	stack := newStack()
 	err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err, "update stack")
 
 	username, password, err := LookupStackAuth(stack.Hostname)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
+	assert.NoError(t, err, "lookup stack")
 
-	if stack.Username != username {
-		t.Fatalf("expected username to be '%q', got %q", stack.Username, username)
-	}
-
-	if stack.Password != password {
-		t.Fatalf("expected password to be '%q', got %q", stack.Password, password)
-	}
+	assert.Equal(t, stack.Username, username, "auth username")
+	assert.Equal(t, stack.Password, password, "auth password")
 }
 
 func Test_RemoveStackAuthReturnNoErrorIfStackNotExist(t *testing.T) {
@@ -115,16 +88,12 @@ func Test_RemoveStackAuthReturnNoErrorIfStackNotExist(t *testing.T) {
 
 	stack := newStack()
 	err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err, "update stack")
 
 	hostname := gofakeit.DomainName()
 
 	err = RemoveStackAuth(hostname)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
+	assert.NoError(t, err, "remove stack")
 }
 
 func Test_RemoveStackAuthSucceedIfStackExist(t *testing.T) {
@@ -133,45 +102,34 @@ func Test_RemoveStackAuthSucceedIfStackExist(t *testing.T) {
 
 	stack := newStack()
 	err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err, "update stack")
 
 	err = RemoveStackAuth(stack.Hostname)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
+	assert.NoError(t, err, "remove stack")
 
 	_, _, err = LookupStackAuth(stack.Hostname)
-	if err == nil {
-		t.Fatalf("expected error")
-	}
+	assert.Error(t, err, "lookup stack")
 
 	wanted := "Config error: stack not found"
-	if err.Error() != wanted {
-		t.Fatalf("expected error %q, got %q", wanted, err.Error())
-	}
+	assert.Equal(t, wanted, err.Error(), "error message")
 }
 
 func setup(t *testing.T) string {
 	cfgLoc, err := os.MkdirTemp("", "finch-test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Setenv(ConfigLocationEnv, cfgLoc); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err, "create temp dir for config")
+
+	err = os.Setenv(ConfigLocationEnv, cfgLoc)
+	assert.NoError(t, err, "set config location env var")
 
 	return cfgLoc
 }
 
 func teardown(cfgLoc string, t *testing.T) {
-	if err := os.Unsetenv(ConfigLocationEnv); err != nil {
-		t.Error(err)
-	}
-	if err := os.RemoveAll(cfgLoc); err != nil {
-		t.Error(err)
-	}
+	err := os.Unsetenv(ConfigLocationEnv)
+	assert.NoError(t, err, "unset config location env var")
+
+	err = os.RemoveAll(cfgLoc)
+	assert.NoError(t, err, "remove temp config dir")
 }
 
 func newStack() stack {

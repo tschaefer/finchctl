@@ -9,100 +9,65 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
 func Test_Deploy(t *testing.T) {
 	s, err := New(nil, "localhost", target.FormatDocumentation, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err, "create service")
 
 	record := capture(func() {
 		err = s.Deploy()
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err, "deploy service")
 
 	tracks := strings.Split(record, "\n")
-	if len(tracks) != 28 {
-		t.Fatalf("expected at 28 lines of output, got %d", len(tracks))
-	}
+	assert.Len(t, tracks, 28, "number of log lines")
 
 	wanted := "Running '[ \"${EUID:-$(id -u)}\" -eq 0 ] || command -v sudo' as tschaefer@localhost"
-	got := tracks[0]
-	if got != wanted {
-		t.Fatalf("expected first line to be '%s', got '%s'", wanted, got)
-	}
+	assert.Equal(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'timeout 180 bash -c 'until curl -fs -o /dev/null -w \"%{http_code}\" http://localhost | grep -qE \"^[234][0-9]{2}$\"; do sleep 2; done'' as tschaefer@localhost"
-	got = tracks[len(tracks)-2]
-	if got != wanted {
-		t.Fatalf("expected last line to be '%s', got '%s'", wanted, got)
-	}
+	assert.Equal(t, wanted, tracks[len(tracks)-2], "last log line")
 }
 
 func Test_Teardown(t *testing.T) {
 	s, err := New(nil, "localhost", target.FormatDocumentation, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err, "create service")
 
 	record := capture(func() {
 		err = s.Teardown()
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err, "teardown service")
 
 	tracks := strings.Split(record, "\n")
-	if len(tracks) != 3 {
-		t.Fatalf("expected at 3 lines of output, got %d", len(tracks))
-	}
+	assert.Len(t, tracks, 3, "number of log lines mismatch")
 
 	wanted := "Running 'sudo docker compose --file /var/lib/finch/docker-compose.yml down --volumes' as tschaefer@localhost"
-	got := tracks[0]
-	if got != wanted {
-		t.Fatalf("expected first line to be '%s', got '%s'", wanted, got)
-	}
+	assert.Equal(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'sudo rm -rf /var/lib/finch' as tschaefer@localhost"
-	got = tracks[len(tracks)-2]
-	if got != wanted {
-		t.Fatalf("expected last line to be '%s', got '%s'", wanted, got)
-	}
+	assert.Equal(t, wanted, tracks[len(tracks)-2], "last log line")
 }
 
 func Test_Update(t *testing.T) {
 	s, err := New(nil, "localhost", target.FormatDocumentation, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err, "create service")
 
 	record := capture(func() {
 		err = s.Update()
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err, "update service")
 
 	tracks := strings.Split(record, "\n")
-	if len(tracks) != 7 {
-		t.Fatalf("expected at 7 lines of output, got %d", len(tracks))
-	}
+	assert.Len(t, tracks, 7, "number of log lines")
 
 	wanted := "Running 'sudo cat /var/lib/finch/finch.json' as tschaefer@localhost"
-	got := tracks[0]
-	if got != wanted {
-		t.Fatalf("expected first line to be '%s', got '%s'", wanted, got)
-	}
+	assert.Equal(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'timeout 180 bash -c 'until curl -fs -o /dev/null -w \"%{http_code}\" http://localhost | grep -qE \"^[234][0-9]{2}$\"; do sleep 2; done'' as tschaefer@localhost"
-	got = tracks[len(tracks)-2]
-	if got != wanted {
-		t.Fatalf("expected last line to be '%s', got '%s'", wanted, got)
-	}
+	assert.Equal(t, wanted, tracks[len(tracks)-2], "last log line")
 }
 
 func capture(f func()) string {
