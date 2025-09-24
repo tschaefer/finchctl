@@ -2,7 +2,7 @@
 services:
   grafana:
     container_name: grafana
-    image: grafana/grafana:12.0.2
+    image: grafana/grafana:12.2.0
     environment:
       - GF_SECURITY_ADMIN_USER={{ .Username }}
       - GF_SECURITY_ADMIN_PASSWORD={{ .Password }}
@@ -43,7 +43,7 @@ services:
 
   loki:
     container_name: loki
-    image: grafana/loki:3.5.1
+    image: grafana/loki:3.5.5
     command:
       - "-config.file=/etc/loki/loki.yaml"
       - "-target=all"
@@ -55,7 +55,7 @@ services:
 
   traefik:
     container_name: traefik
-    image: traefik:v3.4
+    image: traefik:v3.5.2
     command:
       - "--configfile=/etc/traefik/traefik.yaml"
     ports:
@@ -68,7 +68,7 @@ services:
 
   alloy:
     container_name: alloy
-    image: grafana/alloy:v1.9.2
+    image: grafana/alloy:v1.10.2
     volumes:
       - /var/lib/finch/alloy/etc:/etc/alloy
       - /var/lib/finch/alloy/data:/var/lib/alloy/data
