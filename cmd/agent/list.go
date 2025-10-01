@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/internal/agent"
 
-	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/olekukonko/tablewriter"
 )
 
 var listCmd = &cobra.Command{
@@ -51,15 +51,13 @@ func runListCmd(cmd *cobra.Command, args []string) {
 			cobra.CheckErr(err)
 		}
 		fmt.Println(string(out))
-
-		return
 	} else {
-		t := table.NewWriter()
-		t.SetOutputMirror(os.Stdout)
-		t.AppendHeader(table.Row{"#", "Hostname", "Resource Identifier"})
+		t := tablewriter.NewWriter(os.Stdout)
+		t.Header([]string{"#", "Hostname", "Resource Identifier"})
 		for i, item := range *list {
-			t.AppendRow([]any{i + 1, item.Hostname, item.ResourceID})
+			idx := fmt.Sprintf("%d", i+1)
+			_ = t.Append([]string{idx, item.Hostname, item.ResourceID})
 		}
-		t.Render()
+		_ = t.Render()
 	}
 }
