@@ -18,26 +18,33 @@ func (a *agent) configFile() error {
 }
 
 func (a *agent) configService() error {
-	dest := "/etc/systemd/system/alloy.service"
-
-	content, err := fs.ReadFile(Assets, "alloy.service")
-	if err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	services := []string{
+		"alloy.service",
+		"node_exporter.service",
+		"node_exporter.socket",
 	}
 
-	f, err := os.CreateTemp("", "alloy.service")
-	if err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: ""}
-	}
-	defer func() {
-		_ = os.Remove(f.Name())
-	}()
-	if _, err := f.Write(content); err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: ""}
-	}
+	for _, service := range services {
+		content, err := fs.ReadFile(Assets, service)
+		if err != nil {
+			return &DeployAgentError{Message: err.Error(), Reason: ""}
+		}
 
-	if err := a.target.Copy(f.Name(), dest, "444", "root:root"); err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: ""}
+		f, err := os.CreateTemp("", service)
+		if err != nil {
+			return &DeployAgentError{Message: err.Error(), Reason: ""}
+		}
+		defer func() {
+			_ = os.Remove(f.Name())
+		}()
+		if _, err := f.Write(content); err != nil {
+			return &DeployAgentError{Message: err.Error(), Reason: ""}
+		}
+
+		dest := "/etc/systemd/system/" + service
+		if err := a.target.Copy(f.Name(), dest, "444", "root:root"); err != nil {
+			return &DeployAgentError{Message: err.Error(), Reason: ""}
+		}
 	}
 
 	return nil

@@ -27,6 +27,16 @@ http:
         - strip-finch-prefix
       tls: true
 
+    prometheus:
+      rule: PathPrefix(`/prometheus`) {{ .HostRule }}
+      entrypoints:
+        - websecure
+      service: prometheus
+      middlewares:
+        - strip-prometheus-prefix
+        - loki-auth
+      tls: true
+
   services:
     grafana:
       loadBalancer:
@@ -43,6 +53,11 @@ http:
         servers:
           - url: http://finch:3000
 
+    prometheus:
+      loadBalancer:
+        servers:
+          - url: http://prometheus:9090
+
   middlewares:
     strip-loki-prefix:
       stripprefix:
@@ -54,6 +69,10 @@ http:
         prefixes:
           - "/finch"
 
+    strip-prometheus-prefix:
+      stripprefix:
+        prefixes:
+          - "/prometheus"
 
 tls:
   certificates:

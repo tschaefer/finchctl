@@ -64,6 +64,10 @@ func (a *agent) Deploy() error {
 		return err
 	}
 
+	if err := a.userSetup(); err != nil {
+		return err
+	}
+
 	if err := a.persistenceSetup(); err != nil {
 		return err
 	}

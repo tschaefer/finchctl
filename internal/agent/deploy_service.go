@@ -22,6 +22,59 @@ func (a *agent) serviceInstall(machine map[string]string) error {
 		return nil
 	}
 
+	if err := a.serviceInstallAlloy(machine); err != nil {
+		return err
+	}
+
+	if err := a.serviceInstallNodeExporter(machine); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *agent) serviceInstallNodeExporter(machine map[string]string) error {
+	version := "1.9.1"
+	binary := fmt.Sprintf("node_exporter-%s.%s-%s", version, machine["kernel"], machine["arch"])
+	release := fmt.Sprintf("https://github.com/prometheus/node_exporter/releases/download/v%s/%s.tar.gz", version, binary)
+	dest := "/usr/bin/node_exporter"
+
+	user := os.Getenv("USER")
+	localhost, _ := url.Parse("host://localhost")
+	localhost.User = url.User(user)
+	l, _ := target.NewLocal(localhost, a.format, a.dryRun)
+
+	out, err := l.Run("mktemp -p /tmp -d finch-XXXXXX")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+	}
+	tmpdir := strings.TrimSpace(string(out))
+	defer func() {
+		_, _ = l.Run("rm -rf " + tmpdir)
+	}()
+	tmpfile := fmt.Sprintf("%s/%s-%s.tar.gz", tmpdir, binary, time.Now().Format("19800212015200"))
+
+	// Using curl instead of net/http is on purpose for now.
+	out, err = l.Run("curl --silent --fail-with-body --show-error --location " + release + " --output " + tmpfile)
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+	}
+
+	// Using tar instead of archive/tar is on purpose for now.
+	out, err = l.Run("tar -xzf " + tmpfile + " -C " + tmpdir)
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+	}
+
+	err = a.target.Copy(tmpdir+"/"+binary+"/node_exporter", dest, "755", "root:root")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	return nil
+}
+
+func (a *agent) serviceInstallAlloy(machine map[string]string) error {
 	binary := fmt.Sprintf("alloy-%s-%s", machine["kernel"], machine["arch"])
 	release := fmt.Sprintf("https://github.com/grafana/alloy/releases/latest/download/%s.zip", binary)
 	dest := "/usr/bin/alloy"
@@ -99,10 +152,19 @@ func (a *agent) serviceInstall(machine map[string]string) error {
 }
 
 func (a *agent) serviceEnable() error {
-	out, err := a.target.Run("sudo systemctl enable --now alloy")
-	if err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+	services := []string{
+		"alloy.service",
+		"node_exporter.socket",
+		"node_exporter.service",
 	}
+
+	for _, service := range services {
+		out, err := a.target.Run("sudo systemctl enable --now " + service)
+		if err != nil {
+			return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+		}
+	}
+
 	return nil
 }
 

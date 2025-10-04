@@ -366,6 +366,32 @@ func (s *service) configGrafanaDashboards() error {
 	return nil
 }
 
+func (s *service) configPrometheus() error {
+	dest := fmt.Sprintf("%s/prometheus/etc/prometheus.yaml", s.libDir())
+
+	content, err := fs.ReadFile(Assets, "prometheus.yaml")
+	if err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
+
+	f, err := os.CreateTemp("", "prometheus.yaml")
+	if err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
+	defer func() {
+		_ = os.Remove(f.Name())
+	}()
+	if _, err := f.Write(content); err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
+
+	if err := s.target.Copy(f.Name(), dest, "400", "nobody:nogroup"); err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
+
+	return nil
+}
+
 func (s *service) configSetup() error {
 	if err := s.configLoki(); err != nil {
 		return err
@@ -396,6 +422,10 @@ func (s *service) configSetup() error {
 	}
 
 	if err := s.configFinch(); err != nil {
+		return err
+	}
+
+	if err := s.configPrometheus(); err != nil {
 		return err
 	}
 

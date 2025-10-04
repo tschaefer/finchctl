@@ -23,12 +23,12 @@ func Test_Deploy(t *testing.T) {
 	assert.NoError(t, err)
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 8, "number of log lines")
+	assert.Len(t, tracks, 15, "number of log lines")
 
 	wanted := "Running 'uname -sm' as tschaefer@localhost"
 	assert.Equal(t, wanted, tracks[0], "first log line")
 
-	wanted = "Running 'sudo systemctl enable --now alloy' as tschaefer@localhost"
+	wanted = "Running 'sudo systemctl enable --now node_exporter.service' as tschaefer@localhost"
 	assert.Equal(t, wanted, tracks[len(tracks)-2], "last log line")
 }
 
@@ -42,7 +42,7 @@ func Test_Teardown(t *testing.T) {
 	assert.NoError(t, err, "teardown agent")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 6, "number of log lines mismatch")
+	assert.Len(t, tracks, 14, "number of log lines mismatch")
 
 	wanted := "Running 'sudo systemctl stop alloy.service' as tschaefer@localhost"
 	assert.Equal(t, wanted, tracks[0], "first log line")

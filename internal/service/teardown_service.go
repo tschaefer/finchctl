@@ -7,7 +7,7 @@ package service
 import "fmt"
 
 func (s *service) teardownService() error {
-	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yml down --volumes", s.libDir()))
+	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml down --volumes", s.libDir()))
 	if err != nil {
 		return &TeardownServiceError{Message: err.Error(), Reason: string(out)}
 	}

@@ -5,22 +5,40 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package agent
 
 func (a *agent) teardownAgent() error {
-	out, err := a.target.Run("sudo systemctl stop alloy.service")
-	if err != nil {
-		return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
+	services := []string{
+		"alloy.service",
+		"node_exporter.socket",
+		"node_exporter.service",
 	}
 
-	out, err = a.target.Run("sudo systemctl disable alloy.service")
-	if err != nil {
-		return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
+	for _, service := range services {
+		out, err := a.target.Run("sudo systemctl stop " + service)
+		if err != nil {
+			return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
+		}
+
+		out, err = a.target.Run("sudo systemctl disable " + service)
+		if err != nil {
+			return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
+		}
+
+		out, err = a.target.Run("sudo rm -f /etc/systemd/system/" + service)
+		if err != nil {
+			return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
+		}
 	}
 
-	out, err = a.target.Run("sudo rm -f /etc/systemd/system/alloy.service")
+	out, err := a.target.Run("sudo deluser node_exporter")
 	if err != nil {
 		return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
 	}
 
 	out, err = a.target.Run("sudo rm -rf /etc/alloy")
+	if err != nil {
+		return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
+	}
+
+	out, err = a.target.Run("sudo rm -f /var/lib/node_exporter")
 	if err != nil {
 		return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
 	}
