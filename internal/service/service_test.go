@@ -44,7 +44,7 @@ func Test_Teardown(t *testing.T) {
 	tracks := strings.Split(record, "\n")
 	assert.Len(t, tracks, 3, "number of log lines mismatch")
 
-	wanted := "Running 'sudo docker compose --file /var/lib/finch/docker-compose.yml down --volumes' as tschaefer@localhost"
+	wanted := "Running 'sudo docker compose --file /var/lib/finch/docker-compose.yaml down --volumes' as tschaefer@localhost"
 	assert.Equal(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'sudo rm -rf /var/lib/finch' as tschaefer@localhost"
