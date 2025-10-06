@@ -7,6 +7,7 @@ The logging stack bases on Docker and consists of following services:
 - **grafana** - The visualization tool
 - **loki** - The log aggregation system
 - **alloy** - The log shipping agent
+- **prometheus** - The monitoring system
 - **traefik** - The reverse proxy
 - **finch** - The log agent manager
 
@@ -77,6 +78,8 @@ systemd journal records to the logging stack.
 
 Beside systemd journal records, docker `--agent.log.docker` and file records
 `--agent.log.file /var/log/*.log` can be used as log sources.
+
+Additionally, collect metrics via `--agent.metrics`.
 
 ```bash
 finchctl agent deploy --config finch-agent.cfg root@app.machine
