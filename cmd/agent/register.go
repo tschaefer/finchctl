@@ -77,11 +77,6 @@ func parseFlags(cmd *cobra.Command) *agent.RegisterData {
 		}
 	}
 
-	logMetrics, _ := cmd.Flags().GetBool("agent.metrics")
-	if logMetrics {
-		logSources = append(logSources, "metrics://")
-	}
-
 	if len(logSources) == 0 {
 		cobra.CheckErr("at least one log source must be enabled")
 	}
@@ -92,9 +87,12 @@ func parseFlags(cmd *cobra.Command) *agent.RegisterData {
 		tags = append(tags, labels...)
 	}
 
+	metrics, _ := cmd.Flags().GetBool("agent.metrics")
+
 	data := &agent.RegisterData{
 		Hostname:   hostname,
 		LogSources: logSources,
+		Metrics:    metrics,
 		Tags:       tags,
 	}
 
