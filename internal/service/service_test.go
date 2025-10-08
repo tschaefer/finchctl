@@ -23,7 +23,7 @@ func Test_Deploy(t *testing.T) {
 	assert.NoError(t, err, "deploy service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 31, "number of log lines")
+	assert.Len(t, tracks, 32, "number of log lines")
 
 	wanted := "Running '[ \"${EUID:-$(id -u)}\" -eq 0 ] || command -v sudo' as tschaefer@localhost"
 	assert.Equal(t, wanted, tracks[0], "first log line")
