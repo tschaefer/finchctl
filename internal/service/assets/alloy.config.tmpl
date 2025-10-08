@@ -46,10 +46,15 @@ prometheus.remote_write "default" {
 
 prometheus.exporter.unix "node" {
   include_exporter_metrics = true
+  rootfs_path = "/host"
+  procfs_path = "/host/proc"
+  sysfs_path = "/host/sys"
+  udev_data_path = "/host/run/udev/data"
 }
 
 prometheus.scrape "node" {
   targets    = prometheus.exporter.unix.node.targets
   forward_to = [prometheus.remote_write.default.receiver]
+  scrape_interval = "15s"
 }
 
