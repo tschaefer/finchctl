@@ -228,6 +228,7 @@
       {
         "allowCustomValue": false,
         "current": {},
+        "datasource": "Loki",
         "definition": "",
         "label": "Filename",
         "name": "filename",
@@ -235,7 +236,7 @@
         "query": {
           "label": "filename",
           "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "",
+          "stream": "{host=\"$host\"}",
           "type": 1
         },
         "refresh": 1,
