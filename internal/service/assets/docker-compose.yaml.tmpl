@@ -82,6 +82,12 @@ services:
       - /var/lib/finch/alloy/etc:/etc/alloy
       - /var/lib/finch/alloy/data:/var/lib/alloy/data
       - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /run/dbus/system_bus_socket:/host/run/dbus/system_bus_socket:ro
+      - /run/systemd/private:/host/run/systemd/private:ro
+      - /run/udev:/host/run/udev:ro
+      - /:/host:ro,rslave
     command:
       - "run"
       - "--storage.path=/var/lib/alloy/data"

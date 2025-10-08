@@ -6,6 +6,9 @@ loki.write "default" {
   endpoint {
     url = "http://loki:3100/loki/api/v1/push"
   }
+  external_labels = {
+    "host" = "{{ .Hostname }}",
+  }
 }
 
 discovery.docker "linux" {
@@ -27,8 +30,30 @@ loki.source.docker "docker" {
   targets    = discovery.docker.linux.targets
   labels     = {
     "platform" = "docker",
-    "host" = "{{ .Hostname }}",
   }
   relabel_rules = loki.relabel.docker.rules
   forward_to = [loki.write.default.receiver]
 }
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "http://prometheus:9090/api/v1/write"
+  }
+  external_labels = {
+    "host" = "{{ .Hostname }}",
+  }
+}
+
+prometheus.exporter.unix "node" {
+  include_exporter_metrics = true
+  enable_collectors = [
+    "systemd",
+  ]
+  rootfs_path = "/host"
+}
+
+prometheus.scrape "node" {
+  targets    = prometheus.exporter.unix.node.targets
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
