@@ -46,10 +46,6 @@ prometheus.remote_write "default" {
 
 prometheus.exporter.unix "node" {
   include_exporter_metrics = true
-  enable_collectors = [
-    "systemd",
-  ]
-  rootfs_path = "/host"
 }
 
 prometheus.scrape "node" {
