@@ -340,6 +340,7 @@ func (s *service) configGrafanaDashboards() error {
 		"grafana-dashboard-logs-docker.json",
 		"grafana-dashboard-logs-journal.json",
 		"grafana-dashboard-logs-file.json",
+		"grafana-dashboard-metrics.json",
 	}
 
 	for _, dashboard := range dashboards {
