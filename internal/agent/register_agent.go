@@ -13,6 +13,7 @@ import (
 type RegisterData struct {
 	Hostname   string   `json:"hostname"`
 	LogSources []string `json:"log_sources"`
+	Metrics    bool     `json:"metrics"`
 	Tags       []string `json:"tags"`
 }
 
