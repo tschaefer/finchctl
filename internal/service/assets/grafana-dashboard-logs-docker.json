@@ -1,32 +1,4 @@
 {
-  "__inputs": [],
-  "__elements": {},
-  "__requires": [
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "12.0.2"
-    },
-    {
-      "type": "panel",
-      "id": "logs",
-      "name": "Logs",
-      "version": ""
-    },
-    {
-      "type": "datasource",
-      "id": "loki",
-      "name": "Loki",
-      "version": "1.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "timeseries",
-      "name": "Time series",
-      "version": ""
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -57,7 +29,10 @@
   "links": [],
   "panels": [
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "Loki",
+        "uid": "finch-loki"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -136,7 +111,10 @@
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": "Loki",
+          "datasource": {
+            "type": "Loki",
+            "uid": "finch-loki"
+          },
           "direction": "backward",
           "editorMode": "code",
           "expr": "sum(count_over_time({platform=\"docker\", host=~\"$host\", service_name=\"$service_name\"} |= \"$query\" [$__interval]))",
@@ -150,7 +128,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "Loki",
+        "uid": "finch-loki"
+      },
       "description": "Logs from services running in Docker",
       "gridPos": {
         "h": 25,
@@ -166,14 +147,17 @@
         "prettifyLogMessage": false,
         "showCommonLabels": false,
         "showLabels": false,
-        "showTime": false,
+        "showTime": true,
         "sortOrder": "Descending",
-        "wrapLogMessage": false
+        "wrapLogMessage": true
       },
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": "Loki",
+          "datasource": {
+            "type": "Loki",
+            "uid": "finch-loki"
+          },
           "direction": "backward",
           "editorMode": "code",
           "expr": "{platform=\"docker\",host=\"$host\", service_name=\"$service_name\"} |= \"$query\"",
@@ -210,7 +194,10 @@
       {
         "allowCustomValue": false,
         "current": {},
-        "datasource": "Loki",
+        "datasource": {
+          "type": "Loki",
+          "uid": "finch-loki"
+        },
         "definition": "",
         "label": "Host",
         "name": "host",
@@ -228,7 +215,10 @@
       {
         "allowCustomValue": false,
         "current": {},
-        "datasource": "Loki",
+        "datasource": {
+          "type": "Loki",
+          "uid": "finch-loki"
+        },
         "definition": "",
         "label": "Service",
         "name": "service_name",

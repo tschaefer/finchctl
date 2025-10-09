@@ -124,6 +124,10 @@ func (s *service) Update() error {
 		}
 	}()
 
+	if err := s.configGrafanaDashboards(); err != nil {
+		return err
+	}
+
 	if err := s.updateCompose(); err != nil {
 		return err
 	}

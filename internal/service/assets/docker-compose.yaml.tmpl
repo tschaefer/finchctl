@@ -20,6 +20,7 @@ services:
         datasources:
         - name: Loki
           type: loki
+          uid: finch-loki
           access: proxy
           orgId: 1
           url: http://loki:3100
@@ -29,6 +30,7 @@ services:
           editable: false
         - name: Prometheus
           type: prometheus
+          uid: finch-prometheus
           access: proxy
           orgId: 1
           url: http://prometheus:9090

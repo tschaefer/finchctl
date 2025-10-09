@@ -61,10 +61,10 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "update service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 7, "number of log lines")
+	assert.Len(t, tracks, 11, "number of log lines")
 
-	wanted := "Running 'sudo cat /var/lib/finch/finch.json' as tschaefer@localhost"
-	assert.Equal(t, wanted, tracks[0], "first log line")
+	wanted := "Copying from '/tmp/grafana-dashboard-logs-docker.json[0-9]+' to '/var/lib/finch/grafana/dashboards/grafana-dashboard-logs-docker.json' as tschaefer@localhost"
+	assert.Regexp(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'timeout 180 bash -c 'until curl -fs -o /dev/null -w \"%{http_code}\" http://localhost | grep -qE \"^[234][0-9]{2}$\"; do sleep 2; done'' as tschaefer@localhost"
 	assert.Equal(t, wanted, tracks[len(tracks)-2], "last log line")
