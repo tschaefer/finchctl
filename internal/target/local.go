@@ -6,6 +6,7 @@ package target
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -75,7 +76,13 @@ func (l *local) Request(method string, url *url.URL, data []byte) ([]byte, error
 		return nil, err
 	}
 
-	client := &http.Client{}
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+
+	client := &http.Client{Transport: tr}
 	req, err := http.NewRequest(method, url.String(), io.NopCloser(bytes.NewBuffer(data)))
 	if err != nil {
 		return nil, err
