@@ -132,7 +132,7 @@
         "type": "loki",
         "uid": "finch-loki"
       },
-      "description": "Logs from services running in Docker",
+      "description": "",
       "gridPos": {
         "h": 25,
         "w": 24,
@@ -148,7 +148,7 @@
         "showCommonLabels": false,
         "showLabels": false,
         "showTime": true,
-        "sortOrder": "Descending",
+        "sortOrder": "Ascending",
         "wrapLogMessage": true
       },
       "pluginVersion": "12.0.2",
@@ -178,7 +178,7 @@
           "text": "",
           "value": ""
         },
-        "description": "String to search for",
+        "description": "",
         "label": "Search Query",
         "name": "query",
         "options": [
