@@ -21,6 +21,10 @@ func (a *agent) listAgents(service string) (*[]ListData, error) {
 		return nil, &ListAgentsError{Message: err.Error(), Reason: ""}
 	}
 
+	if a.dryRun {
+		return nil, nil
+	}
+
 	var list []ListData
 	if err := json.Unmarshal(payload, &list); err != nil {
 		return nil, &ListAgentsError{Message: err.Error(), Reason: ""}

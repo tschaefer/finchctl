@@ -44,6 +44,10 @@ func runListCmd(cmd *cobra.Command, args []string) {
 	list, err := a.List(serviceName)
 	cobra.CheckErr(err)
 
+	if dryRun {
+		return
+	}
+
 	jsonOutput, _ := cmd.Flags().GetBool("output.json")
 	if jsonOutput {
 		out, err := json.MarshalIndent(list, "", "  ")
