@@ -117,7 +117,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "sum(count_over_time({job=\"loki.source.journal.journal\", host=\"$host\"} |= \"$query\" [$__interval]))",
+          "expr": "sum(count_over_time({job=\"loki.source.journal.journal\", host=\"$host\"} | json | line_format \"{{.MESSAGE}}\" |= \"$query\" [$__interval]))",
           "instant": false,
           "legendFormat": "Log count",
           "queryType": "range",
