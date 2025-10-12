@@ -294,7 +294,7 @@ func (s *service) configFinch() error {
 		Hostname:  s.config.Hostname,
 		Database:  "sqlite://finch.db",
 		Secret:    secret,
-		Version:   "0.2.0",
+		Version:   "0.3.0",
 		Credentials: struct {
 			Username string `json:"username"`
 			Password string `json:"password"`
