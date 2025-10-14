@@ -23,7 +23,7 @@ func Test_Deploy(t *testing.T) {
 	assert.NoError(t, err)
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 8, "number of log lines")
+	assert.Len(t, tracks, 10, "number of log lines")
 
 	wanted := "Running 'uname -sm' as tschaefer@localhost"
 	assert.Equal(t, wanted, tracks[0], "first log line")
