@@ -95,6 +95,16 @@ func (a *agent) serviceUnzip(release string, file string) (string, error) {
 		if _, err := io.Copy(binary, data); err != nil {
 			return "", &DeployAgentError{Message: err.Error(), Reason: ""}
 		}
+
+		break
+	}
+
+	info, err := binary.Stat()
+	if err != nil {
+		return "", &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+	if info.Size() == 0 {
+		return "", &DeployAgentError{Message: "Downloaded binary is empty", Reason: ""}
 	}
 
 	if err := binary.Chmod(0755); err != nil {
