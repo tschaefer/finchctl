@@ -70,6 +70,9 @@ func (l *local) Copy(src, dest, mode, owner string) error {
 
 func (l *local) Request(method string, url *url.URL, data []byte) ([]byte, error) {
 	printProgress(fmt.Sprintf("%s request to %s on %s@%s", method, url.String(), l.User, l.Host), l.format)
+	if l.dryRun {
+		return nil, nil
+	}
 
 	username, password, err := config.LookupStackAuth(url.Host)
 	if err != nil {

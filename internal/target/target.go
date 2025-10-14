@@ -7,7 +7,7 @@ package target
 import (
 	"fmt"
 	"net/url"
-	"os"
+	"os/user"
 	"slices"
 	"strings"
 )
@@ -54,11 +54,15 @@ func parseHostUrl(hostUrl string) (host *url.URL, err error) {
 		return nil, fmt.Errorf("invalid host URL: %w", err)
 	}
 
-	user := host.User.Username()
-	if user == "" {
-		user = os.Getenv("USER")
+	username := host.User.Username()
+	if username == "" {
+		username = "unknown"
+		user, err := user.Current()
+		if err == nil {
+			username = user.Username
+		}
 	}
-	host.User = url.User(user)
+	host.User = url.User(username)
 	port := host.Port()
 	if port == "" {
 		host.Host = fmt.Sprintf("%s:%s", host.Hostname(), "22")

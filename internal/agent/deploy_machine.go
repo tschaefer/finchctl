@@ -51,7 +51,10 @@ func (a *agent) machineInfo() (map[string]string, error) {
 	}
 
 	if a.dryRun {
-		return nil, nil
+		return map[string]string{
+			"kernel": "kernel",
+			"arch":   "arch",
+		}, nil
 	}
 
 	os := strings.SplitN(strings.TrimSpace(string(out)), " ", 2)
@@ -68,7 +71,7 @@ func (a *agent) machineInfo() (map[string]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		_, err = a.target.Run("[[ -d /run/systemd/system ]]")
+		_, err = a.target.Run("test -d /run/systemd/system")
 		if err != nil {
 			return nil, fmt.Errorf("unsupported target init system: %w", err)
 		}

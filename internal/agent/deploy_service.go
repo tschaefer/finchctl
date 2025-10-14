@@ -8,89 +8,123 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
-	"net/url"
+	"net/http"
 	"os"
-	"strings"
+	"os/user"
+	"path/filepath"
 	"time"
 
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
-func (a *agent) serviceInstall(machine map[string]string) error {
+func (a *agent) serviceDownload(release string, tmpdir string) (string, error) {
+	url := fmt.Sprintf("https://github.com/grafana/alloy/releases/latest/download/%s.zip", release)
+	tmpfile := fmt.Sprintf("%s/%s-%s.zip", tmpdir, release, time.Now().Format("19800212015200"))
+
+	a.printProgress(fmt.Sprintf("Downloading '%s'", url))
 	if a.dryRun {
-		fmt.Println("Dry run: skipping service installation")
-		return nil
+		return tmpfile, nil
 	}
 
-	binary := fmt.Sprintf("alloy-%s-%s", machine["kernel"], machine["arch"])
-	release := fmt.Sprintf("https://github.com/grafana/alloy/releases/latest/download/%s.zip", binary)
-	dest := "/usr/bin/alloy"
-
-	user := os.Getenv("USER")
-	localhost, _ := url.Parse("host://localhost")
-	localhost.User = url.User(user)
-	l, _ := target.NewLocal(localhost, a.format, a.dryRun)
-
-	out, err := l.Run("mktemp -p /tmp -d finch-XXXXXX")
+	out, err := os.Create(tmpfile)
 	if err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+		return "", &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
-	tmpdir := strings.TrimSpace(string(out))
 	defer func() {
-		_, _ = l.Run("rm -rf " + tmpdir)
+		_ = out.Close()
 	}()
-	tmpfile := fmt.Sprintf("%s/%s-%s.zip", tmpdir, binary, time.Now().Format("19800212015200"))
 
-	// Using curl instead of net/http is on purpose for now.
-	out, err = l.Run("curl --silent --fail-with-body --show-error --location " + release + " --output " + tmpfile)
+	resp, err := http.Get(url)
 	if err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+		return "", &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", &DeployAgentError{Message: fmt.Sprintf("Failed to download release: %s", resp.Status), Reason: ""}
 	}
 
-	archive, err := zip.OpenReader(tmpfile)
+	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: ""}
+		return "", &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	return tmpfile, nil
+}
+
+func (a *agent) serviceUnzip(release string, file string) (string, error) {
+	tmpdir := filepath.Dir(file)
+	tmpfile := fmt.Sprintf("%s/%s", tmpdir, release)
+
+	a.printProgress(fmt.Sprintf("Unzipping '%s'", file))
+
+	if a.dryRun {
+		return tmpfile, nil
+	}
+
+	archive, err := zip.OpenReader(file)
+	if err != nil {
+		return "", &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 	defer func() {
 		_ = archive.Close()
 	}()
 
-	if err := func() error {
-		for _, f := range archive.File {
-			if f.Name != binary {
-				continue
-			}
-			rc, err := f.Open()
-			if err != nil {
-				return &DeployAgentError{Message: err.Error(), Reason: ""}
-			}
-			defer func() {
-				_ = rc.Close()
-			}()
+	binary, err := os.Create(tmpfile)
+	if err != nil {
+		return "", &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+	defer func() {
+		_ = binary.Close()
+	}()
 
-			outFile := fmt.Sprintf("%s/%s", tmpdir, binary)
-			outF, err := os.Create(outFile)
-			if err != nil {
-				return &DeployAgentError{Message: err.Error(), Reason: ""}
-			}
-			defer func() {
-				_ = outF.Close()
-			}()
-
-			if _, err := io.Copy(outF, rc); err != nil {
-				return &DeployAgentError{Message: err.Error(), Reason: ""}
-			}
-
-			if err := outF.Chmod(0755); err != nil {
-				return &DeployAgentError{Message: err.Error(), Reason: ""}
-			}
+	for _, part := range archive.File {
+		if part.Name != release {
+			continue
 		}
-		return nil
-	}(); err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: ""}
+		data, err := part.Open()
+		if err != nil {
+			return "", &DeployAgentError{Message: err.Error(), Reason: ""}
+		}
+		defer func() {
+			_ = data.Close()
+		}()
+
+		if _, err := io.Copy(binary, data); err != nil {
+			return "", &DeployAgentError{Message: err.Error(), Reason: ""}
+		}
 	}
 
-	err = a.target.Copy(tmpdir+"/"+binary, dest, "755", "root:root")
+	if err := binary.Chmod(0755); err != nil {
+		return "", &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	return binary.Name(), nil
+}
+
+func (a *agent) serviceInstall(machine map[string]string) error {
+	tmpdir, err := os.MkdirTemp(os.TempDir(), "*-finch")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+	defer func() {
+		_ = os.RemoveAll(tmpdir)
+	}()
+
+	release := fmt.Sprintf("alloy-%s-%s", machine["kernel"], machine["arch"])
+	zip, err := a.serviceDownload(release, tmpdir)
+	if err != nil {
+		return err
+	}
+
+	binary, err := a.serviceUnzip(release, zip)
+	if err != nil {
+		return err
+	}
+
+	err = a.target.Copy(binary, "/usr/bin/alloy", "755", "root:root")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
@@ -116,4 +150,23 @@ func (a *agent) serviceSetup(machine map[string]string) error {
 	}
 
 	return nil
+}
+
+func (a *agent) printProgress(message string) {
+	username := "unknown"
+	user, err := user.Current()
+	if err == nil {
+		username = user.Username
+	}
+
+	switch a.format {
+	case target.FormatProgress:
+		fmt.Print(".")
+	case target.FormatDocumentation:
+		fmt.Printf("%s as %s@localhost\n", message, username)
+	case target.FormatQuiet:
+		// Do nothing
+	default:
+		fmt.Println(".")
+	}
 }
