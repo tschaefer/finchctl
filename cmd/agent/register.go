@@ -8,6 +8,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/agent"
 )
 
@@ -16,7 +18,7 @@ var registerCmd = &cobra.Command{
 	Short:             "Register a new agent with a finch service",
 	Args:              cobra.ExactArgs(1),
 	Run:               runRegisterCmd,
-	ValidArgsFunction: completeStackName,
+	ValidArgsFunction: completion.CompleteStackName,
 }
 
 func init() {
@@ -29,14 +31,14 @@ func init() {
 	registerCmd.Flags().String("run.format", "progress", "output format")
 	registerCmd.Flags().String("agent.config", "finch-agent.cfg", "Path to the configuration file")
 
-	_ = registerCmd.RegisterFlagCompletionFunc("run.format", completeRunFormat)
+	_ = registerCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
 
 func runRegisterCmd(cmd *cobra.Command, args []string) {
 	serviceName := args[0]
 	data := parseFlags(cmd)
 
-	format, err := getRunFormat(cmd)
+	format, err := format.GetRunFormat(cmd)
 	cobra.CheckErr(err)
 
 	a, err := agent.New("", "localhost", format, false)

@@ -6,6 +6,8 @@ package service
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/service"
 )
 
@@ -20,12 +22,12 @@ func init() {
 	updateCmd.Flags().String("run.format", "progress", "output format")
 	updateCmd.Flags().Bool("run.dry-run", false, "do not deploy, just print the commands that would be run")
 
-	_ = updateCmd.RegisterFlagCompletionFunc("run.format", completeRunFormat)
+	_ = updateCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
 
 func runUpdateCmd(cmd *cobra.Command, args []string) {
 	targetUrl := args[0]
-	format, err := getRunFormat(cmd)
+	format, err := format.GetRunFormat(cmd)
 	cobra.CheckErr(err)
 	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
 

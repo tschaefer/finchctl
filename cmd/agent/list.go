@@ -10,6 +10,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/agent"
 
 	"github.com/olekukonko/tablewriter"
@@ -20,7 +22,7 @@ var listCmd = &cobra.Command{
 	Short:             "List agents registered with a finch service",
 	Args:              cobra.ExactArgs(1),
 	Run:               runListCmd,
-	ValidArgsFunction: completeStackName,
+	ValidArgsFunction: completion.CompleteStackName,
 }
 
 func init() {
@@ -28,14 +30,14 @@ func init() {
 	listCmd.Flags().Bool("run.dry-run", false, "perform a dry run without register the agent")
 	listCmd.Flags().Bool("output.json", false, "output in JSON format (not implemented yet)")
 
-	_ = listCmd.RegisterFlagCompletionFunc("run.format", completeRunFormat)
+	_ = listCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
 
 func runListCmd(cmd *cobra.Command, args []string) {
 	serviceName := args[0]
 
 	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
-	format, err := getRunFormat(cmd)
+	format, err := format.GetRunFormat(cmd)
 	cobra.CheckErr(err)
 
 	a, err := agent.New("", "localhost", format, dryRun)

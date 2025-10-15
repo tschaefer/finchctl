@@ -6,6 +6,8 @@ package agent
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/agent"
 )
 
@@ -20,12 +22,12 @@ func init() {
 	teardownCmd.Flags().String("run.format", "progress", "output format")
 	teardownCmd.Flags().Bool("run.dry-run", false, "perform a dry run without tearing down the agent")
 
-	_ = teardownCmd.RegisterFlagCompletionFunc("run.format", completeRunFormat)
+	_ = teardownCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
 
 func runTeardownCmd(cmd *cobra.Command, args []string) {
 	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
-	format, err := getRunFormat(cmd)
+	format, err := format.GetRunFormat(cmd)
 	cobra.CheckErr(err)
 	targetUrl := args[0]
 

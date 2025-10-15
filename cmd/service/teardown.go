@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/service"
 )
 
@@ -25,12 +27,12 @@ func init() {
 	teardownCmd.Flags().Bool("run.dry-run", false, "do not deploy, just print the commands that would be run")
 	teardownCmd.Flags().String("service.host", "", "service host (default: auto-detected from target URL)")
 
-	_ = teardownCmd.RegisterFlagCompletionFunc("run.format", completeRunFormat)
+	_ = teardownCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
 
 func runTeardownCmd(cmd *cobra.Command, args []string) {
 	targetUrl := args[0]
-	format, err := getRunFormat(cmd)
+	format, err := format.GetRunFormat(cmd)
 	cobra.CheckErr(err)
 	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
 

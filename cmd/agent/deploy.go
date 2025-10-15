@@ -8,6 +8,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/agent"
 )
 
@@ -23,7 +25,7 @@ func init() {
 	deployCmd.Flags().String("run.format", "progress", "output format")
 	deployCmd.Flags().Bool("run.dry-run", false, "perform a dry run without deploying the agent")
 
-	_ = deployCmd.RegisterFlagCompletionFunc("run.format", completeRunFormat)
+	_ = deployCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
 
 func runDeployCmd(cmd *cobra.Command, args []string) {
@@ -32,7 +34,7 @@ func runDeployCmd(cmd *cobra.Command, args []string) {
 		cobra.CheckErr(fmt.Errorf("agent configuration file must be specified"))
 	}
 	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
-	format, err := getRunFormat(cmd)
+	format, err := format.GetRunFormat(cmd)
 	cobra.CheckErr(err)
 	targetUrl := args[0]
 

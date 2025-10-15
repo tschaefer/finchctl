@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/service"
 )
 
@@ -33,7 +35,7 @@ func init() {
 	deployCmd.Flags().String("service.customtls.cert", "", "path to custom TLS certificate file (required if --service.customtls is true)")
 	deployCmd.Flags().String("service.customtls.key", "", "path to custom TLS key file (required if --service.customtls is true)")
 
-	_ = deployCmd.RegisterFlagCompletionFunc("run.format", completeRunFormat)
+	_ = deployCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
 
 func runDeployCmd(cmd *cobra.Command, args []string) {
@@ -44,7 +46,7 @@ func runDeployCmd(cmd *cobra.Command, args []string) {
 	}
 
 	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
-	format, err := getRunFormat(cmd)
+	format, err := format.GetRunFormat(cmd)
 	cobra.CheckErr(err)
 
 	s, err := service.New(config, targetUrl, format, dryRun)

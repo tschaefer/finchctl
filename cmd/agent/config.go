@@ -8,6 +8,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/agent"
 )
 
@@ -16,7 +18,7 @@ var configCmd = &cobra.Command{
 	Short:             "Download an agent config from a finch service",
 	Args:              cobra.ExactArgs(1),
 	Run:               runConfigCmd,
-	ValidArgsFunction: completeStackName,
+	ValidArgsFunction: completion.CompleteStackName,
 }
 
 func init() {
@@ -24,13 +26,13 @@ func init() {
 	configCmd.Flags().String("agent.rid", "", "resource identifier of the agent to config")
 	configCmd.Flags().String("agent.config", "finch-agent.cfg", "Path to the configuration file")
 
-	_ = configCmd.RegisterFlagCompletionFunc("run.format", completeRunFormat)
+	_ = configCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
 
 func runConfigCmd(cmd *cobra.Command, args []string) {
 	serviceName := args[0]
 
-	format, err := getRunFormat(cmd)
+	format, err := format.GetRunFormat(cmd)
 	cobra.CheckErr(err)
 
 	rid, _ := cmd.Flags().GetString("agent.rid")
