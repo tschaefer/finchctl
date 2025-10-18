@@ -6,7 +6,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
 )
 
@@ -26,7 +25,7 @@ func (s *service) infoService() (*InfoData, error) {
 
 	payload, err := s.target.Request("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch service info: %w", err)
+		return nil, &InfoServiceError{Message: err.Error(), Reason: ""}
 	}
 
 	if s.dryRun {
@@ -35,7 +34,7 @@ func (s *service) infoService() (*InfoData, error) {
 
 	var info InfoData
 	if err := json.Unmarshal(payload, &info); err != nil {
-		return nil, fmt.Errorf("failed to parse service info: %w", err)
+		return nil, &InfoServiceError{Message: err.Error(), Reason: ""}
 	}
 
 	return &info, nil

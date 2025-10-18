@@ -35,3 +35,12 @@ type UpdateServiceError struct {
 func (e *UpdateServiceError) Error() string {
 	return strings.TrimSpace(fmt.Sprintf("Failed to update service: %s %s", e.Message, e.Reason))
 }
+
+type InfoServiceError struct {
+	Message string
+	Reason  string
+}
+
+func (e *InfoServiceError) Error() string {
+	return strings.TrimSpace(fmt.Sprintf("Failed to get service info: %s %s", e.Message, e.Reason))
+}
