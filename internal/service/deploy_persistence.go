@@ -13,6 +13,7 @@ func (s *service) persistenceMkdir() error {
 		"alloy/{data,etc}",
 		"traefik/etc/{certs.d,conf.d}",
 		"prometheus/{data,etc}",
+		"mimir/{data,etc}",
 	}
 	for _, dir := range directories {
 		out, err := s.target.Run(fmt.Sprintf("sudo mkdir -p %s/%s", s.libDir(), dir))
@@ -31,6 +32,7 @@ func (s *service) persistenceChown() error {
 		"alloy":      "0:0",
 		"traefik":    "0:0",
 		"prometheus": "65534:65534",
+		"mimir":      "0:0",
 	}
 
 	for path, owner := range ownership {
