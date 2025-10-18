@@ -19,6 +19,7 @@ type Service interface {
 	Deploy() error
 	Update() error
 	Teardown() error
+	Info() (*InfoData, error)
 }
 
 type service struct {
@@ -129,6 +130,16 @@ func (s *service) Update() error {
 	}
 
 	return nil
+}
+
+func (s *service) Info() (*InfoData, error) {
+	defer func() {
+		if s.format == target.FormatProgress {
+			println()
+		}
+	}()
+
+	return s.infoService()
 }
 
 func (s *service) libDir() string {
