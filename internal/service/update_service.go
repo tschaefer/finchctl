@@ -87,10 +87,6 @@ func (s *service) updateService() error {
 		return err
 	}
 
-	if err := s.configPrometheus(); err != nil {
-		return err
-	}
-
 	if err := s.configMimir(); err != nil {
 		return err
 	}

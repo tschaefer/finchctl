@@ -37,7 +37,7 @@ loki.source.docker "docker" {
 
 prometheus.remote_write "default" {
   endpoint {
-    url = "http://prometheus:9090/api/v1/write"
+    url = "http://mimir:8080/api/v1/push"
   }
   external_labels = {
     "host" = "{{ .Hostname }}",
