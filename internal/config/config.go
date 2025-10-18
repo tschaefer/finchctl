@@ -31,8 +31,8 @@ type Config struct {
 }
 
 type Stack struct {
-	Name  string `yaml:"name,omitempty"`
-	Token string `yaml:"token,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Token string `json:"token,omitempty"`
 }
 
 func UpdateStackAuth(name, username, password string) error {
@@ -124,9 +124,7 @@ func RemoveStackAuth(name string) error {
 }
 
 func fileExists() bool {
-	configFile := configFile()
-
-	if _, err := os.Stat(configFile); err != nil && os.IsNotExist(err) {
+	if _, err := os.Stat(configFile()); err != nil && os.IsNotExist(err) {
 		return false
 	}
 
@@ -143,9 +141,7 @@ func WriteConfig(config *Config) error {
 }
 
 func ReadConfig() (*Config, error) {
-	configFile := configFile()
-
-	data, err := os.ReadFile(configFile)
+	data, err := os.ReadFile(configFile())
 	if err != nil {
 		return nil, &ConfigError{Message: err.Error(), Reason: ""}
 	}
@@ -166,7 +162,7 @@ func configFile() string {
 		var err error
 		dir, err = os.UserHomeDir()
 		if err != nil {
-			panic(err)
+			panic(&ConfigError{Message: err.Error(), Reason: ""})
 		}
 		dir = fmt.Sprintf("%s/.finch", dir)
 	}
