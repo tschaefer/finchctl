@@ -30,7 +30,7 @@ func (s *service) persistenceChown() error {
 		"loki":    "10001:10001",
 		"alloy":   "0:0",
 		"traefik": "0:0",
-		"mimir":   "0:0",
+		"mimir":   "10001:10001",
 	}
 
 	for path, owner := range ownership {

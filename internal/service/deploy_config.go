@@ -386,7 +386,7 @@ func (s *service) configMimir() error {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := s.target.Copy(f.Name(), dest, "400", "root:root"); err != nil {
+	if err := s.target.Copy(f.Name(), dest, "400", "10001:10001"); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 

@@ -110,6 +110,7 @@ services:
       - /var/lib/finch/mimir/etc:/etc/mimir
     command:
       - "--config.file=/etc/mimir/mimir.yaml"
+    user: "10001:10001"
     restart: always
 
 networks:
