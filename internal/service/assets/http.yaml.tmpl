@@ -37,6 +37,16 @@ http:
         - loki-auth
       tls: true
 
+    mimir:
+      rule: PathPrefix(`/mimir`) {{ .HostRule }}
+      entrypoints:
+        - websecure
+      service: mimir
+      middlewares:
+        - strip-mimir-prefix
+        - loki-auth
+      tls: true
+
   services:
     grafana:
       loadBalancer:
@@ -58,6 +68,11 @@ http:
         servers:
           - url: http://prometheus:9090
 
+    mimir:
+      loadBalancer:
+        servers:
+          - url: http://mimir:8080
+
   middlewares:
     strip-loki-prefix:
       stripprefix:
@@ -73,6 +88,11 @@ http:
       stripprefix:
         prefixes:
           - "/prometheus"
+
+    strip-mimir-prefix:
+      stripprefix:
+        prefixes:
+          - "/mimir"
 
 tls:
   certificates:
