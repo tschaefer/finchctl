@@ -367,15 +367,15 @@ func (s *service) configGrafanaDashboards() error {
 	return nil
 }
 
-func (s *service) configPrometheus() error {
-	dest := fmt.Sprintf("%s/prometheus/etc/prometheus.yaml", s.libDir())
+func (s *service) configMimir() error {
+	dest := fmt.Sprintf("%s/mimir/etc/mimir.yaml", s.libDir())
 
-	content, err := fs.ReadFile(Assets, "prometheus.yaml")
+	content, err := fs.ReadFile(Assets, "mimir.yaml")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	f, err := os.CreateTemp("", "prometheus.yaml")
+	f, err := os.CreateTemp("", "mimir.yaml")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
@@ -386,7 +386,7 @@ func (s *service) configPrometheus() error {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := s.target.Copy(f.Name(), dest, "400", "nobody:nogroup"); err != nil {
+	if err := s.target.Copy(f.Name(), dest, "400", "10001:10001"); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
@@ -426,7 +426,7 @@ func (s *service) configSetup() error {
 		return err
 	}
 
-	if err := s.configPrometheus(); err != nil {
+	if err := s.configMimir(); err != nil {
 		return err
 	}
 

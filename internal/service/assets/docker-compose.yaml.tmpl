@@ -28,12 +28,12 @@ services:
           isDefault: false
           version: 1
           editable: false
-        - name: Prometheus
+        - name: Mimir
           type: prometheus
-          uid: finch-prometheus
+          uid: finch-mimir
           access: proxy
           orgId: 1
-          url: http://prometheus:9090
+          url: http://mimir:8080/prometheus
           basicAuth: false
           isDefault: false
           version: 1
@@ -97,23 +97,20 @@ services:
 
   finch:
     container_name: finch
-    image: ghcr.io/tschaefer/finch:0.3.0
+    image: ghcr.io/tschaefer/finch:dev
     volumes:
       - /var/lib/finch:/var/lib/finch
     restart: always
 
-  prometheus:
-    container_name: prometheus
-    image: quay.io/prometheus/prometheus:v3.6.0
+  mimir:
+    container_name: mimir
+    image: grafana/mimir:2.17.1
     volumes:
-      - /var/lib/finch/prometheus/etc:/etc/prometheus
-      - /var/lib/finch/prometheus/data:/data
+      - /var/lib/finch/mimir/data:/var/lib/mimir
+      - /var/lib/finch/mimir/etc:/etc/mimir
     command:
-      - '--config.file=/etc/prometheus/prometheus.yaml'
-      - '--storage.tsdb.path=/data'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-      - '--web.enable-remote-write-receiver'
+      - "--config.file=/etc/mimir/mimir.yaml"
+    user: "10001:10001"
     restart: always
 
 networks:

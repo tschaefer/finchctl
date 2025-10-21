@@ -12,7 +12,7 @@ func (s *service) persistenceMkdir() error {
 		"loki/{data,etc}",
 		"alloy/{data,etc}",
 		"traefik/etc/{certs.d,conf.d}",
-		"prometheus/{data,etc}",
+		"mimir/{data,etc}",
 	}
 	for _, dir := range directories {
 		out, err := s.target.Run(fmt.Sprintf("sudo mkdir -p %s/%s", s.libDir(), dir))
@@ -26,11 +26,11 @@ func (s *service) persistenceMkdir() error {
 
 func (s *service) persistenceChown() error {
 	ownership := map[string]string{
-		"grafana":    "472:472",
-		"loki":       "10001:10001",
-		"alloy":      "0:0",
-		"traefik":    "0:0",
-		"prometheus": "65534:65534",
+		"grafana": "472:472",
+		"loki":    "10001:10001",
+		"alloy":   "0:0",
+		"traefik": "0:0",
+		"mimir":   "10001:10001",
 	}
 
 	for path, owner := range ownership {

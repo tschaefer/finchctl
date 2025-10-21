@@ -27,13 +27,13 @@ http:
         - strip-finch-prefix
       tls: true
 
-    prometheus:
-      rule: PathPrefix(`/prometheus`) {{ .HostRule }}
+    mimir:
+      rule: PathPrefix(`/mimir`) {{ .HostRule }}
       entrypoints:
         - websecure
-      service: prometheus
+      service: mimir
       middlewares:
-        - strip-prometheus-prefix
+        - strip-mimir-prefix
         - loki-auth
       tls: true
 
@@ -53,10 +53,10 @@ http:
         servers:
           - url: http://finch:3000
 
-    prometheus:
+    mimir:
       loadBalancer:
         servers:
-          - url: http://prometheus:9090
+          - url: http://mimir:8080
 
   middlewares:
     strip-loki-prefix:
@@ -69,10 +69,10 @@ http:
         prefixes:
           - "/finch"
 
-    strip-prometheus-prefix:
+    strip-mimir-prefix:
       stripprefix:
         prefixes:
-          - "/prometheus"
+          - "/mimir"
 
 tls:
   certificates:

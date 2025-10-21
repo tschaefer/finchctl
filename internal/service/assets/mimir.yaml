@@ -1,0 +1,36 @@
+---
+multitenancy_enabled: false
+
+activity_tracker:
+  filepath: /var/lib/mimir/metrics-activity.log
+
+blocks_storage:
+  bucket_store:
+    sync_dir: /var/lib/mimir/tsdb-sync
+  filesystem:
+    dir: /var/lib/mimir/blocks
+  tsdb:
+    dir: /var/lib/mimir/tsdb
+
+compactor:
+  data_dir: /var/lib/mimir/data-compactor
+
+distributor:
+  ring:
+    instance_addr: 127.0.0.1
+
+ingester:
+  ring:
+    instance_addr: 127.0.0.1
+    replication_factor: 1
+
+ruler_storage:
+  filesystem:
+    dir: /var/lib/mimir/ruler
+
+ruler:
+  rule_path: /var/lib/mimir/data-ruler
+
+store_gateway:
+  sharding_ring:
+    replication_factor: 1

@@ -9,36 +9,36 @@ import (
 	"fmt"
 )
 
-func (s *service) updateReadConfiguration() (*Config, error) {
+func (s *service) updateSetConfiguration() error {
 	out, err := s.target.Run(fmt.Sprintf("sudo cat %s/finch.json", s.libDir()))
 	if err != nil {
-		return nil, &UpdateServiceError{Message: err.Error(), Reason: string(out)}
+		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
+	}
+
+	if s.dryRun {
+		return nil
 	}
 
 	var config Config
-
-	if s.dryRun {
-		return &config, nil
-	}
-
 	err = json.Unmarshal([]byte(out), &config)
-	if err != nil {
-		return nil, &UpdateServiceError{Message: err.Error(), Reason: ""}
-	}
-
-	return &config, nil
-}
-
-func (s *service) updateCompose() error {
-	cfg, err := s.updateReadConfiguration()
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	s.config.Hostname = cfg.Hostname
-	s.config.Username = cfg.Credentials.Username
-	s.config.Password = cfg.Credentials.Password
+	s.config.Hostname = config.Hostname
+	s.config.Username = config.Credentials.Username
+	s.config.Password = config.Credentials.Password
 
+	yaml := fmt.Sprintf("%s/traefik/etc/conf.d/letsencrypt.yaml", s.libDir())
+	_, err = s.target.Run(fmt.Sprintf("test -e %s", yaml))
+	if err == nil {
+		s.config.LetsEncrypt.Enabled = true
+	}
+
+	return nil
+}
+
+func (s *service) updateCompose() error {
 	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml down --volumes", s.libDir()))
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
@@ -67,10 +67,35 @@ func (s *service) updateCompose() error {
 		return err
 	}
 
+	out, err = s.target.Run("sudo docker image prune --force")
+	if err != nil {
+		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
+	}
+
 	return nil
 }
 
 func (s *service) updateService() error {
+	if err := s.updateSetConfiguration(); err != nil {
+		return err
+	}
+
+	if err := s.configLoki(); err != nil {
+		return err
+	}
+
+	if err := s.configTraefikHttp(); err != nil {
+		return err
+	}
+
+	if err := s.configAlloy(); err != nil {
+		return err
+	}
+
+	if err := s.configMimir(); err != nil {
+		return err
+	}
+
 	if err := s.configGrafanaDashboards(); err != nil {
 		return err
 	}
