@@ -25,11 +25,11 @@ func Test_Deploy(t *testing.T) {
 	tracks := strings.Split(record, "\n")
 	assert.Len(t, tracks, 32, "number of log lines")
 
-	wanted := "Running '[ \"${EUID:-$(id -u)}\" -eq 0 ] || command -v sudo' as tschaefer@localhost"
-	assert.Equal(t, wanted, tracks[0], "first log line")
+	wanted := "Running '[ \"${EUID:\\-$(id -u)}\" -eq 0 ] || command -v sudo' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[0], "first log line")
 
-	wanted = "Running 'timeout 180 bash -c 'until curl -fs -o /dev/null -w \"%{http_code}\" http://localhost | grep -qE \"^[234][0-9]{2}$\"; do sleep 2; done'' as tschaefer@localhost"
-	assert.Equal(t, wanted, tracks[len(tracks)-2], "last log line")
+	wanted = "Running 'timeout 180 bash -c 'until curl -fs -o /dev/null -w \"%{http_code}\" http://localhost | grep -qE \"^[234][0-9]{2}$\"; do sleep 2; done'' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 }
 
 func Test_Teardown(t *testing.T) {
@@ -44,11 +44,11 @@ func Test_Teardown(t *testing.T) {
 	tracks := strings.Split(record, "\n")
 	assert.Len(t, tracks, 3, "number of log lines mismatch")
 
-	wanted := "Running 'sudo docker compose --file /var/lib/finch/docker-compose.yaml down --volumes' as tschaefer@localhost"
-	assert.Equal(t, wanted, tracks[0], "first log line")
+	wanted := "Running 'sudo docker compose --file /var/lib/finch/docker-compose.yaml down --volumes' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[0], "first log line")
 
-	wanted = "Running 'sudo rm -rf /var/lib/finch' as tschaefer@localhost"
-	assert.Equal(t, wanted, tracks[len(tracks)-2], "last log line")
+	wanted = "Running 'sudo rm -rf /var/lib/finch' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 }
 
 func Test_Update(t *testing.T) {
@@ -63,11 +63,11 @@ func Test_Update(t *testing.T) {
 	tracks := strings.Split(record, "\n")
 	assert.Len(t, tracks, 11, "number of log lines")
 
-	wanted := "Copying from '/tmp/grafana-dashboard-logs-docker.json[0-9]+' to '/var/lib/finch/grafana/dashboards/grafana-dashboard-logs-docker.json' as tschaefer@localhost"
+	wanted := "Copying from '/tmp/grafana-dashboard-logs-docker.json[0-9]+' to '/var/lib/finch/grafana/dashboards/grafana-dashboard-logs-docker.json' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
-	wanted = "Running 'timeout 180 bash -c 'until curl -fs -o /dev/null -w \"%{http_code}\" http://localhost | grep -qE \"^[234][0-9]{2}$\"; do sleep 2; done'' as tschaefer@localhost"
-	assert.Equal(t, wanted, tracks[len(tracks)-2], "last log line")
+	wanted = "Running 'timeout 180 bash -c 'until curl -fs -o /dev/null -w \"%{http_code}\" http://localhost | grep -qE \"^[234][0-9]{2}$\"; do sleep 2; done'' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 }
 
 func capture(f func()) string {

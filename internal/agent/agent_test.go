@@ -25,11 +25,11 @@ func Test_Deploy(t *testing.T) {
 	tracks := strings.Split(record, "\n")
 	assert.Len(t, tracks, 10, "number of log lines")
 
-	wanted := "Running 'uname -sm' as tschaefer@localhost"
-	assert.Equal(t, wanted, tracks[0], "first log line")
+	wanted := "Running 'uname -sm' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[0], "first log line")
 
-	wanted = "Running 'sudo systemctl enable --now alloy' as tschaefer@localhost"
-	assert.Equal(t, wanted, tracks[len(tracks)-2], "last log line")
+	wanted = "Running 'sudo systemctl enable --now alloy' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 }
 
 func Test_Teardown(t *testing.T) {
@@ -44,11 +44,11 @@ func Test_Teardown(t *testing.T) {
 	tracks := strings.Split(record, "\n")
 	assert.Len(t, tracks, 6, "number of log lines mismatch")
 
-	wanted := "Running 'sudo systemctl stop alloy.service' as tschaefer@localhost"
-	assert.Equal(t, wanted, tracks[0], "first log line")
+	wanted := "Running 'sudo systemctl stop alloy.service' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[0], "first log line")
 
-	wanted = "Running 'sudo rm -rf /var/lib/alloy' as tschaefer@localhost"
-	assert.Equal(t, wanted, tracks[len(tracks)-2], "last log line")
+	wanted = "Running 'sudo rm -rf /var/lib/alloy' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 }
 
 func capture(f func()) string {

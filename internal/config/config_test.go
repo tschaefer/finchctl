@@ -6,6 +6,7 @@ package config
 
 import (
 	"os"
+	"os/user"
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v7"
@@ -29,10 +30,17 @@ func Test_ErrorString(t *testing.T) {
 }
 
 func Test_UpdateStackAuthFailIfPermissionDenied(t *testing.T) {
+	user, err := user.Current()
+	assert.NoError(t, err, "get current user")
+
+	if user.Uid == "0" {
+		t.Skip("skipping permission denied test as current user is root")
+	}
+
 	cfgLoc := setup(t)
 	defer teardown(cfgLoc, t)
 
-	err := os.Chmod(cfgLoc, 0000)
+	err = os.Chmod(cfgLoc, 0000)
 	assert.NoError(t, err, "change permissions of config directory")
 
 	stack := newStack()
