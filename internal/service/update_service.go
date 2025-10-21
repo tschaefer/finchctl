@@ -80,6 +80,10 @@ func (s *service) updateService() error {
 		return err
 	}
 
+	if err := s.persistenceSetup(); err != nil {
+		return err
+	}
+
 	if err := s.configLoki(); err != nil {
 		return err
 	}

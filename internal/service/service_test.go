@@ -61,7 +61,7 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "update service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 16, "number of log lines")
+	assert.Len(t, tracks, 26, "number of log lines")
 
 	wanted := "Running 'sudo cat /var/lib/finch/finch.json' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
