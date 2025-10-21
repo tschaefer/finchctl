@@ -15,6 +15,7 @@ type Agent interface {
 	List(string) (*[]ListData, error)
 	Deregister(string, string) error
 	Config(string, string) ([]byte, error)
+	Update() error
 }
 
 type agent struct {
@@ -122,4 +123,14 @@ func (a *agent) Config(service, resourceID string) ([]byte, error) {
 	}()
 
 	return a.downloadConfig(service, resourceID)
+}
+
+func (a *agent) Update() error {
+	defer func() {
+		if a.format == target.FormatProgress {
+			println()
+		}
+	}()
+
+	return a.updateAgent()
 }

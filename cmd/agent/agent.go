@@ -14,4 +14,5 @@ func init() {
 	Cmd.AddCommand(listCmd)
 	Cmd.AddCommand(deregisterCmd)
 	Cmd.AddCommand(configCmd)
+	Cmd.AddCommand(updateCmd)
 }

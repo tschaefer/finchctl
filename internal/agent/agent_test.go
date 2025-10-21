@@ -51,6 +51,25 @@ func Test_Teardown(t *testing.T) {
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 }
 
+func Test_Update(t *testing.T) {
+	a, err := New("finch-agent.conf", "localhost", target.FormatDocumentation, true)
+	assert.NoError(t, err, "create agent")
+
+	record := capture(func() {
+		err = a.Update()
+	})
+	assert.NoError(t, err, "update agent")
+
+	tracks := strings.Split(record, "\n")
+	assert.Len(t, tracks, 3, "number of log lines mismatch")
+
+	wanted := "Copying from 'finch-agent.conf' to '/etc/alloy/alloy.config' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[0], "first log line")
+
+	wanted = "Running 'sudo systemctl restart alloy.service' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
+}
+
 func capture(f func()) string {
 	originalStdout := os.Stdout
 

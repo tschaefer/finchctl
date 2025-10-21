@@ -49,3 +49,12 @@ type DeregisterAgentError struct {
 func (e *DeregisterAgentError) Error() string {
 	return strings.TrimSpace(fmt.Sprintf("Failed to deregister agent: %s %s", e.Message, e.Reason))
 }
+
+type UpdateAgentError struct {
+	Message string
+	Reason  string
+}
+
+func (e *UpdateAgentError) Error() string {
+	return strings.TrimSpace(fmt.Sprintf("Failed to update agent: %s %s", e.Message, e.Reason))
+}
