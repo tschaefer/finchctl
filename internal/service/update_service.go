@@ -67,6 +67,11 @@ func (s *service) updateCompose() error {
 		return err
 	}
 
+	out, err = s.target.Run("sudo docker image prune --force")
+	if err != nil {
+		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
+	}
+
 	return nil
 }
 
