@@ -39,11 +39,6 @@ func (s *service) updateSetConfiguration() error {
 }
 
 func (s *service) updateCompose() error {
-	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml down --volumes", s.libDir()))
-	if err != nil {
-		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
-	}
-
 	compose, err := s.composeRender()
 	if err != nil {
 		return err
@@ -53,7 +48,7 @@ func (s *service) updateCompose() error {
 		return err
 	}
 
-	out, err = s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml pull --policy always", s.libDir()))
+	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml pull --policy always", s.libDir()))
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
 	}
