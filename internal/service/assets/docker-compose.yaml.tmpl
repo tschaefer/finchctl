@@ -38,6 +38,18 @@ services:
           isDefault: false
           version: 1
           editable: false
+        - name: Pyroscope
+          type: grafana-pyroscope-datasource
+          uid: finch-pyroscope
+          access: proxy
+          orgId: 1
+          url: http://pyroscope:4040
+          basicAuth: false
+          isDefault: false
+          version: 1
+          jsonData:
+            keepCookies: [pyroscope_git_session]
+          editable: false
         EOF
         mkdir -p /etc/grafana/provisioning/dashboards
         cat <<EOF > /etc/grafana/provisioning/dashboards/db.yaml
@@ -110,6 +122,16 @@ services:
       - /var/lib/finch/mimir/etc:/etc/mimir
     command:
       - "--config.file=/etc/mimir/mimir.yaml"
+    user: "10001:10001"
+    restart: always
+
+  pyroscope:
+    container_name: pyroscope
+    image: grafana/pyroscope:1.15.0
+    volumes:
+      - /var/lib/finch/pyroscope/data:/var/lib/pyroscope
+    command:
+      - "--pyroscopedb.data-path=/var/lib/pyroscope"
     user: "10001:10001"
     restart: always
 
