@@ -108,7 +108,7 @@ func (l *local) Request(method string, url *url.URL, data []byte) ([]byte, error
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		var data map[string]string
 		if err := json.Unmarshal(payload, &data); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("status %d: %s", resp.StatusCode, string(payload))
 		}
 
 		return nil, fmt.Errorf("%s", data["detail"])
