@@ -100,6 +100,7 @@ services:
     image: ghcr.io/tschaefer/finch:0.4.0
     volumes:
       - /var/lib/finch:/var/lib/finch
+    user: "10002:10002"
     restart: always
 
   mimir:

@@ -326,7 +326,7 @@ func (s *service) configFinch() error {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := s.target.Copy(f.Name(), dest, "400", "root:root"); err != nil {
+	if err := s.target.Copy(f.Name(), dest, "400", "10002:10002"); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 

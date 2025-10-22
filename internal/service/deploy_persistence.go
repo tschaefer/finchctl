@@ -21,6 +21,22 @@ func (s *service) persistenceMkdir() error {
 		}
 	}
 
+	files := map[string]string{
+		"finch.json": "400",
+		"finch.db":   "600",
+	}
+
+	for file, mode := range files {
+		out, err := s.target.Run(fmt.Sprintf("sudo touch %s/%s", s.libDir(), file))
+		if err != nil {
+			return &DeployServiceError{Message: err.Error(), Reason: string(out)}
+		}
+		out, err = s.target.Run(fmt.Sprintf("sudo chmod %s %s/%s", mode, s.libDir(), file))
+		if err != nil {
+			return &DeployServiceError{Message: err.Error(), Reason: string(out)}
+		}
+	}
+
 	return nil
 }
 
@@ -35,6 +51,18 @@ func (s *service) persistenceChown() error {
 
 	for path, owner := range ownership {
 		out, err := s.target.Run(fmt.Sprintf("sudo chown -R %s %s/%s", owner, s.libDir(), path))
+		if err != nil {
+			return &DeployServiceError{Message: err.Error(), Reason: string(out)}
+		}
+	}
+
+	files := map[string]string{
+		"finch.json": "10002:10002",
+		"finch.db":   "10002:10002",
+	}
+
+	for file, owner := range files {
+		out, err := s.target.Run(fmt.Sprintf("sudo chown %s %s/%s", owner, s.libDir(), file))
 		if err != nil {
 			return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 		}
