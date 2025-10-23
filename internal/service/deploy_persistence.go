@@ -71,12 +71,28 @@ func (s *service) persistenceChown() error {
 	return nil
 }
 
+func (s *service) persistenceLibDir() error {
+	out, err := s.target.Run(fmt.Sprintf("sudo chmod 775 %s", s.libDir()))
+	if err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
+	}
+	out, err = s.target.Run(fmt.Sprintf("sudo chgrp 10002 %s", s.libDir()))
+	if err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
+	}
+	return nil
+}
+
 func (s *service) persistenceSetup() error {
 	if err := s.persistenceMkdir(); err != nil {
 		return err
 	}
 
 	if err := s.persistenceChown(); err != nil {
+		return err
+	}
+
+	if err := s.persistenceLibDir(); err != nil {
 		return err
 	}
 
