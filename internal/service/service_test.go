@@ -23,7 +23,7 @@ func Test_Deploy(t *testing.T) {
 	assert.NoError(t, err, "deploy service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 40, "number of log lines")
+	assert.Len(t, tracks, 32, "number of log lines")
 
 	wanted := "Running '[ \"${EUID:\\-$(id -u)}\" -eq 0 ] || command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
@@ -61,7 +61,7 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "update service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 33, "number of log lines")
+	assert.Len(t, tracks, 25, "number of log lines")
 
 	wanted := "Running 'sudo cat /var/lib/finch/finch.json' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
