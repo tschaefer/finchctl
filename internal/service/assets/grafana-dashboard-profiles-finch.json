@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 8,
+  "id": 9,
   "links": [],
   "panels": [
     {
@@ -55,7 +55,8 @@
             "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
-              "type": "linear"
+              "log": 10,
+              "type": "log"
             },
             "showPoints": "auto",
             "showValues": false,
@@ -95,10 +96,12 @@
       "options": {
         "legend": {
           "calcs": [
-            "mean"
+            "mean",
+            "max",
+            "min"
           ],
           "displayMode": "table",
-          "placement": "right",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
@@ -133,13 +136,13 @@
           "hide": false,
           "labelSelector": "{service_name=\"finch\"}",
           "limit": 10,
-          "profileTypeId": "memory:alloc_objects:count:space:bytes",
+          "profileTypeId": "memory:inuse_space:bytes:space:bytes",
           "queryType": "metrics",
           "refId": "B",
           "spanSelector": []
         }
       ],
-      "title": "CPU",
+      "title": "CPU / Memory",
       "type": "timeseries"
     },
     {
@@ -176,9 +179,9 @@
             "type": "loki",
             "uid": "finch-loki"
           },
-          "direction": "forward",
+          "direction": "backward",
           "editorMode": "builder",
-          "expr": "{host=\"finch.s.coresec.zone\", platform=\"docker\", service_name=\"finch\"} | logfmt",
+          "expr": "{platform=\"docker\", service_name=\"finch\"} | logfmt",
           "queryType": "range",
           "refId": "A"
         }
@@ -239,5 +242,5 @@
   "timezone": "browser",
   "title": "Profiles / Finch",
   "uid": "tspj9wn",
-  "version": 2
+  "version": 1
 }
