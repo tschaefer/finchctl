@@ -1,18 +1,19 @@
-# The Minimal Logging Infrastructure
+# The Minimal Observability Infrastructure
 
-finchtcl can be used to deploy a logging stack and agents.
+`finchctl` is used to deploy an observability stack and agents.
 
-The logging stack bases on Docker and consists of following services:
+The stack is based on Docker and consists of the following services:
 
-- **grafana** - The visualization tool
-- **loki** - The log aggregation system
-- **alloy** - The log shipping agent
-- **prometheus** - The monitoring system
-- **traefik** - The reverse proxy
-- **finch** - The log agent manager
+- **Grafana** – Visualization and dashboards
+- **Loki** – Log aggregation system
+- **Mimir** – Metrics backend
+- **Pyroscope** – Profiling data aggregation and visualization
+- **Alloy** – Client-side agent for logs, metrics, and profiling data
+- **Traefik** – Reverse proxy
+- **Finch** – Agent manager
 
-Consider to read the [Blog post](https://blog.tschaefer.org/posts/2025/08/17/finch-a-minimal-logging-stack/)
-for motivation and a walkthrough before using this tool.
+See the [Blog post](https://blog.tschaefer.org/posts/2025/08/17/finch-a-minimal-logging-stack/)
+for background, motivation, and a walkthrough before you get started.
 
 ## Getting Started
 
@@ -20,26 +21,22 @@ Download the latest release from the
 [releases page](https://github.com/tschaefer/finchctl/releases) or build it
 from source.
 
-## Install the logging stack
+## Install the Observability Stack
 
-Prerequisites is a blank Linux machine with SSH access and superuser
-privileges.
+You need a blank Linux machine with SSH access and superuser privileges.
 
-To install a logging stack the easiest way without further configuration
-run the following command:
+To install the stack with default configuration, run:
 
 ```bash
 finchctl service deploy root@10.19.80.100
 ```
 
-This will deploy the logging stack to the remote machine and exposes the
-services under the base URL `https://10.19.80.100`. The admin credentials
-can be found in the configuration file ~/.finch/config.json. The path to the
-main services are `/grafana` and `/finch`. The used TLS certificate is a
-traefik default self-signed certificate.
+This deploys the stack and exposes services at `https://10.19.80.100`.
+Admin credentials are in `~/.finch/config.json`.
+Visualization and dashboards are available under `/grafana`.
+TLS uses Traefik's default self-signed certificate.
 
-Assumed you have a public reachable machine and a DNS record for it, you
-can deploy the logging stack with a custom URL and Let's Encrypt certificate.
+For a public machine with DNS and Let's Encrypt certificate:
 
 ```bash
 finchctl service deploy \
@@ -48,21 +45,18 @@ finchctl service deploy \
     --service.host finch.example.com root@cloud.machine
 ```
 
-This will deploy the logging stack to the remote machine and exposes the
-services under the base URL `https://finch.example.com` and uses a
-Let's Encrypt certificate. The credentials for Grafana and Finch are set
-to user `admin` and password `secret`.
+Services are exposed at `https://finch.example.com` with a Let's Encrypt
+certificate. Credentials for Grafana and Finch: user `admin`, password `secret`.
 
-Beside Let's Encrypt you can also use a custom TLS certificate by specifying
-the paths to the certificate and key files.
+To use a custom TLS certificate:
 
 ```bash
 finchctl service deploy \
-    --service.customtls --service.customtls.cert ~/.tls/cert.pem
+    --service.customtls --service.customtls.cert ~/.tls/cert.pem \
     --service.customtls.key ~/.tls/key.pem finch.example.com
 ```
 
-##  Enrolling a logging agent
+## Enrolling an Observability Agent
 
 ```bash
 finchctl agent register \
@@ -70,36 +64,44 @@ finchctl agent register \
     --agent.log.journal finch.example.com
 ```
 
-This will register a new agent with the given hostname to the given finch
-service. The prepared agent configuration file will be stored as
-`finch-agent.cfg`. It is set up ready to deploy, including all loki endpoint
-configuration and authentication credentials. As requested the agent will send
-systemd journal records to the logging stack.
+This registers a new agent for the specified Finch service.  
+The agent config file is saved as `finch-agent.cfg`, ready to deploy, including
+all endpoints and credentials. By default, it sends systemd journal records.
 
-Beside systemd journal records, docker `--agent.log.docker` and file records
-`--agent.log.file /var/log/*.log` can be used as log sources.
+You can also collect logs from Docker containers (`--agent.log.docker`) and
+files (`--agent.log.file /var/log/*.log`). Metrics can be included via
+`--agent.metrics`.
 
-Additionally, collect metrics via `--agent.metrics`.
+To deploy the agent:
 
 ```bash
 finchctl agent deploy --config finch-agent.cfg root@app.machine
 ```
-This will enroll the agent, alloy, on the remote machine and start it with the
-configuration from the specified file.
 
-## Further controller commands
+Alloy will be enrolled and started with the provided configuration.
 
-Both commands, `service` and `agent`, have severals subcommands. Among others
-`teardown` to remove the deployed logging stack or agent from the remote
-machine and `update` to update the logging stack services or agent to the
-latest version.
+## Profiling Data Collection
+
+Applications can forward profiling data to Alloy's Pyroscope receiver:
+
+- **Endpoint:** `http://localhost:4040`
+- **Configuration:** Alloy is pre-configured to accept and forward this data to Pyroscope.
+
+## Further Controller Commands
+
+Both `service` and `agent` commands have several subcommands, including:
+
+- `teardown` – Remove the deployed stack or agent
+- `update` – Upgrade stack services or agent to the latest version
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and submit a pull request.
-For major changes, open an issue first to discuss what you would like to change.
+Contributions are welcome!
+Fork the repository and submit a pull request. For major changes, open an issue
+first to discuss your proposal.
 
-Ensure that your code adheres to the existing style and includes appropriate tests.
+Please ensure your code follows the project's style and includes appropriate
+tests.
 
 ## License
 
