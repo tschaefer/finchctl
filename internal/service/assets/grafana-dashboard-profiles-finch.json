@@ -55,7 +55,7 @@
             "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
-              "log": 10,
+              "log": 2,
               "type": "log"
             },
             "showPoints": "auto",
@@ -87,7 +87,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 5,
         "w": 24,
         "x": 0,
         "y": 0
@@ -102,7 +102,7 @@
           ],
           "displayMode": "table",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": false
         },
         "tooltip": {
           "hideZeros": false,
@@ -155,10 +155,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 11,
+        "h": 15,
         "w": 12,
         "x": 0,
-        "y": 9
+        "y": 5
       },
       "id": 2,
       "options": {
@@ -199,10 +199,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 11,
+        "h": 15,
         "w": 12,
         "x": 12,
-        "y": 9
+        "y": 5
       },
       "id": 3,
       "options": {},
