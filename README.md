@@ -80,12 +80,15 @@ finchctl agent deploy --config finch-agent.cfg root@app.machine
 
 Alloy will be enrolled and started with the provided configuration.
 
-## Profiling Data Collection
+## Metrics and Profiling Data Collection
 
-Applications can forward profiling data to Alloy's Pyroscope receiver:
+Applications can forward metrics and profiling data to Alloy::
 
-- **Endpoint:** `http://localhost:4040`
-- **Configuration:** Alloy is pre-configured to accept and forward this data to Pyroscope.
+- **Metrics Listen** `http://localhost:9091`
+- **Profiling Listen** `http://localhost:4040`
+
+Alloy is pre-configured to accept and forward this data to Mimir and
+Pyroscope.
 
 ## Further Controller Commands
 
