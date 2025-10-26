@@ -132,6 +132,11 @@ services:
       - /var/lib/finch/pyroscope/data:/var/lib/pyroscope
     command:
       - "--pyroscopedb.data-path=/var/lib/pyroscope"
+      - "--compactor.blocks-retention-period=72h"
+      - "--querier.max-query-lookback=72h"
+      - "--querier.max-query-length=72h"
+      - "--querier.max-query-lookback=72h"
+      - "--server.log-source-ips-enabled=true"
     user: "10001:10001"
     restart: always
 
