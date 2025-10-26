@@ -3,7 +3,7 @@ GitCommit := $(shell git rev-parse HEAD)
 LDFLAGS := "-s -w -X github.com/tschaefer/finchctl/internal/version.Version=$(Version) -X github.com/tschaefer/finchctl/internal/version.GitCommit=$(GitCommit)"
 
 .PHONY: all
-all: fmt lint dist
+all: fmt lint test dist
 
 .PHONY: fmt
 fmt:

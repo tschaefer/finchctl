@@ -4,36 +4,28 @@
       {
         "builtIn": 1,
         "datasource": {
-          "type": "datasource",
-          "uid": "grafana"
+          "type": "grafana",
+          "uid": "-- Grafana --"
         },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
-        "target": {
-          "limit": 100,
-          "matchAny": false,
-          "tags": [],
-          "type": "dashboard"
-        },
         "type": "dashboard"
       }
     ]
   },
-  "description": "Logs collected from Docker, stored in Loki",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 9,
   "links": [],
   "panels": [
     {
       "datasource": {
-        "type": "Loki",
-        "uid": "finch-loki"
+        "type": "grafana-pyroscope-datasource",
+        "uid": "finch-pyroscope"
       },
-      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -47,8 +39,8 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
-            "drawStyle": "bars",
-            "fillOpacity": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -57,12 +49,17 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
             "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
-              "type": "linear"
+              "log": 2,
+              "type": "log"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -77,7 +74,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -89,55 +87,78 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 5,
         "w": 24,
         "x": 0,
         "y": 0
       },
-      "id": 4,
+      "id": 1,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": [
+            "mean",
+            "max",
+            "min"
+          ],
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": false
         },
         "tooltip": {
           "hideZeros": false,
-          "mode": "single",
+          "mode": "multi",
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.2",
+      "pluginVersion": "12.2.0",
       "targets": [
         {
+          "annotations": true,
           "datasource": {
-            "type": "Loki",
-            "uid": "finch-loki"
+            "type": "grafana-pyroscope-datasource",
+            "uid": "finch-pyroscope"
           },
-          "direction": "backward",
-          "editorMode": "code",
-          "expr": "sum(count_over_time({platform=\"docker\", host=~\"$host\", service_name=\"$service_name\"} |= \"$query\" [$__interval]))",
-          "instant": false,
-          "legendFormat": "Log count",
-          "queryType": "range",
-          "range": true,
-          "refId": "A"
+          "groupBy": [],
+          "labelSelector": "{service_name=\"finch\"}",
+          "limit": 10,
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "queryType": "metrics",
+          "refId": "A",
+          "spanSelector": []
+        },
+        {
+          "annotations": true,
+          "datasource": {
+            "type": "grafana-pyroscope-datasource",
+            "uid": "finch-pyroscope"
+          },
+          "groupBy": [],
+          "hide": false,
+          "labelSelector": "{service_name=\"finch\"}",
+          "limit": 10,
+          "profileTypeId": "memory:inuse_space:bytes:space:bytes",
+          "queryType": "metrics",
+          "refId": "B",
+          "spanSelector": []
         }
       ],
+      "title": "CPU / Memory",
       "type": "timeseries"
     },
     {
       "datasource": {
-        "type": "Loki",
+        "type": "loki",
         "uid": "finch-loki"
       },
-      "description": "",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
       "gridPos": {
-        "h": 25,
-        "w": 24,
+        "h": 15,
+        "w": 12,
         "x": 0,
-        "y": 4
+        "y": 5
       },
       "id": 2,
       "options": {
@@ -151,98 +172,75 @@
         "sortOrder": "Ascending",
         "wrapLogMessage": true
       },
-      "pluginVersion": "12.0.2",
+      "pluginVersion": "12.2.0",
       "targets": [
         {
           "datasource": {
-            "type": "Loki",
+            "type": "loki",
             "uid": "finch-loki"
           },
           "direction": "backward",
-          "editorMode": "code",
-          "expr": "{platform=\"docker\",host=\"$host\", service_name=\"$service_name\"} |= \"$query\"",
+          "editorMode": "builder",
+          "expr": "{platform=\"docker\", service_name=\"finch\"} | logfmt",
           "queryType": "range",
           "refId": "A"
         }
       ],
+      "title": "Logs",
       "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "grafana-pyroscope-datasource",
+        "uid": "finch-pyroscope"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 12,
+        "y": 5
+      },
+      "id": 3,
+      "options": {},
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "annotations": true,
+          "datasource": {
+            "type": "grafana-pyroscope-datasource",
+            "uid": "finch-pyroscope"
+          },
+          "groupBy": [],
+          "labelSelector": "{service_name=\"finch\"}",
+          "limit": 10,
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "queryType": "profile",
+          "refId": "A",
+          "spanSelector": []
+        }
+      ],
+      "title": "Flame Graph",
+      "type": "flamegraph"
     }
   ],
+  "preload": false,
   "refresh": "",
-  "schemaVersion": 41,
+  "schemaVersion": 42,
   "tags": [],
   "templating": {
-    "list": [
-      {
-        "current": {
-          "text": "",
-          "value": ""
-        },
-        "description": "",
-        "label": "Search Query",
-        "name": "query",
-        "options": [
-          {
-            "selected": true,
-            "text": "",
-            "value": ""
-          }
-        ],
-        "query": "",
-        "type": "textbox"
-      },
-      {
-        "allowCustomValue": false,
-        "current": {},
-        "datasource": {
-          "type": "Loki",
-          "uid": "finch-loki"
-        },
-        "definition": "",
-        "label": "Host",
-        "name": "host",
-        "options": [],
-        "query": {
-          "label": "host",
-          "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "{platform=\"docker\"}",
-          "type": 1
-        },
-        "refresh": 1,
-        "regex": "",
-        "type": "query"
-      },
-      {
-        "allowCustomValue": false,
-        "current": {},
-        "datasource": {
-          "type": "Loki",
-          "uid": "finch-loki"
-        },
-        "definition": "",
-        "label": "Service",
-        "name": "service_name",
-        "options": [],
-        "query": {
-          "label": "service_name",
-          "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "{platform=\"docker\", host=\"$host\"}",
-          "type": 1
-        },
-        "refresh": 1,
-        "regex": "",
-        "type": "query"
-      }
-    ]
+    "list": []
   },
   "time": {
     "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
-  "timezone": "",
-  "title": "Logs / Docker",
-  "uid": "o6-BGgnnk",
-  "version": 2,
-  "weekStart": ""
+  "timezone": "browser",
+  "title": "Profiles / Finch",
+  "uid": "tspj9wn",
+  "version": 1
 }

@@ -37,6 +37,16 @@ http:
         - loki-auth
       tls: true
 
+    pyroscope:
+      rule: PathPrefix(`/pyroscope`) {{ .HostRule }}
+      entrypoints:
+        - websecure
+      service: pyroscope
+      middlewares:
+        - strip-pyroscope-prefix
+        - loki-auth
+      tls: true
+
   services:
     grafana:
       loadBalancer:
@@ -58,6 +68,11 @@ http:
         servers:
           - url: http://mimir:8080
 
+    pyroscope:
+      loadBalancer:
+        servers:
+          - url: http://pyroscope:4040
+
   middlewares:
     strip-loki-prefix:
       stripprefix:
@@ -73,6 +88,11 @@ http:
       stripprefix:
         prefixes:
           - "/mimir"
+
+    strip-pyroscope-prefix:
+      stripprefix:
+        prefixes:
+          - "/pyroscope"
 
 tls:
   certificates:
