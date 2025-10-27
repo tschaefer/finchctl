@@ -26,29 +26,20 @@ var listCmd = &cobra.Command{
 }
 
 func init() {
-	listCmd.Flags().String("run.format", "progress", "output format")
-	listCmd.Flags().Bool("run.dry-run", false, "perform a dry run without register the agent")
 	listCmd.Flags().Bool("output.json", false, "output in JSON format (not implemented yet)")
-
-	_ = listCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
 
 func runListCmd(cmd *cobra.Command, args []string) {
 	serviceName := args[0]
 
-	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
-	format, err := format.GetRunFormat(cmd)
+	format, err := format.GetRunFormat("quiet")
 	cobra.CheckErr(err)
 
-	a, err := agent.New("", "localhost", format, dryRun)
+	a, err := agent.New("", "localhost", format, false)
 	cobra.CheckErr(err)
 
 	list, err := a.List(serviceName)
 	cobra.CheckErr(err)
-
-	if dryRun {
-		return
-	}
 
 	jsonOutput, _ := cmd.Flags().GetBool("output.json")
 	if jsonOutput {

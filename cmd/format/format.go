@@ -7,16 +7,13 @@ package format
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
-func GetRunFormat(cmd *cobra.Command) (target.Format, error) {
-	formatter, _ := cmd.Flags().GetString("run.format")
-
+func GetRunFormat(name string) (target.Format, error) {
 	var format target.Format
 	var err error
-	switch formatter {
+	switch name {
 	case "documentation":
 		format = target.FormatDocumentation
 	case "quiet":
@@ -24,7 +21,7 @@ func GetRunFormat(cmd *cobra.Command) (target.Format, error) {
 	case "progress":
 		format = target.FormatProgress
 	default:
-		err = fmt.Errorf("unknown format %s", formatter)
+		err = fmt.Errorf("unknown format %s", name)
 	}
 
 	return format, err

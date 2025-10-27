@@ -27,8 +27,11 @@ func init() {
 
 func runTeardownCmd(cmd *cobra.Command, args []string) {
 	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
-	format, err := format.GetRunFormat(cmd)
+
+	formatName, _ := cmd.Flags().GetString("run.format")
+	format, err := format.GetRunFormat(formatName)
 	cobra.CheckErr(err)
+
 	targetUrl := args[0]
 
 	a, err := agent.New("", targetUrl, format, dryRun)

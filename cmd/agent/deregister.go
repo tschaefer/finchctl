@@ -20,16 +20,13 @@ var deregisterCmd = &cobra.Command{
 }
 
 func init() {
-	deregisterCmd.Flags().String("run.format", "progress", "output format")
 	deregisterCmd.Flags().String("agent.rid", "", "resource identifier of the agent to deregister")
-
-	_ = deregisterCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
 
 func runDeregisterCmd(cmd *cobra.Command, args []string) {
 	serviceName := args[0]
 
-	format, err := format.GetRunFormat(cmd)
+	format, err := format.GetRunFormat("quiet")
 	cobra.CheckErr(err)
 
 	rid, _ := cmd.Flags().GetString("agent.rid")

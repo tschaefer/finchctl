@@ -29,17 +29,14 @@ func init() {
 	registerCmd.Flags().Bool("agent.profiles", false, "Enable profiles collector")
 	registerCmd.Flags().StringSlice("agent.log.file", nil, "Collect logs from file paths")
 	registerCmd.Flags().StringSlice("agent.labels", nil, "Optional labels for identifying the agent")
-	registerCmd.Flags().String("run.format", "progress", "output format")
 	registerCmd.Flags().String("agent.config", "finch-agent.cfg", "Path to the configuration file")
-
-	_ = registerCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
 
 func runRegisterCmd(cmd *cobra.Command, args []string) {
 	serviceName := args[0]
 	data := parseFlags(cmd)
 
-	format, err := format.GetRunFormat(cmd)
+	format, err := format.GetRunFormat("quiet")
 	cobra.CheckErr(err)
 
 	a, err := agent.New("", "localhost", format, false)

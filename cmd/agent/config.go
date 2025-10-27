@@ -22,17 +22,14 @@ var configCmd = &cobra.Command{
 }
 
 func init() {
-	configCmd.Flags().String("run.format", "progress", "output format")
 	configCmd.Flags().String("agent.rid", "", "resource identifier of the agent to config")
 	configCmd.Flags().String("agent.config", "finch-agent.cfg", "Path to the configuration file")
-
-	_ = configCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
 
 func runConfigCmd(cmd *cobra.Command, args []string) {
 	serviceName := args[0]
 
-	format, err := format.GetRunFormat(cmd)
+	format, err := format.GetRunFormat("quiet")
 	cobra.CheckErr(err)
 
 	rid, _ := cmd.Flags().GetString("agent.rid")
