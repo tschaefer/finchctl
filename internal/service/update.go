@@ -9,7 +9,7 @@ import (
 	"fmt"
 )
 
-func (s *service) updateSetConfiguration() error {
+func (s *service) __updateSetTargetConfiguration() error {
 	out, err := s.target.Run(fmt.Sprintf("sudo cat %s/finch.json", s.libDir()))
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
@@ -38,12 +38,8 @@ func (s *service) updateSetConfiguration() error {
 	return nil
 }
 
-func (s *service) updateCompose() error {
-	compose, err := s.composeRender()
-	if err != nil {
-		return err
-	}
-	err = s.composeCopy(compose)
+func (s *service) __updateRecomposeDockerServices() error {
+	err := s.__deployCopyComposeFile()
 	if err != nil {
 		return err
 	}
@@ -53,11 +49,11 @@ func (s *service) updateCompose() error {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
-	err = s.composeRun()
+	err = s.__deployComposeUp()
 	if err != nil {
 		return err
 	}
-	err = s.composeReady()
+	err = s.__deployComposeReady()
 	if err != nil {
 		return err
 	}
@@ -71,35 +67,35 @@ func (s *service) updateCompose() error {
 }
 
 func (s *service) updateService() error {
-	if err := s.updateSetConfiguration(); err != nil {
+	if err := s.__updateSetTargetConfiguration(); err != nil {
 		return err
 	}
 
-	if err := s.persistenceSetup(); err != nil {
+	if err := s.__deployDirHierachy(); err != nil {
 		return err
 	}
 
-	if err := s.configLoki(); err != nil {
+	if err := s.__deployCopyLokiConfig(); err != nil {
 		return err
 	}
 
-	if err := s.configTraefikHttp(); err != nil {
+	if err := s.__deployCopyTraefikHttpConfig(); err != nil {
 		return err
 	}
 
-	if err := s.configAlloy(); err != nil {
+	if err := s.__deployCopyAlloyConfig(); err != nil {
 		return err
 	}
 
-	if err := s.configMimir(); err != nil {
+	if err := s.__deployCopyMimirConfig(); err != nil {
 		return err
 	}
 
-	if err := s.configGrafanaDashboards(); err != nil {
+	if err := s.__deployCopyGrafanaDashboards(); err != nil {
 		return err
 	}
 
-	if err := s.updateCompose(); err != nil {
+	if err := s.__updateRecomposeDockerServices(); err != nil {
 		return err
 	}
 

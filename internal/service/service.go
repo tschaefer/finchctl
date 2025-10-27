@@ -89,23 +89,15 @@ func (s *service) Deploy() error {
 		}
 	}()
 
-	if err := s.requirementsSetup(); err != nil {
+	if err := s.requirementsService(); err != nil {
 		return err
 	}
 
-	if err := s.dockerSetup(); err != nil {
+	if err := s.dockerService(); err != nil {
 		return err
 	}
 
-	if err := s.persistenceSetup(); err != nil {
-		return err
-	}
-
-	if err := s.configSetup(); err != nil {
-		return err
-	}
-
-	if err := s.composeSetup(); err != nil {
+	if err := s.deployService(); err != nil {
 		return err
 	}
 
