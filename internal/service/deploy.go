@@ -59,18 +59,6 @@ func (s *service) __deploySetDirHierachyPermission() error {
 	return nil
 }
 
-func (s *service) __deployDirHierachy() error {
-	if err := s.__deployMakeDirHierachy(); err != nil {
-		return err
-	}
-
-	if err := s.__deploySetDirHierachyPermission(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (s *service) __deployCopyLokiConfig() error {
 	path := fmt.Sprintf("%s/loki/etc/loki.yaml", s.libDir())
 	return s.__helperCopyConfig(path, "400", "10001:10001")
@@ -282,46 +270,6 @@ func (s *service) __helperCopyTemplate(path, mode, owner string, data any) error
 	return nil
 }
 
-func (s *service) __deployConfigs() error {
-	if err := s.__deployCopyLokiConfig(); err != nil {
-		return err
-	}
-
-	if err := s.__deployCopyLokiUserAuthFile(); err != nil {
-		return err
-	}
-
-	if err := s.__deployCopyTraefikConfig(); err != nil {
-		return err
-	}
-
-	if err := s.__deployCopyTraefikHttpConfig(); err != nil {
-		return err
-	}
-
-	if err := s.__deployCopyTraefikHttpTlsConfig(); err != nil {
-		return err
-	}
-
-	if err := s.__deployCopyAlloyConfig(); err != nil {
-		return err
-	}
-
-	if err := s.__deployCopyGrafanaDashboards(); err != nil {
-		return err
-	}
-
-	if err := s.__deployCopyFinchConfig(); err != nil {
-		return err
-	}
-
-	if err := s.__deployCopyMimirConfig(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (s *service) __deployCopyComposeFile() error {
 	path := fmt.Sprintf("%s/docker-compose.yaml", s.libDir())
 
@@ -358,7 +306,51 @@ func (s *service) __deployComposeReady() error {
 	return nil
 }
 
-func (s *service) __deployCompose() error {
+func (s *service) deployService() error {
+	if err := s.__deployMakeDirHierachy(); err != nil {
+		return err
+	}
+
+	if err := s.__deploySetDirHierachyPermission(); err != nil {
+		return err
+	}
+
+	if err := s.__deployCopyLokiConfig(); err != nil {
+		return err
+	}
+
+	if err := s.__deployCopyLokiUserAuthFile(); err != nil {
+		return err
+	}
+
+	if err := s.__deployCopyTraefikConfig(); err != nil {
+		return err
+	}
+
+	if err := s.__deployCopyTraefikHttpConfig(); err != nil {
+		return err
+	}
+
+	if err := s.__deployCopyTraefikHttpTlsConfig(); err != nil {
+		return err
+	}
+
+	if err := s.__deployCopyAlloyConfig(); err != nil {
+		return err
+	}
+
+	if err := s.__deployCopyGrafanaDashboards(); err != nil {
+		return err
+	}
+
+	if err := s.__deployCopyFinchConfig(); err != nil {
+		return err
+	}
+
+	if err := s.__deployCopyMimirConfig(); err != nil {
+		return err
+	}
+
 	if err := s.__deployCopyComposeFile(); err != nil {
 		return err
 	}
@@ -368,22 +360,6 @@ func (s *service) __deployCompose() error {
 	}
 
 	if err := s.__deployComposeReady(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *service) deployService() error {
-	if err := s.__deployDirHierachy(); err != nil {
-		return err
-	}
-
-	if err := s.__deployConfigs(); err != nil {
-		return err
-	}
-
-	if err := s.__deployCompose(); err != nil {
 		return err
 	}
 

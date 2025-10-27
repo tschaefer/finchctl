@@ -71,28 +71,32 @@ func (s *service) updateService() error {
 		return err
 	}
 
-	if err := s.__deployDirHierachy(); err != nil {
-		return err
+	if err := s.__deployMakeDirHierachy(); err != nil {
+		return convertError(err, &UpdateServiceError{})
+	}
+
+	if err := s.__deploySetDirHierachyPermission(); err != nil {
+		return convertError(err, &UpdateServiceError{})
 	}
 
 	if err := s.__deployCopyLokiConfig(); err != nil {
-		return err
+		return convertError(err, &UpdateServiceError{})
 	}
 
 	if err := s.__deployCopyTraefikHttpConfig(); err != nil {
-		return err
+		return convertError(err, &UpdateServiceError{})
 	}
 
 	if err := s.__deployCopyAlloyConfig(); err != nil {
-		return err
+		return convertError(err, &UpdateServiceError{})
 	}
 
 	if err := s.__deployCopyMimirConfig(); err != nil {
-		return err
+		return convertError(err, &UpdateServiceError{})
 	}
 
 	if err := s.__deployCopyGrafanaDashboards(); err != nil {
-		return err
+		return convertError(err, &UpdateServiceError{})
 	}
 
 	if err := s.__updateRecomposeDockerServices(); err != nil {
