@@ -20,7 +20,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s *service) __deployMakeDirHierachy() error {
+func (s *service) __deployMakeDirHierarchy() error {
 	directories := []string{
 		"grafana/dashboards",
 		"loki/{data,etc}",
@@ -39,7 +39,7 @@ func (s *service) __deployMakeDirHierachy() error {
 	return nil
 }
 
-func (s *service) __deploySetDirHierachyPermission() error {
+func (s *service) __deploySetDirHierarchyPermission() error {
 	ownership := map[string]string{
 		"grafana":   "472:472",
 		"loki":      "10001:10001",
@@ -183,7 +183,7 @@ func (s *service) __deployCopyFinchConfig() error {
 		},
 	}
 
-	return s.__helperCopyTemplate(path, "400", "10002:1002", data)
+	return s.__helperCopyTemplate(path, "400", "10002:10002", data)
 }
 
 func (s *service) __deployCopyGrafanaDashboards() error {
@@ -307,11 +307,11 @@ func (s *service) __deployComposeReady() error {
 }
 
 func (s *service) deployService() error {
-	if err := s.__deployMakeDirHierachy(); err != nil {
+	if err := s.__deployMakeDirHierarchy(); err != nil {
 		return err
 	}
 
-	if err := s.__deploySetDirHierachyPermission(); err != nil {
+	if err := s.__deploySetDirHierarchyPermission(); err != nil {
 		return err
 	}
 

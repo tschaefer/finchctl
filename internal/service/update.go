@@ -71,11 +71,11 @@ func (s *service) updateService() error {
 		return err
 	}
 
-	if err := s.__deployMakeDirHierachy(); err != nil {
+	if err := s.__deployMakeDirHierarchy(); err != nil {
 		return convertError(err, &UpdateServiceError{})
 	}
 
-	if err := s.__deploySetDirHierachyPermission(); err != nil {
+	if err := s.__deploySetDirHierarchyPermission(); err != nil {
 		return convertError(err, &UpdateServiceError{})
 	}
 
