@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func (a *agent) machineLinuxArch(machine string) (string, error) {
+func (a *agent) __machineGetLinuxArch(machine string) (string, error) {
 	switch machine {
 	case "x86_64":
 		return "amd64", nil
@@ -24,7 +24,7 @@ func (a *agent) machineLinuxArch(machine string) (string, error) {
 	}
 }
 
-func (a *agent) machineDarwinArch(machine string) (string, error) {
+func (a *agent) __machineGetDarwinArch(machine string) (string, error) {
 	switch machine {
 	case "x86_64":
 		return "amd64", nil
@@ -35,7 +35,7 @@ func (a *agent) machineDarwinArch(machine string) (string, error) {
 	}
 }
 
-func (a *agent) machineFreebsdArch(machine string) (string, error) {
+func (a *agent) __machineGetFreebsdArch(machine string) (string, error) {
 	switch machine {
 	case "amd64":
 		return "amd64", nil
@@ -67,7 +67,7 @@ func (a *agent) machineInfo() (map[string]string, error) {
 	var arch string
 	switch kernel {
 	case "Linux":
-		arch, err = a.machineLinuxArch(machine)
+		arch, err = a.__machineGetLinuxArch(machine)
 		if err != nil {
 			return nil, err
 		}
@@ -76,13 +76,13 @@ func (a *agent) machineInfo() (map[string]string, error) {
 			return nil, fmt.Errorf("unsupported target init system: %w", err)
 		}
 	case "Darwin":
-		_, err = a.machineDarwinArch(machine)
+		_, err = a.__machineGetDarwinArch(machine)
 		if err != nil {
 			return nil, err
 		}
 		return nil, fmt.Errorf("yet unsupported target kernel: %s", kernel)
 	case "FreeBSD":
-		_, err = a.machineFreebsdArch(machine)
+		_, err = a.__machineGetFreebsdArch(machine)
 		if err != nil {
 			return nil, err
 		}

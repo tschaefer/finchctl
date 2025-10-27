@@ -8,6 +8,7 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"os/user"
@@ -17,11 +18,60 @@ import (
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
-func (a *agent) serviceDownload(release string, tmpdir string) (string, error) {
+func (a *agent) __deployMakeDirHierachy() error {
+	directories := []string{
+		"/var/lib/alloy/data",
+		"/etc/alloy",
+	}
+	for _, dir := range directories {
+		out, err := a.target.Run("sudo mkdir -p " + dir)
+		if err != nil {
+			return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+		}
+	}
+
+	return nil
+}
+
+func (a *agent) __deployCopyConfigFile() error {
+	if err := a.target.Copy(a.config, "/etc/alloy/alloy.config", "400", "root:root"); err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	return nil
+}
+
+func (a *agent) __deployCopySystemdServiceUnit() error {
+	dest := "/etc/systemd/system/alloy.service"
+
+	content, err := fs.ReadFile(Assets, "alloy.service")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	f, err := os.CreateTemp("", "alloy.service")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+	defer func() {
+		_ = os.Remove(f.Name())
+	}()
+	if _, err := f.Write(content); err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	if err := a.target.Copy(f.Name(), dest, "444", "root:root"); err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	return nil
+}
+
+func (a *agent) __deployDownloadRelease(release string, tmpdir string) (string, error) {
 	url := fmt.Sprintf("https://github.com/grafana/alloy/releases/latest/download/%s.zip", release)
 	tmpfile := fmt.Sprintf("%s/%s-%s.zip", tmpdir, release, time.Now().Format("19800212015200"))
 
-	a.printProgress(fmt.Sprintf("Downloading '%s'", url))
+	a.__helperPrintProgress(fmt.Sprintf("Downloading '%s'", url))
 	if a.dryRun {
 		return tmpfile, nil
 	}
@@ -54,11 +104,11 @@ func (a *agent) serviceDownload(release string, tmpdir string) (string, error) {
 	return tmpfile, nil
 }
 
-func (a *agent) serviceUnzip(release string, file string) (string, error) {
+func (a *agent) __deployUnzipRelease(release string, file string) (string, error) {
 	tmpdir := filepath.Dir(file)
 	tmpfile := fmt.Sprintf("%s/%s", tmpdir, release)
 
-	a.printProgress(fmt.Sprintf("Unzipping '%s'", file))
+	a.__helperPrintProgress(fmt.Sprintf("Unzipping '%s'", file))
 
 	if a.dryRun {
 		return tmpfile, nil
@@ -114,27 +164,8 @@ func (a *agent) serviceUnzip(release string, file string) (string, error) {
 	return binary.Name(), nil
 }
 
-func (a *agent) serviceInstall(machine map[string]string) error {
-	tmpdir, err := os.MkdirTemp(os.TempDir(), "*-finch")
-	if err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: ""}
-	}
-	defer func() {
-		_ = os.RemoveAll(tmpdir)
-	}()
-
-	release := fmt.Sprintf("alloy-%s-%s", machine["kernel"], machine["arch"])
-	zip, err := a.serviceDownload(release, tmpdir)
-	if err != nil {
-		return err
-	}
-
-	binary, err := a.serviceUnzip(release, zip)
-	if err != nil {
-		return err
-	}
-
-	err = a.target.Copy(binary, "/usr/bin/alloy", "755", "root:root")
+func (a *agent) __deployInstallBinary(binary string) error {
+	err := a.target.Copy(binary, "/usr/bin/alloy", "755", "root:root")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
@@ -142,7 +173,7 @@ func (a *agent) serviceInstall(machine map[string]string) error {
 	return nil
 }
 
-func (a *agent) serviceEnable() error {
+func (a *agent) __deployEnableSystemdService() error {
 	out, err := a.target.Run("sudo systemctl enable --now alloy")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
@@ -150,19 +181,7 @@ func (a *agent) serviceEnable() error {
 	return nil
 }
 
-func (a *agent) serviceSetup(machine map[string]string) error {
-	if err := a.serviceInstall(machine); err != nil {
-		return err
-	}
-
-	if err := a.serviceEnable(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (a *agent) printProgress(message string) {
+func (a *agent) __helperPrintProgress(message string) {
 	username := "unknown"
 	user, err := user.Current()
 	if err == nil {
@@ -179,4 +198,47 @@ func (a *agent) printProgress(message string) {
 	default:
 		fmt.Println(".")
 	}
+}
+
+func (a *agent) deployAgent(machine map[string]string) error {
+	if err := a.__deployMakeDirHierachy(); err != nil {
+		return err
+	}
+
+	if err := a.__deployCopyConfigFile(); err != nil {
+		return err
+	}
+
+	if err := a.__deployCopySystemdServiceUnit(); err != nil {
+		return err
+	}
+
+	tmpdir, err := os.MkdirTemp(os.TempDir(), "*-finch")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+	defer func() {
+		_ = os.RemoveAll(tmpdir)
+	}()
+
+	release := fmt.Sprintf("alloy-%s-%s", machine["kernel"], machine["arch"])
+	zip, err := a.__deployDownloadRelease(release, tmpdir)
+	if err != nil {
+		return err
+	}
+
+	binary, err := a.__deployUnzipRelease(release, zip)
+	if err != nil {
+		return err
+	}
+
+	if err := a.__deployInstallBinary(binary); err != nil {
+		return err
+	}
+
+	if err := a.__deployEnableSystemdService(); err != nil {
+		return err
+	}
+
+	return nil
 }

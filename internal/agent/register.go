@@ -18,7 +18,7 @@ type RegisterData struct {
 	Tags       []string `json:"tags"`
 }
 
-func (a *agent) registerAgentResource(service string, data *RegisterData) (string, error) {
+func (a *agent) __registerDo(service string, data *RegisterData) (string, error) {
 	url := &url.URL{}
 	url.Scheme = "https"
 	url.Host = service
@@ -42,7 +42,7 @@ func (a *agent) registerAgentResource(service string, data *RegisterData) (strin
 	return info["rid"], nil
 }
 
-func (a *agent) registerAgentConfig(service, rid string) ([]byte, error) {
+func (a *agent) __registerGetAgentConfig(service, rid string) ([]byte, error) {
 	url := &url.URL{}
 	url.Scheme = "https"
 	url.Host = service
@@ -57,12 +57,12 @@ func (a *agent) registerAgentConfig(service, rid string) ([]byte, error) {
 }
 
 func (a *agent) registerAgent(service string, data *RegisterData) ([]byte, error) {
-	rid, err := a.registerAgentResource(service, data)
+	rid, err := a.__registerDo(service, data)
 	if err != nil {
 		return nil, err
 	}
 
-	config, err := a.registerAgentConfig(service, rid)
+	config, err := a.__registerGetAgentConfig(service, rid)
 	if err != nil {
 		return nil, err
 	}
