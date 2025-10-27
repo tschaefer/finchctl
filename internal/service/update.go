@@ -41,7 +41,7 @@ func (s *service) __updateSetTargetConfiguration() error {
 func (s *service) __updateRecomposeDockerServices() error {
 	err := s.__deployCopyComposeFile()
 	if err != nil {
-		return err
+		return convertError(err, &UpdateServiceError{})
 	}
 
 	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml pull --policy always", s.libDir()))
@@ -51,11 +51,11 @@ func (s *service) __updateRecomposeDockerServices() error {
 
 	err = s.__deployComposeUp()
 	if err != nil {
-		return err
+		return convertError(err, &UpdateServiceError{})
 	}
 	err = s.__deployComposeReady()
 	if err != nil {
-		return err
+		return convertError(err, &UpdateServiceError{})
 	}
 
 	out, err = s.target.Run("sudo docker image prune --force")
