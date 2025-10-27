@@ -9,7 +9,7 @@ import (
 	"net/url"
 )
 
-func (a *agent) downloadConfig(service, rid string) ([]byte, error) {
+func (a *agent) configAgent(service, rid string) ([]byte, error) {
 	url := &url.URL{}
 	url.Scheme = "https"
 	url.Host = service

@@ -5,8 +5,8 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package agent
 
 func (a *agent) updateAgent() error {
-	if err := a.target.Copy(a.config, "/etc/alloy/alloy.config", "400", "root:root"); err != nil {
-		return &UpdateAgentError{Message: err.Error(), Reason: ""}
+	if err := a.__deployCopyConfigFile(); err != nil {
+		return convertError(err, &UpdateAgentError{})
 	}
 
 	out, err := a.target.Run("sudo systemctl restart alloy.service")

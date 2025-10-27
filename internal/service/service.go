@@ -44,6 +44,19 @@ type ServiceConfig struct {
 	}
 }
 
+type FinchConfig struct {
+	CreatedAt   string `json:"created_at"`
+	Id          string `json:"id"`
+	Database    string `json:"database"`
+	Secret      string `json:"secret"`
+	Hostname    string `json:"hostname"`
+	Version     string `json:"version"`
+	Credentials struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	} `json:"credentials"`
+}
+
 func New(config *ServiceConfig, targetUrl string, format target.Format, dryRun bool) (Service, error) {
 	target, err := target.NewTarget(targetUrl, format, dryRun)
 	if err != nil {
@@ -89,23 +102,15 @@ func (s *service) Deploy() error {
 		}
 	}()
 
-	if err := s.requirementsSetup(); err != nil {
+	if err := s.requirementsService(); err != nil {
 		return err
 	}
 
-	if err := s.dockerSetup(); err != nil {
+	if err := s.dockerService(); err != nil {
 		return err
 	}
 
-	if err := s.persistenceSetup(); err != nil {
-		return err
-	}
-
-	if err := s.configSetup(); err != nil {
-		return err
-	}
-
-	if err := s.composeSetup(); err != nil {
+	if err := s.deployService(); err != nil {
 		return err
 	}
 

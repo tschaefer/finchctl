@@ -11,22 +11,22 @@ import (
 	"strings"
 )
 
-func (s *service) dockerAvailable() bool {
+func (s *service) __dockerIsAvailable() bool {
 	_, err := s.target.Run("sudo docker -v")
 	return err == nil
 }
 
-func (s *service) dockerRunning() bool {
+func (s *service) __dockerIsRunning() bool {
 	_, err := s.target.Run("sudo docker version")
 	return err == nil
 }
 
-func (s *service) dockerComposeAvailable() bool {
+func (s *service) __dockerComposeIsAvailable() bool {
 	_, err := s.target.Run("sudo docker compose version")
 	return err == nil
 }
 
-func (s *service) dockerInstall() error {
+func (s *service) __dockerInstallService() error {
 	raw, err := s.target.Run("mktemp -p /tmp -d finch-XXXXXX")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
@@ -49,7 +49,7 @@ func (s *service) dockerInstall() error {
 	return nil
 }
 
-func (s *service) dockerFinalize() error {
+func (s *service) __dockerCopyConfig() error {
 	dest := "/etc/docker/daemon.json"
 
 	content, err := fs.ReadFile(Assets, "daemon.json")
@@ -68,7 +68,7 @@ func (s *service) dockerFinalize() error {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := s.target.Copy(f.Name(), dest, "400", "root:root"); err != nil {
+	if err := s.target.Copy(f.Name(), dest, "400", "0:0"); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
@@ -79,21 +79,21 @@ func (s *service) dockerFinalize() error {
 	return nil
 }
 
-func (s *service) dockerSetup() error {
-	if !s.dockerAvailable() {
-		if err := s.dockerInstall(); err != nil {
+func (s *service) dockerService() error {
+	if !s.__dockerIsAvailable() {
+		if err := s.__dockerInstallService(); err != nil {
 			return err
 		}
 	}
 
-	if !s.dockerRunning() {
+	if !s.__dockerIsRunning() {
 		return &DeployServiceError{Message: "Docker is not running", Reason: ""}
 	}
-	if !s.dockerComposeAvailable() {
+	if !s.__dockerComposeIsAvailable() {
 		return &DeployServiceError{Message: "Docker Compose is not available", Reason: ""}
 	}
 
-	if err := s.dockerFinalize(); err != nil {
+	if err := s.__dockerCopyConfig(); err != nil {
 		return err
 	}
 

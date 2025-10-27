@@ -65,15 +65,7 @@ func (a *agent) Deploy() error {
 		return err
 	}
 
-	if err := a.persistenceSetup(); err != nil {
-		return err
-	}
-
-	if err := a.configSetup(); err != nil {
-		return err
-	}
-
-	if err := a.serviceSetup(machine); err != nil {
+	if err := a.deployAgent(machine); err != nil {
 		return err
 	}
 
@@ -122,7 +114,7 @@ func (a *agent) Config(service, resourceID string) ([]byte, error) {
 		}
 	}()
 
-	return a.downloadConfig(service, resourceID)
+	return a.configAgent(service, resourceID)
 }
 
 func (a *agent) Update() error {

@@ -9,7 +9,7 @@ import (
 	"fmt"
 )
 
-func (s *service) updateSetConfiguration() error {
+func (s *service) __updateSetTargetConfiguration() error {
 	out, err := s.target.Run(fmt.Sprintf("sudo cat %s/finch.json", s.libDir()))
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
@@ -19,7 +19,7 @@ func (s *service) updateSetConfiguration() error {
 		return nil
 	}
 
-	var config Config
+	var config FinchConfig
 	err = json.Unmarshal([]byte(out), &config)
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: ""}
@@ -38,14 +38,10 @@ func (s *service) updateSetConfiguration() error {
 	return nil
 }
 
-func (s *service) updateCompose() error {
-	compose, err := s.composeRender()
+func (s *service) __updateRecomposeDockerServices() error {
+	err := s.__deployCopyComposeFile()
 	if err != nil {
-		return err
-	}
-	err = s.composeCopy(compose)
-	if err != nil {
-		return err
+		return convertError(err, &UpdateServiceError{})
 	}
 
 	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml pull --policy always", s.libDir()))
@@ -53,13 +49,13 @@ func (s *service) updateCompose() error {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
-	err = s.composeRun()
+	err = s.__deployComposeUp()
 	if err != nil {
-		return err
+		return convertError(err, &UpdateServiceError{})
 	}
-	err = s.composeReady()
+	err = s.__deployComposeReady()
 	if err != nil {
-		return err
+		return convertError(err, &UpdateServiceError{})
 	}
 
 	out, err = s.target.Run("sudo docker image prune --force")
@@ -71,35 +67,39 @@ func (s *service) updateCompose() error {
 }
 
 func (s *service) updateService() error {
-	if err := s.updateSetConfiguration(); err != nil {
+	if err := s.__updateSetTargetConfiguration(); err != nil {
 		return err
 	}
 
-	if err := s.persistenceSetup(); err != nil {
-		return err
+	if err := s.__deployMakeDirHierarchy(); err != nil {
+		return convertError(err, &UpdateServiceError{})
 	}
 
-	if err := s.configLoki(); err != nil {
-		return err
+	if err := s.__deploySetDirHierarchyPermission(); err != nil {
+		return convertError(err, &UpdateServiceError{})
 	}
 
-	if err := s.configTraefikHttp(); err != nil {
-		return err
+	if err := s.__deployCopyLokiConfig(); err != nil {
+		return convertError(err, &UpdateServiceError{})
 	}
 
-	if err := s.configAlloy(); err != nil {
-		return err
+	if err := s.__deployCopyTraefikHttpConfig(); err != nil {
+		return convertError(err, &UpdateServiceError{})
 	}
 
-	if err := s.configMimir(); err != nil {
-		return err
+	if err := s.__deployCopyAlloyConfig(); err != nil {
+		return convertError(err, &UpdateServiceError{})
 	}
 
-	if err := s.configGrafanaDashboards(); err != nil {
-		return err
+	if err := s.__deployCopyMimirConfig(); err != nil {
+		return convertError(err, &UpdateServiceError{})
 	}
 
-	if err := s.updateCompose(); err != nil {
+	if err := s.__deployCopyGrafanaDashboards(); err != nil {
+		return convertError(err, &UpdateServiceError{})
+	}
+
+	if err := s.__updateRecomposeDockerServices(); err != nil {
 		return err
 	}
 
