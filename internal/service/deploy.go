@@ -71,19 +71,6 @@ func (s *service) __deployDirHierachy() error {
 	return nil
 }
 
-type Config struct {
-	CreatedAt   string `json:"created_at"`
-	Id          string `json:"id"`
-	Database    string `json:"database"`
-	Secret      string `json:"secret"`
-	Hostname    string `json:"hostname"`
-	Version     string `json:"version"`
-	Credentials struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	} `json:"credentials"`
-}
-
 func (s *service) __deployCopyLokiConfig() error {
 	path := fmt.Sprintf("%s/loki/etc/loki.yaml", s.libDir())
 	return s.__helperCopyConfig(path, "400", "10001:10001")
