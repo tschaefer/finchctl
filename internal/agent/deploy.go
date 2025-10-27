@@ -18,7 +18,7 @@ import (
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
-func (a *agent) __deployMakeDirHierachy() error {
+func (a *agent) __deployMakeDirHierarchy() error {
 	directories := []string{
 		"/var/lib/alloy/data",
 		"/etc/alloy",
@@ -201,7 +201,7 @@ func (a *agent) __helperPrintProgress(message string) {
 }
 
 func (a *agent) deployAgent(machine map[string]string) error {
-	if err := a.__deployMakeDirHierachy(); err != nil {
+	if err := a.__deployMakeDirHierarchy(); err != nil {
 		return err
 	}
 
