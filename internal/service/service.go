@@ -44,6 +44,19 @@ type ServiceConfig struct {
 	}
 }
 
+type FinchConfig struct {
+	CreatedAt   string `json:"created_at"`
+	Id          string `json:"id"`
+	Database    string `json:"database"`
+	Secret      string `json:"secret"`
+	Hostname    string `json:"hostname"`
+	Version     string `json:"version"`
+	Credentials struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	} `json:"credentials"`
+}
+
 func New(config *ServiceConfig, targetUrl string, format target.Format, dryRun bool) (Service, error) {
 	target, err := target.NewTarget(targetUrl, format, dryRun)
 	if err != nil {

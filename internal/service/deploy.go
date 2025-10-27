@@ -167,7 +167,7 @@ func (s *service) __deployCopyFinchConfig() error {
 	secret := base64.StdEncoding.EncodeToString(key)
 
 	hash := sha256.Sum256([]byte(s.config.Hostname))
-	data := Config{
+	data := FinchConfig{
 		Id:        hex.EncodeToString(hash[:])[0:16],
 		CreatedAt: time.Now().Format(time.RFC3339),
 		Hostname:  s.config.Hostname,

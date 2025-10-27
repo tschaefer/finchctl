@@ -19,7 +19,7 @@ func (s *service) __updateSetTargetConfiguration() error {
 		return nil
 	}
 
-	var config Config
+	var config FinchConfig
 	err = json.Unmarshal([]byte(out), &config)
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: ""}
