@@ -9,6 +9,11 @@ import (
 	"strings"
 )
 
+type MachineInfo struct {
+	Kernel string
+	Arch   string
+}
+
 func (a *agent) __machineGetLinuxArch(machine string) (string, error) {
 	switch machine {
 	case "x86_64":
@@ -44,16 +49,16 @@ func (a *agent) __machineGetFreebsdArch(machine string) (string, error) {
 	}
 }
 
-func (a *agent) machineInfo() (map[string]string, error) {
+func (a *agent) machineInfo() (*MachineInfo, error) {
 	out, err := a.target.Run("uname -sm")
 	if err != nil {
 		return nil, &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 
 	if a.dryRun {
-		return map[string]string{
-			"kernel": "kernel",
-			"arch":   "arch",
+		return &MachineInfo{
+			Kernel: "kernel",
+			Arch:   "arch",
 		}, nil
 	}
 
@@ -91,10 +96,8 @@ func (a *agent) machineInfo() (map[string]string, error) {
 		return nil, &DeployAgentError{Message: "unsupported target kernel", Reason: kernel}
 	}
 
-	info := map[string]string{
-		"kernel": strings.ToLower(kernel),
-		"arch":   arch,
-	}
-
-	return info, nil
+	return &MachineInfo{
+		Kernel: kernel,
+		Arch:   arch,
+	}, nil
 }

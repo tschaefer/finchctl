@@ -200,7 +200,7 @@ func (a *agent) __helperPrintProgress(message string) {
 	}
 }
 
-func (a *agent) deployAgent(machine map[string]string) error {
+func (a *agent) deployAgent(machine *MachineInfo) error {
 	if err := a.__deployMakeDirHierarchy(); err != nil {
 		return err
 	}
@@ -221,7 +221,7 @@ func (a *agent) deployAgent(machine map[string]string) error {
 		_ = os.RemoveAll(tmpdir)
 	}()
 
-	release := fmt.Sprintf("alloy-%s-%s", machine["kernel"], machine["arch"])
+	release := fmt.Sprintf("alloy-%s-%s", machine.Kernel, machine.Arch)
 	zip, err := a.__deployDownloadRelease(release, tmpdir)
 	if err != nil {
 		return err
