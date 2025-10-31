@@ -74,7 +74,7 @@ func parseHostUrl(hostUrl string) (host *url.URL, err error) {
 	return host, nil
 }
 
-func printProgress(message string, format Format) {
+func PrintProgress(message string, format Format) {
 	switch format {
 	case FormatProgress:
 		fmt.Print(".")
