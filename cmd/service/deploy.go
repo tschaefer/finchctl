@@ -66,9 +66,7 @@ func deployConfig(cmd *cobra.Command, args []string, formatType target.Format) (
 		targetUrl = "ssh://" + targetUrl
 	}
 	target, err := url.Parse(targetUrl)
-	if err != nil {
-		errors.CheckErr(fmt.Errorf("invalid target: %w", err), formatType)
-	}
+	errors.CheckErr(fmt.Errorf("invalid target: %w", err), formatType)
 
 	hostname, _ := cmd.Flags().GetString("service.host")
 	if hostname == "" {
