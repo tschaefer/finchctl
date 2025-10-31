@@ -11,6 +11,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/errors"
 	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/service"
 )
@@ -30,24 +31,22 @@ func init() {
 func runInfoCmd(cmd *cobra.Command, args []string) {
 	serviceName := args[0]
 
-	format, err := format.GetRunFormat("quiet")
+	formatType, err := format.GetRunFormat("quiet")
 	cobra.CheckErr(err)
 
 	config := &service.ServiceConfig{
 		Hostname: serviceName,
 	}
-	s, err := service.New(config, "localhost", format, false)
-	cobra.CheckErr(err)
+	s, err := service.New(config, "localhost", formatType, false)
+	errors.CheckErr(err, formatType)
 
 	info, err := s.Info()
-	cobra.CheckErr(err)
+	errors.CheckErr(err, formatType)
 
 	jsonOutput, _ := cmd.Flags().GetBool("output.json")
 	if jsonOutput {
 		out, err := json.MarshalIndent(info, "", "  ")
-		if err != nil {
-			cobra.CheckErr(err)
-		}
+		errors.CheckErr(err, formatType)
 		fmt.Println(string(out))
 		return
 	} else {

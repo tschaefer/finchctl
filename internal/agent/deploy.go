@@ -188,16 +188,7 @@ func (a *agent) __helperPrintProgress(message string) {
 		username = user.Username
 	}
 
-	switch a.format {
-	case target.FormatProgress:
-		fmt.Print(".")
-	case target.FormatDocumentation:
-		fmt.Printf("%s as %s@localhost\n", message, username)
-	case target.FormatQuiet:
-		// Do nothing
-	default:
-		fmt.Println(".")
-	}
+	target.PrintProgress(fmt.Sprintf("%s as %s@localhost", message, username), a.format)
 }
 
 func (a *agent) deployAgent(machine *MachineInfo) error {

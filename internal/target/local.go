@@ -26,7 +26,7 @@ type local struct {
 }
 
 func (l *local) Run(cmd string) ([]byte, error) {
-	printProgress(fmt.Sprintf("Running '%s' as %s@%s", cmd, l.User, l.Host), l.format)
+	PrintProgress(fmt.Sprintf("Running '%s' as %s@%s", cmd, l.User, l.Host), l.format)
 	if l.dryRun {
 		return nil, nil
 	}
@@ -35,7 +35,7 @@ func (l *local) Run(cmd string) ([]byte, error) {
 }
 
 func (l *local) Copy(src, dest, mode, owner string) error {
-	printProgress(fmt.Sprintf("Copying from '%s' to '%s' as %s@%s", src, dest, l.User, l.Host), l.format)
+	PrintProgress(fmt.Sprintf("Copying from '%s' to '%s' as %s@%s", src, dest, l.User, l.Host), l.format)
 	if l.dryRun {
 		return nil
 	}
@@ -69,7 +69,7 @@ func (l *local) Copy(src, dest, mode, owner string) error {
 }
 
 func (l *local) Request(method string, url *url.URL, data []byte) ([]byte, error) {
-	printProgress(fmt.Sprintf("%s request to %s on %s@%s", method, url.String(), l.User, l.Host), l.format)
+	PrintProgress(fmt.Sprintf("%s request to %s on %s@%s", method, url.String(), l.User, l.Host), l.format)
 	if l.dryRun {
 		return nil, nil
 	}

@@ -11,8 +11,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/errors"
 	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/service"
+	"github.com/tschaefer/finchctl/internal/target"
 )
 
 var teardownCmd = &cobra.Command{
@@ -34,24 +36,22 @@ func runTeardownCmd(cmd *cobra.Command, args []string) {
 	targetUrl := args[0]
 
 	formatName, _ := cmd.Flags().GetString("run.format")
-	format, err := format.GetRunFormat(formatName)
+	formatType, err := format.GetRunFormat(formatName)
 	cobra.CheckErr(err)
 
 	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
 
-	cfg, err := teardownConfig(cmd, args)
-	if err != nil {
-		cobra.CheckErr(err)
-	}
+	cfg, err := teardownConfig(cmd, args, formatType)
+	errors.CheckErr(err, formatType)
 
-	s, err := service.New(cfg, targetUrl, format, dryRun)
-	cobra.CheckErr(err)
+	s, err := service.New(cfg, targetUrl, formatType, dryRun)
+	errors.CheckErr(err, formatType)
 
 	err = s.Teardown()
-	cobra.CheckErr(err)
+	errors.CheckErr(err, formatType)
 }
 
-func teardownConfig(cmd *cobra.Command, args []string) (*service.ServiceConfig, error) {
+func teardownConfig(cmd *cobra.Command, args []string, formatType target.Format) (*service.ServiceConfig, error) {
 	config := &service.ServiceConfig{}
 	targetUrl := args[0]
 
@@ -60,7 +60,7 @@ func teardownConfig(cmd *cobra.Command, args []string) (*service.ServiceConfig, 
 	}
 	target, err := url.Parse(targetUrl)
 	if err != nil {
-		cobra.CheckErr(fmt.Errorf("invalid target: %w", err))
+		errors.CheckErr(fmt.Errorf("invalid target: %w", err), formatType)
 	}
 
 	hostname, _ := cmd.Flags().GetString("service.host")

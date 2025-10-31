@@ -10,7 +10,7 @@ import (
 )
 
 func CompleteRunFormat(cmd *cobra.Command, args []string, toComplete string) ([]cobra.Completion, cobra.ShellCompDirective) {
-	return []cobra.Completion{"documentation", "progress", "quiet"}, cobra.ShellCompDirectiveDefault
+	return []cobra.Completion{"documentation", "json", "progress", "quiet"}, cobra.ShellCompDirectiveDefault
 }
 
 func CompleteStackName(cmd *cobra.Command, args []string, toComplete string) ([]cobra.Completion, cobra.ShellCompDirective) {
