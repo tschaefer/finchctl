@@ -7,6 +7,7 @@ package agent
 import (
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/errors"
 	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/agent"
 )
@@ -26,17 +27,17 @@ func init() {
 func runDeregisterCmd(cmd *cobra.Command, args []string) {
 	serviceName := args[0]
 
-	format, err := format.GetRunFormat("quiet")
+	formatType, err := format.GetRunFormat("quiet")
 	cobra.CheckErr(err)
 
 	rid, _ := cmd.Flags().GetString("agent.rid")
 	if rid == "" {
-		cobra.CheckErr("agent resource identifier is required")
+		errors.CheckErr("agent resource identifier is required", formatType)
 	}
 
-	agent, err := agent.New("", "local", format, false)
-	cobra.CheckErr(err)
+	agent, err := agent.New("", "local", formatType, false)
+	errors.CheckErr(err, formatType)
 
 	err = agent.Deregister(serviceName, rid)
-	cobra.CheckErr(err)
+	errors.CheckErr(err, formatType)
 }

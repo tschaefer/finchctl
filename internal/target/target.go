@@ -5,11 +5,13 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package target
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"os/user"
 	"slices"
 	"strings"
+	"time"
 )
 
 type Format int64
@@ -18,6 +20,7 @@ const (
 	FormatQuiet         Format = 0
 	FormatProgress      Format = 1
 	FormatDocumentation Format = 2
+	FormatJSON          Format = 3
 )
 
 type Target interface {
@@ -77,6 +80,13 @@ func printProgress(message string, format Format) {
 		fmt.Print(".")
 	case FormatDocumentation:
 		fmt.Println(message)
+	case FormatJSON:
+		data := map[string]string{
+			"timestamp": time.Now().Format(time.RFC3339),
+			"message":   message,
+		}
+		jsonData, _ := json.Marshal(data)
+		fmt.Println(string(jsonData))
 	case FormatQuiet:
 		// Do nothing
 	default:

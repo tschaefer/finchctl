@@ -20,6 +20,8 @@ func GetRunFormat(name string) (target.Format, error) {
 		format = target.FormatQuiet
 	case "progress":
 		format = target.FormatProgress
+	case "json":
+		format = target.FormatJSON
 	default:
 		err = fmt.Errorf("unknown format %s", name)
 	}
