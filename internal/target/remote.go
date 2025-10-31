@@ -27,7 +27,7 @@ type remote struct {
 }
 
 func (s *remote) Run(cmd string) ([]byte, error) {
-	printProgress(fmt.Sprintf("Running '%s' as %s@%s", cmd, s.User, s.Host), s.format)
+	PrintProgress(fmt.Sprintf("Running '%s' as %s@%s", cmd, s.User, s.Host), s.format)
 	if s.dryRun {
 		return nil, nil
 	}
@@ -36,7 +36,7 @@ func (s *remote) Run(cmd string) ([]byte, error) {
 }
 
 func (s *remote) Copy(src, dest, mode, owner string) error {
-	printProgress(fmt.Sprintf("Copying from '%s' to '%s' as %s@%s", src, dest, s.User, s.Host), s.format)
+	PrintProgress(fmt.Sprintf("Copying from '%s' to '%s' as %s@%s", src, dest, s.User, s.Host), s.format)
 	if s.dryRun {
 		return nil
 	}

@@ -12,8 +12,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/errors"
 	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/service"
+	"github.com/tschaefer/finchctl/internal/target"
 )
 
 var deployCmd = &cobra.Command{
@@ -39,26 +41,24 @@ func init() {
 }
 
 func runDeployCmd(cmd *cobra.Command, args []string) {
+	formatName, _ := cmd.Flags().GetString("run.format")
+	formatType, err := format.GetRunFormat(formatName)
+	cobra.CheckErr(err)
+
 	targetUrl := args[0]
-	config, err := deployConfig(cmd, args)
-	if err != nil {
-		cobra.CheckErr(err)
-	}
+	config, err := deployConfig(cmd, args, formatType)
+	errors.CheckErr(err, formatType)
 
 	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
 
-	formatName, _ := cmd.Flags().GetString("run.format")
-	format, err := format.GetRunFormat(formatName)
-	cobra.CheckErr(err)
-
-	s, err := service.New(config, targetUrl, format, dryRun)
-	cobra.CheckErr(err)
+	s, err := service.New(config, targetUrl, formatType, dryRun)
+	errors.CheckErr(err, formatType)
 
 	err = s.Deploy()
-	cobra.CheckErr(err)
+	errors.CheckErr(err, formatType)
 }
 
-func deployConfig(cmd *cobra.Command, args []string) (*service.ServiceConfig, error) {
+func deployConfig(cmd *cobra.Command, args []string, formatType target.Format) (*service.ServiceConfig, error) {
 	config := &service.ServiceConfig{}
 	targetUrl := args[0]
 
@@ -67,7 +67,7 @@ func deployConfig(cmd *cobra.Command, args []string) (*service.ServiceConfig, er
 	}
 	target, err := url.Parse(targetUrl)
 	if err != nil {
-		cobra.CheckErr(fmt.Errorf("invalid target: %w", err))
+		errors.CheckErr(fmt.Errorf("invalid target: %w", err), formatType)
 	}
 
 	hostname, _ := cmd.Flags().GetString("service.host")

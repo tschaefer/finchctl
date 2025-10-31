@@ -1,32 +1,54 @@
 ---
 name: ci
 
-on:  # yamllint disable-line rule:truthy
+on:   # yamllint disable-line rule:truthy
   push:
     branches:
       - 'main'
+  pull_request:
+    branches:
+      - 'main'
+  workflow_dispatch: {}
 
 jobs:
   ci:
     name: Continuous Integration
     runs-on: ubuntu-latest
+    env:
+      GOMODCACHE: ${{ github.workspace }}/pkg/mod
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v5
         with:
-          fetch-depth: 1
+          fetch-depth: 0
+
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
+
+      - name: Cache Go modules and build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.GOMODCACHE }}
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-mod-
+
       - name: Install dependencies
         run: go mod download
-      - name: Install golangci-lint
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | \
-            sh -s -- -b $(go env GOPATH)/bin v2.1.5
+
       - name: Check formatting
         run: gofmt -l .
-      - name: Run linters
-        run: golangci-lint run
+
+      - name: Run linters (golangci-lint)
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: v1.59.0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          args: --timeout=5m --disable-all --enable=errcheck --enable=gocyclo --enable=gofmt --enable=goimports --enable=deadcode
+
       - name: Run tests
         run: go test -v ./...

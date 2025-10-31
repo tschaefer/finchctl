@@ -11,6 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/errors"
 	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/agent"
 
@@ -32,21 +33,19 @@ func init() {
 func runListCmd(cmd *cobra.Command, args []string) {
 	serviceName := args[0]
 
-	format, err := format.GetRunFormat("quiet")
+	formatType, err := format.GetRunFormat("quiet")
 	cobra.CheckErr(err)
 
-	a, err := agent.New("", "localhost", format, false)
-	cobra.CheckErr(err)
+	a, err := agent.New("", "localhost", formatType, false)
+	errors.CheckErr(err, formatType)
 
 	list, err := a.List(serviceName)
-	cobra.CheckErr(err)
+	errors.CheckErr(err, formatType)
 
 	jsonOutput, _ := cmd.Flags().GetBool("output.json")
 	if jsonOutput {
 		out, err := json.MarshalIndent(list, "", "  ")
-		if err != nil {
-			cobra.CheckErr(err)
-		}
+		errors.CheckErr(err, formatType)
 		fmt.Println(string(out))
 	} else {
 		t := tablewriter.NewWriter(os.Stdout)

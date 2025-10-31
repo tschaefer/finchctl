@@ -7,6 +7,7 @@ package service
 import (
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/errors"
 	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/service"
 )
@@ -29,13 +30,13 @@ func runUpdateCmd(cmd *cobra.Command, args []string) {
 	targetUrl := args[0]
 
 	formatName, _ := cmd.Flags().GetString("run.format")
-	format, err := format.GetRunFormat(formatName)
+	formatType, err := format.GetRunFormat(formatName)
 	cobra.CheckErr(err)
 	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
 
-	s, err := service.New(nil, targetUrl, format, dryRun)
-	cobra.CheckErr(err)
+	s, err := service.New(nil, targetUrl, formatType, dryRun)
+	errors.CheckErr(err, formatType)
 
 	err = s.Update()
-	cobra.CheckErr(err)
+	errors.CheckErr(err, formatType)
 }

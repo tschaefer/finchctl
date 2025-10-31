@@ -9,8 +9,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
+	"github.com/tschaefer/finchctl/cmd/errors"
 	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/agent"
+	"github.com/tschaefer/finchctl/internal/target"
 )
 
 var registerCmd = &cobra.Command{
@@ -33,13 +35,13 @@ func init() {
 }
 
 func runRegisterCmd(cmd *cobra.Command, args []string) {
-	serviceName := args[0]
-	data := parseFlags(cmd)
-
-	format, err := format.GetRunFormat("quiet")
+	formatType, err := format.GetRunFormat("quiet")
 	cobra.CheckErr(err)
 
-	a, err := agent.New("", "localhost", format, false)
+	serviceName := args[0]
+	data := parseFlags(cmd, formatType)
+
+	a, err := agent.New("", "localhost", formatType, false)
 	cobra.CheckErr(err)
 
 	config, err := a.Register(serviceName, data)
@@ -52,10 +54,10 @@ func runRegisterCmd(cmd *cobra.Command, args []string) {
 	}
 }
 
-func parseFlags(cmd *cobra.Command) *agent.RegisterData {
+func parseFlags(cmd *cobra.Command, formatType target.Format) *agent.RegisterData {
 	hostname, _ := cmd.Flags().GetString("agent.hostname")
 	if hostname == "" {
-		cobra.CheckErr("agent hostname is required")
+		errors.CheckErr("agent hostname is required", formatType)
 	}
 
 	var logSources []string
@@ -78,7 +80,7 @@ func parseFlags(cmd *cobra.Command) *agent.RegisterData {
 	}
 
 	if len(logSources) == 0 {
-		cobra.CheckErr("at least one log source must be enabled")
+		errors.CheckErr("at least one log source must be enabled", formatType)
 	}
 
 	var tags []string
