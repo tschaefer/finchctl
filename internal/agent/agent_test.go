@@ -5,6 +5,7 @@ Licensed under the MIT License, see LICENSE file in the project root for details
 package agent
 
 import (
+	"encoding/json"
 	"os"
 	"strings"
 	"testing"
@@ -12,6 +13,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tschaefer/finchctl/internal/target"
 )
+
+type track struct {
+	Timestamp string `json:"timestamp"`
+	Message   string `json:"message"`
+}
 
 func Test_Deploy(t *testing.T) {
 	a, err := New("", "localhost", target.FormatDocumentation, true)
@@ -30,6 +36,22 @@ func Test_Deploy(t *testing.T) {
 
 	wanted = "Running 'sudo systemctl enable --now alloy' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
+
+	a, err = New("", "localhost", target.FormatJSON, true)
+	assert.NoError(t, err, "create agent")
+
+	record = capture(func() {
+		err = a.Deploy()
+	})
+	assert.NoError(t, err)
+
+	tracks = strings.Split(record, "\n")
+	var track track
+	err = json.Unmarshal([]byte(tracks[0]), &track)
+	assert.NoError(t, err, "unmarshal json output")
+
+	assert.Regexp(t, "Running 'uname -sm' as .+@localhost", track.Message, "first log line message")
+	assert.NotEmpty(t, track.Timestamp, "first log line timestamp")
 }
 
 func Test_Teardown(t *testing.T) {
@@ -49,6 +71,22 @@ func Test_Teardown(t *testing.T) {
 
 	wanted = "Running 'sudo rm -rf /var/lib/alloy' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
+
+	a, err = New("", "localhost", target.FormatJSON, true)
+	assert.NoError(t, err, "create agent")
+
+	record = capture(func() {
+		err = a.Teardown()
+	})
+	assert.NoError(t, err, "teardown agent")
+
+	tracks = strings.Split(record, "\n")
+	var track track
+	err = json.Unmarshal([]byte(tracks[0]), &track)
+	assert.NoError(t, err, "unmarshal json output")
+
+	assert.Regexp(t, "Running 'sudo systemctl stop alloy.service' as .+@localhost", track.Message, "first log line message")
+	assert.NotEmpty(t, track.Timestamp, "first log line timestamp")
 }
 
 func Test_Update(t *testing.T) {
@@ -68,6 +106,22 @@ func Test_Update(t *testing.T) {
 
 	wanted = "Running 'sudo systemctl restart alloy.service' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
+
+	a, err = New("finch-agent.conf", "localhost", target.FormatJSON, true)
+	assert.NoError(t, err, "create agent")
+
+	record = capture(func() {
+		err = a.Update()
+	})
+	assert.NoError(t, err, "update agent")
+
+	tracks = strings.Split(record, "\n")
+	var track track
+	err = json.Unmarshal([]byte(tracks[0]), &track)
+	assert.NoError(t, err, "unmarshal json output")
+
+	assert.Regexp(t, "Copying from 'finch-agent.conf' to '/etc/alloy/alloy.config' as .+@localhost", track.Message, "first log line message")
+	assert.NotEmpty(t, track.Timestamp, "first log line timestamp")
 }
 
 func capture(f func()) string {
