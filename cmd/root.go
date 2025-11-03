@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/agent"
 	"github.com/tschaefer/finchctl/cmd/service"
+	"github.com/tschaefer/finchctl/internal/target"
 	"github.com/tschaefer/finchctl/internal/version"
 )
 
@@ -34,14 +35,18 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().BoolP("version", "v", false, "Print version information")
-
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Print version information",
 		Run: func(cmd *cobra.Command, args []string) {
 			version.Print()
 		},
+	}
+
+	rootCmd.PersistentFlags().Bool("tls.skip-verify", false, "Skip TLS certificate verification (not recommended)")
+	skipVerify, _ := rootCmd.Flags().GetBool("tls.skip-verify")
+	if skipVerify {
+		_ = os.Setenv(target.SkipTLSVerifyEnv, "true")
 	}
 
 	rootCmd.AddCommand(agent.Cmd)

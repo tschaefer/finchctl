@@ -12,10 +12,15 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"os/exec"
 
 	"github.com/tschaefer/finchctl/internal/config"
 	"github.com/tschaefer/finchctl/internal/version"
+)
+
+const (
+	SkipTLSVerifyEnv string = "FINCH_SKIP_TLS_VERIFY"
 )
 
 type local struct {
@@ -79,10 +84,14 @@ func (l *local) Request(method string, url *url.URL, data []byte) ([]byte, error
 		return nil, err
 	}
 
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
+	tr := &http.Transport{}
+	skipTLSVerify, ok := os.LookupEnv(SkipTLSVerifyEnv)
+	if ok && skipTLSVerify == "1" || skipTLSVerify == "true" {
+		tr = &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		}
 	}
 
 	client := &http.Client{Transport: tr}
