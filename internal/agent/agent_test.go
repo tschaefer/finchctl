@@ -99,9 +99,9 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "update agent")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 3, "number of log lines mismatch")
+	assert.Len(t, tracks, 5, "number of log lines mismatch")
 
-	wanted := "Copying from 'finch-agent.conf' to '/etc/alloy/alloy.config' as .+@localhost"
+	wanted := "Running 'uname -sm' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'sudo systemctl restart alloy.service' as .+@localhost"
@@ -120,7 +120,7 @@ func Test_Update(t *testing.T) {
 	err = json.Unmarshal([]byte(tracks[0]), &track)
 	assert.NoError(t, err, "unmarshal json output")
 
-	assert.Regexp(t, "Copying from 'finch-agent.conf' to '/etc/alloy/alloy.config' as .+@localhost", track.Message, "first log line message")
+	assert.Regexp(t, "Running 'uname -sm' as .+@localhost", track.Message, "first log line message")
 	assert.NotEmpty(t, track.Timestamp, "first log line timestamp")
 }
 

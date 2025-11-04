@@ -66,12 +66,12 @@ func (a *agent) machineInfo() (*MachineInfo, error) {
 	if len(os) != 2 {
 		return nil, &DeployAgentError{Message: "unexpected target machine", Reason: string(out)}
 	}
-	kernel := os[0]
-	machine := os[1]
+	kernel := strings.ToLower(os[0])
+	machine := strings.ToLower(os[1])
 
 	var arch string
 	switch kernel {
-	case "Linux":
+	case "linux":
 		arch, err = a.__machineGetLinuxArch(machine)
 		if err != nil {
 			return nil, err
@@ -80,13 +80,13 @@ func (a *agent) machineInfo() (*MachineInfo, error) {
 		if err != nil {
 			return nil, fmt.Errorf("unsupported target init system: %w", err)
 		}
-	case "Darwin":
+	case "darwin":
 		_, err = a.__machineGetDarwinArch(machine)
 		if err != nil {
 			return nil, err
 		}
 		return nil, fmt.Errorf("yet unsupported target kernel: %s", kernel)
-	case "FreeBSD":
+	case "freebsd":
 		_, err = a.__machineGetFreebsdArch(machine)
 		if err != nil {
 			return nil, err

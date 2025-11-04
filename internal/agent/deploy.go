@@ -71,7 +71,7 @@ func (a *agent) __deployDownloadRelease(release string, tmpdir string) (string, 
 	url := fmt.Sprintf("https://github.com/grafana/alloy/releases/latest/download/%s.zip", release)
 	tmpfile := fmt.Sprintf("%s/%s-%s.zip", tmpdir, release, time.Now().Format("19800212015200"))
 
-	a.__helperPrintProgress(fmt.Sprintf("Downloading '%s'", url))
+	a.__helperPrintProgress(fmt.Sprintf("Running 'GET %s'", url))
 	if a.dryRun {
 		return tmpfile, nil
 	}
@@ -108,7 +108,7 @@ func (a *agent) __deployUnzipRelease(release string, file string) (string, error
 	tmpdir := filepath.Dir(file)
 	tmpfile := fmt.Sprintf("%s/%s", tmpdir, release)
 
-	a.__helperPrintProgress(fmt.Sprintf("Unzipping '%s'", file))
+	a.__helperPrintProgress(fmt.Sprintf("Running 'unzip %s'", file))
 
 	if a.dryRun {
 		return tmpfile, nil

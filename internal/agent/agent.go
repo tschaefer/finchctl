@@ -124,5 +124,10 @@ func (a *agent) Update() error {
 		}
 	}()
 
-	return a.updateAgent()
+	machine, err := a.machineInfo()
+	if err != nil {
+		return err
+	}
+
+	return a.updateAgent(machine)
 }
