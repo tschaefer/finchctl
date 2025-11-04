@@ -29,9 +29,9 @@ func Test_Deploy(t *testing.T) {
 	assert.NoError(t, err)
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 10, "number of log lines")
+	assert.Len(t, tracks, 12, "number of log lines")
 
-	wanted := "Running 'uname -sm' as .+@localhost"
+	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'sudo systemctl enable --now alloy' as .+@localhost"
@@ -50,7 +50,7 @@ func Test_Deploy(t *testing.T) {
 	err = json.Unmarshal([]byte(tracks[0]), &track)
 	assert.NoError(t, err, "unmarshal json output")
 
-	assert.Regexp(t, "Running 'uname -sm' as .+@localhost", track.Message, "first log line message")
+	assert.Regexp(t, "Running 'command -v sudo' as .+@localhost", track.Message, "first log line message")
 	assert.NotEmpty(t, track.Timestamp, "first log line timestamp")
 }
 
@@ -64,9 +64,9 @@ func Test_Teardown(t *testing.T) {
 	assert.NoError(t, err, "teardown agent")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 6, "number of log lines mismatch")
+	assert.Len(t, tracks, 8, "number of log lines mismatch")
 
-	wanted := "Running 'sudo systemctl stop alloy.service' as .+@localhost"
+	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'sudo rm -rf /var/lib/alloy' as .+@localhost"
@@ -85,7 +85,7 @@ func Test_Teardown(t *testing.T) {
 	err = json.Unmarshal([]byte(tracks[0]), &track)
 	assert.NoError(t, err, "unmarshal json output")
 
-	assert.Regexp(t, "Running 'sudo systemctl stop alloy.service' as .+@localhost", track.Message, "first log line message")
+	assert.Regexp(t, "Running 'command -v sudo' as .+@localhost", track.Message, "first log line message")
 	assert.NotEmpty(t, track.Timestamp, "first log line timestamp")
 }
 
@@ -99,9 +99,9 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "update agent")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 5, "number of log lines mismatch")
+	assert.Len(t, tracks, 7, "number of log lines mismatch")
 
-	wanted := "Running 'uname -sm' as .+@localhost"
+	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'sudo systemctl restart alloy.service' as .+@localhost"
@@ -120,7 +120,7 @@ func Test_Update(t *testing.T) {
 	err = json.Unmarshal([]byte(tracks[0]), &track)
 	assert.NoError(t, err, "unmarshal json output")
 
-	assert.Regexp(t, "Running 'uname -sm' as .+@localhost", track.Message, "first log line message")
+	assert.Regexp(t, "Running 'command -v sudo' as .+@localhost", track.Message, "first log line message")
 	assert.NotEmpty(t, track.Timestamp, "first log line timestamp")
 }
 

@@ -29,9 +29,9 @@ func Test_Deploy(t *testing.T) {
 	assert.NoError(t, err, "deploy service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 35, "number of log lines")
+	assert.Len(t, tracks, 36, "number of log lines")
 
-	wanted := "Running '[ \"${EUID:\\-$(id -u)}\" -eq 0 ] || command -v sudo' as .+@localhost"
+	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'timeout 180 bash -c 'until curl -fs -o /dev/null -w \"%{http_code}\" http://localhost | grep -qE \"^[234][0-9]{2}$\"; do sleep 2; done'' as .+@localhost"
@@ -50,7 +50,7 @@ func Test_Deploy(t *testing.T) {
 	err = json.Unmarshal([]byte(tracks[0]), &track)
 	assert.NoError(t, err, "unmarshal json output")
 
-	wanted = "Running '[ \"${EUID:\\-$(id -u)}\" -eq 0 ] || command -v sudo' as .+@localhost"
+	wanted = "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, track.Message, "first log line")
 	assert.NotEmpty(t, track.Timestamp, "first log line timestamp")
 }
@@ -65,9 +65,9 @@ func Test_Teardown(t *testing.T) {
 	assert.NoError(t, err, "teardown service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 3, "number of log lines mismatch")
+	assert.Len(t, tracks, 6, "number of log lines mismatch")
 
-	wanted := "Running 'sudo docker compose --file /var/lib/finch/docker-compose.yaml down --volumes' as .+@localhost"
+	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'sudo rm -rf /var/lib/finch' as .+@localhost"
@@ -86,7 +86,7 @@ func Test_Teardown(t *testing.T) {
 	err = json.Unmarshal([]byte(tracks[0]), &track)
 	assert.NoError(t, err, "unmarshal json output")
 
-	wanted = "Running 'sudo docker compose --file /var/lib/finch/docker-compose.yaml down --volumes' as .+@localhost"
+	wanted = "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, track.Message, "first log line")
 	assert.NotEmpty(t, track.Timestamp, "first log line timestamp")
 }
@@ -101,9 +101,9 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "update service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 28, "number of log lines")
+	assert.Len(t, tracks, 31, "number of log lines")
 
-	wanted := "Running 'sudo cat /var/lib/finch/finch.json' as .+@localhost"
+	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
 	wanted = "Running 'sudo docker image prune --force' as .+@localhost"
@@ -122,7 +122,7 @@ func Test_Update(t *testing.T) {
 	err = json.Unmarshal([]byte(tracks[0]), &track)
 	assert.NoError(t, err, "unmarshal json output")
 
-	wanted = "Running 'sudo cat /var/lib/finch/finch.json' as .+@localhost"
+	wanted = "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, track.Message, "first log line")
 	assert.NotEmpty(t, track.Timestamp, "first log line timestamp")
 }
