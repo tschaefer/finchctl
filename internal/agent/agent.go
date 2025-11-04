@@ -46,6 +46,10 @@ func (a *agent) Teardown() error {
 		}
 	}()
 
+	if err := a.requirementsAgent(); err != nil {
+		return err
+	}
+
 	if err := a.teardownAgent(); err != nil {
 		return err
 	}
@@ -59,6 +63,10 @@ func (a *agent) Deploy() error {
 			println()
 		}
 	}()
+
+	if err := a.requirementsAgent(); err != nil {
+		return err
+	}
 
 	machine, err := a.machineInfo()
 	if err != nil {
@@ -123,6 +131,10 @@ func (a *agent) Update() error {
 			println()
 		}
 	}()
+
+	if err := a.requirementsAgent(); err != nil {
+		return err
+	}
 
 	machine, err := a.machineInfo()
 	if err != nil {
