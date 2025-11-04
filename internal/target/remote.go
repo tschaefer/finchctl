@@ -5,11 +5,13 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package target
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/melbahja/goph"
 	"golang.org/x/crypto/ssh"
@@ -32,7 +34,10 @@ func (s *remote) Run(cmd string) ([]byte, error) {
 		return nil, nil
 	}
 
-	return s.client.Run(cmd)
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
+
+	return s.client.RunContext(ctx, cmd)
 }
 
 func (s *remote) Copy(src, dest, mode, owner string) error {
@@ -50,8 +55,22 @@ func (s *remote) Copy(src, dest, mode, owner string) error {
 		_, _ = s.Run("rm -rf " + tmpdest)
 	}()
 
-	if err := s.client.Upload(src, tmpdest+"/file"); err != nil {
-		return err
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
+
+	done := make(chan error, 1)
+	go func() {
+		done <- s.client.Upload(src, tmpdest+"/file")
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			return err
+		}
+	case <-ctx.Done():
+		_ = s.client.Close()
+		return fmt.Errorf("upload timed out after 300s")
 	}
 
 	_, err = s.Run(fmt.Sprintf("sudo mv %s %s", tmpdest+"/file", dest))

@@ -6,6 +6,7 @@ package target
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/tschaefer/finchctl/internal/config"
 	"github.com/tschaefer/finchctl/internal/version"
@@ -36,7 +38,10 @@ func (l *local) Run(cmd string) ([]byte, error) {
 		return nil, nil
 	}
 
-	return exec.Command("sh", "-c", cmd).CombinedOutput()
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
+
+	return exec.CommandContext(ctx, "sh", "-c", cmd).CombinedOutput()
 }
 
 func (l *local) Copy(src, dest, mode, owner string) error {
@@ -45,7 +50,10 @@ func (l *local) Copy(src, dest, mode, owner string) error {
 		return nil
 	}
 
-	c := exec.Command("sudo", "cp", src, dest)
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
+
+	c := exec.CommandContext(ctx, "sudo", "cp", src, dest)
 	c.Stdout = nil
 	c.Stderr = nil
 	if err := c.Run(); err != nil {
@@ -53,7 +61,7 @@ func (l *local) Copy(src, dest, mode, owner string) error {
 	}
 
 	if mode != "" {
-		c = exec.Command("sudo", "chmod", mode, dest)
+		c = exec.CommandContext(ctx, "sudo", "chmod", mode, dest)
 		c.Stdout = nil
 		c.Stderr = nil
 		if err := c.Run(); err != nil {
@@ -62,7 +70,7 @@ func (l *local) Copy(src, dest, mode, owner string) error {
 	}
 
 	if owner != "" {
-		c = exec.Command("sudo", "chown", owner, dest)
+		c = exec.CommandContext(ctx, "sudo", "chown", owner, dest)
 		c.Stdout = nil
 		c.Stderr = nil
 		if err := c.Run(); err != nil {
