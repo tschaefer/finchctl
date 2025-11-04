@@ -82,17 +82,19 @@ func (s *service) Teardown() error {
 		}
 	}()
 
-	if !s.dryRun {
-		if err := config.RemoveStackAuth(s.config.Hostname); err != nil {
-			return err
-		}
+	if err := s.requirementsService(); err != nil {
+		return convertError(err, &TeardownServiceError{})
 	}
 
 	if err := s.teardownService(); err != nil {
 		return err
 	}
 
-	return nil
+	if s.dryRun {
+		return nil
+	}
+
+	return config.RemoveStackAuth(s.config.Hostname)
 }
 
 func (s *service) Deploy() error {
@@ -114,13 +116,11 @@ func (s *service) Deploy() error {
 		return err
 	}
 
-	if !s.dryRun {
-		if err := config.UpdateStackAuth(s.config.Hostname, s.config.Username, s.config.Password); err != nil {
-			return err
-		}
+	if s.dryRun {
+		return nil
 	}
 
-	return nil
+	return config.UpdateStackAuth(s.config.Hostname, s.config.Username, s.config.Password)
 }
 
 func (s *service) Update() error {
@@ -129,6 +129,10 @@ func (s *service) Update() error {
 			println()
 		}
 	}()
+
+	if err := s.requirementsService(); err != nil {
+		return convertError(err, &UpdateServiceError{})
+	}
 
 	if err := s.updateService(); err != nil {
 		return err

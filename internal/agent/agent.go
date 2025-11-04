@@ -47,7 +47,7 @@ func (a *agent) Teardown() error {
 	}()
 
 	if err := a.requirementsAgent(); err != nil {
-		return err
+		return convertError(err, &TeardownAgentError{})
 	}
 
 	if err := a.teardownAgent(); err != nil {
@@ -133,7 +133,7 @@ func (a *agent) Update() error {
 	}()
 
 	if err := a.requirementsAgent(); err != nil {
-		return err
+		return convertError(err, &UpdateAgentError{})
 	}
 
 	machine, err := a.machineInfo()

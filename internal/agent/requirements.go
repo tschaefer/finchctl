@@ -11,8 +11,19 @@ func (a *agent) __requirementsHasSudo() error {
 	return nil
 }
 
+func (a *agent) __requirementsHasSudoPermission() error {
+	if _, err := a.target.Run("sudo -n true"); err != nil {
+		return &DeployAgentError{Message: "user has no sudo permission", Reason: err.Error()}
+	}
+	return nil
+}
+
 func (a *agent) requirementsAgent() error {
 	if err := a.__requirementsHasSudo(); err != nil {
+		return err
+	}
+
+	if err := a.__requirementsHasSudoPermission(); err != nil {
 		return err
 	}
 
