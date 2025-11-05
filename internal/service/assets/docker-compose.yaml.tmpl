@@ -66,7 +66,7 @@ services:
 
   loki:
     container_name: loki
-    image: grafana/loki:3.5.5
+    image: grafana/loki:3.5.7
     command:
       - "-config.file=/etc/loki/loki.yaml"
       - "-target=all"
@@ -78,7 +78,7 @@ services:
 
   traefik:
     container_name: traefik
-    image: traefik:v3.5.2
+    image: traefik:v3.5.4
     command:
       - "--configfile=/etc/traefik/traefik.yaml"
     ports:
@@ -91,7 +91,7 @@ services:
 
   alloy:
     container_name: alloy
-    image: grafana/alloy:v1.10.2
+    image: grafana/alloy:v1.11.3
     volumes:
       - /var/lib/finch/alloy/etc:/etc/alloy
       - /var/lib/finch/alloy/data:/var/lib/alloy/data
@@ -116,7 +116,7 @@ services:
 
   mimir:
     container_name: mimir
-    image: grafana/mimir:2.17.1
+    image: grafana/mimir:3.0.0
     volumes:
       - /var/lib/finch/mimir/data:/var/lib/mimir
       - /var/lib/finch/mimir/etc:/etc/mimir
@@ -127,7 +127,7 @@ services:
 
   pyroscope:
     container_name: pyroscope
-    image: grafana/pyroscope:1.15.0
+    image: grafana/pyroscope:1.16.0
     volumes:
       - /var/lib/finch/pyroscope/data:/var/lib/pyroscope
     command:
