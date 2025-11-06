@@ -102,13 +102,17 @@ func (l *local) Request(method string, url *url.URL, data []byte) ([]byte, error
 		}
 	}
 
-	client := &http.Client{Transport: tr}
-	req, err := http.NewRequest(method, url.String(), io.NopCloser(bytes.NewBuffer(data)))
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, method, url.String(), io.NopCloser(bytes.NewBuffer(data)))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("User-Agent", fmt.Sprintf("finchctl/%s", version.Release()))
 	req.SetBasicAuth(username, password)
+
+	client := &http.Client{Transport: tr}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

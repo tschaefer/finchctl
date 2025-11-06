@@ -6,6 +6,7 @@ package agent
 
 import (
 	"archive/zip"
+	"context"
 	"fmt"
 	"io"
 	"io/fs"
@@ -84,7 +85,16 @@ func (a *agent) __deployDownloadRelease(release string, tmpdir string) (string, 
 		_ = out.Close()
 	}()
 
-	resp, err := http.Get(url)
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return "", &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
