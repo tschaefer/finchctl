@@ -151,26 +151,80 @@
         "uid": "finch-loki"
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "bars",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
         "overrides": []
       },
       "gridPos": {
-        "h": 15,
+        "h": 4,
         "w": 12,
         "x": 0,
         "y": 5
       },
-      "id": 2,
+      "id": 4,
       "options": {
-        "dedupStrategy": "none",
-        "enableInfiniteScrolling": false,
-        "enableLogDetails": true,
-        "prettifyLogMessage": false,
-        "showCommonLabels": false,
-        "showLabels": false,
-        "showTime": true,
-        "sortOrder": "Ascending",
-        "wrapLogMessage": true
+        "legend": {
+          "calcs": [],
+          "displayMode": "hidden",
+          "placement": "right",
+          "showLegend": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "pluginVersion": "12.2.0",
       "targets": [
@@ -181,13 +235,14 @@
           },
           "direction": "backward",
           "editorMode": "builder",
-          "expr": "{platform=\"docker\", service_name=\"finch\"} | logfmt",
+          "expr": "sum(count_over_time({service_name=\"finch\"} [$__interval]))",
+          "legendFormat": "log count",
           "queryType": "range",
           "refId": "A"
         }
       ],
       "title": "Logs",
-      "type": "logs"
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -225,6 +280,50 @@
       ],
       "title": "Flame Graph",
       "type": "flamegraph"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "finch-loki"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 2,
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": false,
+        "sortOrder": "Ascending",
+        "wrapLogMessage": true
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "finch-loki"
+          },
+          "direction": "backward",
+          "editorMode": "builder",
+          "expr": "{platform=\"docker\", service_name=\"finch\"} | logfmt",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "",
+      "type": "logs"
     }
   ],
   "preload": false,
@@ -242,5 +341,5 @@
   "timezone": "browser",
   "title": "Profiles / Finch",
   "uid": "tspj9wn",
-  "version": 1
+  "version": 2
 }
