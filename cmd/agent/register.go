@@ -28,6 +28,7 @@ func init() {
 	registerCmd.Flags().Bool("agent.log.journal", false, "Collect journal logs")
 	registerCmd.Flags().Bool("agent.log.docker", false, "Collect docker logs")
 	registerCmd.Flags().Bool("agent.metrics", false, "Collect node metrics")
+	registerCmd.Flags().StringSlice("agent.metrics.target", nil, "Collect metrics from specific targets")
 	registerCmd.Flags().Bool("agent.profiles", false, "Enable profiles collector")
 	registerCmd.Flags().StringSlice("agent.log.file", nil, "Collect logs from file paths")
 	registerCmd.Flags().StringSlice("agent.labels", nil, "Optional labels for identifying the agent")
@@ -90,14 +91,16 @@ func parseFlags(cmd *cobra.Command, formatType target.Format) *agent.RegisterDat
 	}
 
 	metrics, _ := cmd.Flags().GetBool("agent.metrics")
+	metricsTargets, _ := cmd.Flags().GetStringSlice("agent.metrics.target")
 	profiles, _ := cmd.Flags().GetBool("agent.profiles")
 
 	data := &agent.RegisterData{
-		Hostname:   hostname,
-		LogSources: logSources,
-		Metrics:    metrics,
-		Profiles:   profiles,
-		Tags:       tags,
+		Hostname:       hostname,
+		LogSources:     logSources,
+		Metrics:        metrics,
+		MetricsTargets: metricsTargets,
+		Profiles:       profiles,
+		Tags:           tags,
 	}
 
 	return data
