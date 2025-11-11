@@ -1,4 +1,4 @@
-# The Minimal Observability Infrastructure
+# The Minimal Observability Infrastructure [![Go Report Card](https://goreportcard.com/badge/github.com/tschaefer/finchctl)](https://goreportcard.com/report/github.com/tschaefer/finchctl)
 
 `finchctl` is used to deploy an observability stack and agents.
 
