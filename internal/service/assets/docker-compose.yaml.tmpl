@@ -78,7 +78,7 @@ services:
 
   traefik:
     container_name: traefik
-    image: traefik:v3.5.4
+    image: traefik:v3.6.2
     command:
       - "--configfile=/etc/traefik/traefik.yaml"
     ports:
@@ -109,7 +109,7 @@ services:
 
   finch:
     container_name: finch
-    image: ghcr.io/tschaefer/finch:1.0.0
+    image: ghcr.io/tschaefer/finch:1.1.0
     volumes:
       - /var/lib/finch:/var/lib/finch
     restart: always
