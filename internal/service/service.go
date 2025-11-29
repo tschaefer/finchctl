@@ -48,6 +48,7 @@ type FinchConfig struct {
 	CreatedAt   string `json:"created_at"`
 	Id          string `json:"id"`
 	Database    string `json:"database"`
+	Profiler    string `json:"profiler"`
 	Secret      string `json:"secret"`
 	Hostname    string `json:"hostname"`
 	Version     string `json:"version"`

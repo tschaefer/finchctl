@@ -172,6 +172,7 @@ func (s *service) __deployCopyFinchConfig() error {
 		CreatedAt: time.Now().Format(time.RFC3339),
 		Hostname:  s.config.Hostname,
 		Database:  "sqlite://finch.db",
+		Profiler:  "http://pyroscope:4040",
 		Secret:    secret,
 		Version:   "0.4.0",
 		Credentials: struct {
