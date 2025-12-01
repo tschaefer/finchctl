@@ -10,11 +10,12 @@ import (
 )
 
 type RegisterData struct {
-	Hostname   string   `json:"hostname"`
-	LogSources []string `json:"log_sources"`
-	Metrics    bool     `json:"metrics"`
-	Profiles   bool     `json:"profiles"`
-	Tags       []string `json:"tags"`
+	Hostname       string   `json:"hostname"`
+	LogSources     []string `json:"log_sources"`
+	Metrics        bool     `json:"metrics"`
+	MetricsTargets []string `json:"metrics_targets"`
+	Profiles       bool     `json:"profiles"`
+	Tags           []string `json:"tags"`
 }
 
 func (a *agent) registerAgent(service string, data *RegisterData) ([]byte, error) {
