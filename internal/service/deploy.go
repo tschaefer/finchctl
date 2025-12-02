@@ -41,16 +41,23 @@ func (s *service) __deployMakeDirHierarchy() error {
 
 func (s *service) __deploySetDirHierarchyPermission() error {
 	ownership := map[string]string{
-		"grafana":   "472:472",
-		"loki":      "10001:10001",
-		"alloy":     "0:0",
-		"traefik":   "0:0",
-		"mimir":     "10001:10001",
-		"pyroscope": "10001:10001",
+		"grafana":                      "472:472",
+		"grafana/dashboards":           "472:472",
+		"loki":                         "10001:10001",
+		"loki/{data,etc}":              "10001:10001",
+		"alloy":                        "0:0",
+		"alloy/{data,etc}":             "0:0",
+		"traefik":                      "0:0",
+		"traefik/etc":                  "0:0",
+		"traefik/etc/{certs.d,conf.d}": "0:0",
+		"mimir":                        "10001:10001",
+		"mimir/{data,etc}":             "10001:10001",
+		"pyroscope":                    "10001:10001",
+		"pyroscope/data":               "10001:10001",
 	}
 
 	for path, owner := range ownership {
-		out, err := s.target.Run(fmt.Sprintf("sudo chown -R %s %s/%s", owner, s.libDir(), path))
+		out, err := s.target.Run(fmt.Sprintf("sudo chown %s %s/%s", owner, s.libDir(), path))
 		if err != nil {
 			return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 		}
