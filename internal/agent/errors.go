@@ -60,6 +60,15 @@ func (e *UpdateAgentError) Error() string {
 	return strings.TrimSpace(fmt.Sprintf("Failed to update agent: %s %s", e.Message, e.Reason))
 }
 
+type ConfigAgentError struct {
+	Message string
+	Reason  string
+}
+
+func (e *ConfigAgentError) Error() string {
+	return strings.TrimSpace(fmt.Sprintf("Failed to get agent config: %s %s", e.Message, e.Reason))
+}
+
 func convertError(err error, to any) error {
 	if err == nil {
 		return nil

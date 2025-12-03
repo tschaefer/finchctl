@@ -19,12 +19,10 @@ http:
       tls: true
 
     finch:
-      rule: PathPrefix(`/finch`) {{ .HostRule }}
+      rule: PathPrefix(`/`) {{ .HostRule }}
       entrypoints:
         - websecure
       service: finch
-      middlewares:
-        - strip-finch-prefix
       tls: true
 
     mimir:
@@ -61,7 +59,7 @@ http:
     finch:
       loadBalancer:
         servers:
-          - url: http://finch:3000
+          - url: h2c://finch:3000
 
     mimir:
       loadBalancer:
@@ -78,11 +76,6 @@ http:
       stripprefix:
         prefixes:
           - "/loki"
-
-    strip-finch-prefix:
-      stripprefix:
-        prefixes:
-          - "/finch"
 
     strip-mimir-prefix:
       stripprefix:

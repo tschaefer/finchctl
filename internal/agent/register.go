@@ -5,8 +5,11 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package agent
 
 import (
-	"encoding/json"
-	"net/url"
+	"context"
+	"time"
+
+	"github.com/tschaefer/finchctl/internal/api"
+	"github.com/tschaefer/finchctl/internal/grpc"
 )
 
 type RegisterData struct {
@@ -19,30 +22,35 @@ type RegisterData struct {
 }
 
 func (a *agent) registerAgent(service string, data *RegisterData) ([]byte, error) {
-	url := &url.URL{}
-	url.Scheme = "https"
-	url.Host = service
-	url.Path = "/finch/api/v1/agent"
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 
-	payload, err := json.Marshal(data)
+	ctx, client, err := grpc.NewClient(ctx, service, api.NewAgentServiceClient)
+	if err != nil {
+		return nil, &RegisterAgentError{Message: err.Error(), Reason: ""}
+	}
+	defer func() {
+		_ = client.Close()
+	}()
+
+	register, err := client.Handler().RegisterAgent(ctx, &api.RegisterAgentRequest{
+		Hostname:       data.Hostname,
+		LogSources:     data.LogSources,
+		Metrics:        data.Metrics,
+		MetricsTargets: data.MetricsTargets,
+		Profiles:       data.Profiles,
+		Tags:           data.Tags,
+	})
 	if err != nil {
 		return nil, &RegisterAgentError{Message: err.Error(), Reason: ""}
 	}
 
-	payload, err = a.target.Request("POST", url, payload)
+	cfg, err := client.Handler().GetAgentConfig(ctx, &api.GetAgentConfigRequest{
+		Rid: register.Rid,
+	})
 	if err != nil {
-		return nil, &RegisterAgentError{Message: err.Error(), Reason: ""}
+		return nil, &ConfigAgentError{Message: err.Error(), Reason: ""}
 	}
 
-	var info map[string]string
-	if err := json.Unmarshal(payload, &info); err != nil {
-		return nil, &RegisterAgentError{Message: err.Error(), Reason: "Failed to parse response"}
-	}
-
-	config, err := a.configAgent(service, info["rid"])
-	if err != nil {
-		return nil, convertError(err, &RegisterAgentError{})
-	}
-
-	return config, nil
+	return cfg.Config, nil
 }

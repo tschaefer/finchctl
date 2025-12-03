@@ -5,8 +5,11 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package service
 
 import (
-	"encoding/json"
-	"net/url"
+	"context"
+	"time"
+
+	"github.com/tschaefer/finchctl/internal/api"
+	"github.com/tschaefer/finchctl/internal/grpc"
 )
 
 type InfoData struct {
@@ -18,24 +21,27 @@ type InfoData struct {
 }
 
 func (s *service) infoService() (*InfoData, error) {
-	url := &url.URL{}
-	url.Scheme = "https"
-	url.Host = s.config.Hostname
-	url.Path = "/finch/api/v1/info"
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 
-	payload, err := s.target.Request("GET", url, nil)
+	ctx, client, err := grpc.NewClient(ctx, s.config.Hostname, api.NewInfoServiceClient)
+	if err != nil {
+		return nil, &InfoServiceError{Message: err.Error(), Reason: ""}
+	}
+	defer func() {
+		_ = client.Close()
+	}()
+
+	info, err := client.Handler().GetServiceInfo(ctx, &api.GetServiceInfoRequest{})
 	if err != nil {
 		return nil, &InfoServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if s.dryRun {
-		return nil, nil
-	}
-
-	var info InfoData
-	if err := json.Unmarshal(payload, &info); err != nil {
-		return nil, &InfoServiceError{Message: err.Error(), Reason: ""}
-	}
-
-	return &info, nil
+	return &InfoData{
+		ID:        info.Id,
+		Hostname:  info.Hostname,
+		CreatedAt: info.CreatedAt,
+		Release:   info.Release,
+		Commit:    info.Commit,
+	}, nil
 }
