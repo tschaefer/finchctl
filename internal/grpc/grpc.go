@@ -57,7 +57,7 @@ func NewClient[T any](ctx context.Context, service string, newHandler func(grpc.
 
 	userAgent := fmt.Sprintf("finchctl/%s", version.Release())
 
-	conn, err := grpc.NewClient(service, grpc.WithTransportCredentials(creds), grpc.WithUserAgent(userAgent))
+	conn, err := grpc.NewClient(service+":443", grpc.WithTransportCredentials(creds), grpc.WithUserAgent(userAgent))
 	if err != nil {
 		return ctx, nil, err
 	}

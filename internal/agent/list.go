@@ -1,3 +1,7 @@
+/*
+Copyright (c) 2025 Tobias Schäfer. All rights reserved.
+Licensed under the MIT license, see LICENSE in the project root for details.
+*/
 package agent
 
 import (
@@ -30,7 +34,7 @@ func (a *agent) listAgents(service string) (*[]ListData, error) {
 		return nil, &ListAgentsError{Message: err.Error(), Reason: ""}
 	}
 
-	var result []ListData
+	result := make([]ListData, 0, len(list.Agents))
 	for _, agent := range list.Agents {
 		result = append(result, ListData{
 			Hostname:   agent.Hostname,

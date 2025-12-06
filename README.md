@@ -82,7 +82,7 @@ Alloy will be enrolled and started with the provided configuration.
 
 ## Metrics and Profiling Data Collection
 
-Applications can forward log, metrics and profiling data to Alloy::
+Applications can forward log, metrics and profiling data to Alloy:
 
 - **Logs Listen** `http://localhost:3100`
 - **Metrics Listen** `http://localhost:9091`
