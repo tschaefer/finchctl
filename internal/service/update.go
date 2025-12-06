@@ -44,7 +44,7 @@ func (s *service) __updateRecomposeDockerServices() error {
 		return convertError(err, &UpdateServiceError{})
 	}
 
-	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml pull --policy always", s.libDir()))
+	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml pull --policy missing", s.libDir()))
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
 	}

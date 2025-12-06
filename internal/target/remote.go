@@ -95,10 +95,6 @@ func (s *remote) Copy(src, dest, mode, owner string) error {
 	return nil
 }
 
-func (s *remote) Request(method string, url *url.URL, data []byte) ([]byte, error) {
-	return nil, fmt.Errorf("Request method not implemented")
-}
-
 func NewRemote(host *url.URL, format Format, dryRun bool) (Target, error) {
 	auth, err := authorize()
 	if err != nil {

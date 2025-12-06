@@ -26,7 +26,6 @@ const (
 type Target interface {
 	Run(command string) ([]byte, error)
 	Copy(src, dest, mode, owner string) error
-	Request(method string, url *url.URL, data []byte) ([]byte, error)
 }
 
 func NewTarget(hostUrl string, format Format, dryRun bool) (Target, error) {

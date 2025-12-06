@@ -5,20 +5,31 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package agent
 
 import (
-	"fmt"
-	"net/url"
+	"context"
+	"time"
+
+	"github.com/tschaefer/finchctl/internal/api"
+	"github.com/tschaefer/finchctl/internal/grpc"
 )
 
 func (a *agent) configAgent(service, rid string) ([]byte, error) {
-	url := &url.URL{}
-	url.Scheme = "https"
-	url.Host = service
-	url.Path = fmt.Sprintf("/finch/api/v1/agent/%s/config", rid)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 
-	payload, err := a.target.Request("GET", url, nil)
+	ctx, client, err := grpc.NewClient(ctx, service, api.NewAgentServiceClient)
 	if err != nil {
-		return nil, &RegisterAgentError{Message: err.Error(), Reason: ""}
+		return nil, &ConfigAgentError{Message: err.Error(), Reason: ""}
+	}
+	defer func() {
+		_ = client.Close()
+	}()
+
+	cfg, err := client.Handler().GetAgentConfig(ctx, &api.GetAgentConfigRequest{
+		Rid: rid,
+	})
+	if err != nil {
+		return nil, &ConfigAgentError{Message: err.Error(), Reason: ""}
 	}
 
-	return payload, nil
+	return cfg.Config, nil
 }

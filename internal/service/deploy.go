@@ -181,7 +181,7 @@ func (s *service) __deployCopyFinchConfig() error {
 		Database:  "sqlite://finch.db",
 		Profiler:  "http://pyroscope:4040",
 		Secret:    secret,
-		Version:   "0.4.0",
+		Version:   "1.3.0",
 		Credentials: struct {
 			Username string `json:"username"`
 			Password string `json:"password"`
