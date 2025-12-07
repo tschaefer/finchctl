@@ -86,7 +86,7 @@ func parseFlags(cmd *cobra.Command, formatType target.Format) *agent.RegisterDat
 
 	var tags []string
 	labels, _ := cmd.Flags().GetStringSlice("agent.labels")
-	if len(tags) > 0 {
+	if len(labels) > 0 {
 		tags = append(tags, labels...)
 	}
 
