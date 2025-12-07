@@ -15,7 +15,7 @@ import (
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
-func (a *agent) __updateServiceBinaryNeeded() (bool, error) {
+func (a *agent) __updateServiceBinaryIsNeeded() (bool, error) {
 	if a.dryRun {
 		target.PrintProgress("Skipping update check due to dry-run mode", a.format)
 		return false, nil
@@ -56,42 +56,51 @@ func (a *agent) __updateServiceBinaryNeeded() (bool, error) {
 	return latestVersion != currentVersion, nil
 }
 
-func (a *agent) updateAgent(machine *MachineInfo) error {
-	if err := a.__deployCopyConfigFile(); err != nil {
-		return convertError(err, &UpdateAgentError{})
-	}
-
-	ok, err := a.__updateServiceBinaryNeeded()
+func (a *agent) __updateServiceBinary(machine *MachineInfo) error {
+	ok, err := a.__updateServiceBinaryIsNeeded()
 	if err != nil {
 		return err
 	}
 
-	if ok {
+	if !ok {
+		return nil
+	}
 
-		tmpdir, err := os.MkdirTemp(os.TempDir(), "*-finch")
+	tmpdir, err := os.MkdirTemp(os.TempDir(), "*-finch")
+	if err != nil {
+		return &UpdateAgentError{Message: err.Error(), Reason: ""}
+	}
+	defer func() {
+		_ = os.RemoveAll(tmpdir)
+	}()
 
-		if err != nil {
-			return &UpdateAgentError{Message: err.Error(), Reason: ""}
-		}
+	release := fmt.Sprintf("alloy-%s-%s", machine.Kernel, machine.Arch)
+	zip, err := a.__deployDownloadRelease(release, tmpdir)
+	if err != nil {
+		return convertError(err, &UpdateAgentError{})
+	}
 
-		defer func() {
-			_ = os.RemoveAll(tmpdir)
-		}()
+	binary, err := a.__deployUnzipRelease(release, zip)
+	if err != nil {
+		return convertError(err, &UpdateAgentError{})
+	}
 
-		release := fmt.Sprintf("alloy-%s-%s", machine.Kernel, machine.Arch)
-		zip, err := a.__deployDownloadRelease(release, tmpdir)
+	if err := a.__deployInstallBinary(binary); err != nil {
+		return convertError(err, &UpdateAgentError{})
+	}
 
-		if err != nil {
+	return nil
+}
+
+func (a *agent) updateAgent(machine *MachineInfo, skipConfig bool, skipBinaries bool) error {
+	if !skipConfig {
+		if err := a.__deployCopyConfigFile(); err != nil {
 			return convertError(err, &UpdateAgentError{})
 		}
+	}
 
-		binary, err := a.__deployUnzipRelease(release, zip)
-
-		if err != nil {
-			return convertError(err, &UpdateAgentError{})
-		}
-
-		if err := a.__deployInstallBinary(binary); err != nil {
+	if !skipBinaries {
+		if err := a.__updateServiceBinary(machine); err != nil {
 			return convertError(err, &UpdateAgentError{})
 		}
 	}

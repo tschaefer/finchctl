@@ -15,7 +15,7 @@ type Agent interface {
 	List(string) (*[]ListData, error)
 	Deregister(string, string) error
 	Config(string, string) ([]byte, error)
-	Update() error
+	Update(bool, bool) error
 }
 
 type agent struct {
@@ -81,51 +81,22 @@ func (a *agent) Deploy() error {
 }
 
 func (a *agent) Register(service string, data *RegisterData) ([]byte, error) {
-	defer func() {
-		if a.format == target.FormatProgress {
-			println()
-		}
-	}()
-
-	config, err := a.registerAgent(service, data)
-	if err != nil {
-		return nil, err
-	}
-
-	return config, nil
+	return a.registerAgent(service, data)
 }
 
 func (a *agent) List(service string) (*[]ListData, error) {
-	defer func() {
-		if a.format == target.FormatProgress {
-			println()
-		}
-	}()
-
 	return a.listAgents(service)
 }
 
 func (a *agent) Deregister(service, resourceID string) error {
-	defer func() {
-		if a.format == target.FormatProgress {
-			println()
-		}
-	}()
-
 	return a.deregisterAgent(service, resourceID)
 }
 
 func (a *agent) Config(service, resourceID string) ([]byte, error) {
-	defer func() {
-		if a.format == target.FormatProgress {
-			println()
-		}
-	}()
-
 	return a.configAgent(service, resourceID)
 }
 
-func (a *agent) Update() error {
+func (a *agent) Update(skipConfig bool, skipBinaries bool) error {
 	defer func() {
 		if a.format == target.FormatProgress {
 			println()
@@ -141,5 +112,5 @@ func (a *agent) Update() error {
 		return err
 	}
 
-	return a.updateAgent(machine)
+	return a.updateAgent(machine, skipConfig, skipBinaries)
 }

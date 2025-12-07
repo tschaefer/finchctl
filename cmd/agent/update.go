@@ -25,6 +25,8 @@ func init() {
 	updateCmd.Flags().String("agent.config", "", "path to agent configuration file")
 	updateCmd.Flags().String("run.format", "progress", "output format")
 	updateCmd.Flags().Bool("run.dry-run", false, "perform a dry run without updateing the agent")
+	updateCmd.Flags().Bool("skip.config", false, "skip configuration file update")
+	updateCmd.Flags().Bool("skip.binaries", false, "skip binaries update")
 
 	_ = updateCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
@@ -35,7 +37,14 @@ func runUpdateCmd(cmd *cobra.Command, args []string) {
 	cobra.CheckErr(err)
 
 	config, _ := cmd.Flags().GetString("agent.config")
-	if config == "" {
+	skipConfig, _ := cmd.Flags().GetBool("skip.config")
+	skipBinaries, _ := cmd.Flags().GetBool("skip.binaries")
+
+	if skipConfig && skipBinaries {
+		errors.CheckErr(fmt.Errorf("at least one of --skip.config or --skip.binaries must be false"), formatType)
+	}
+
+	if config == "" && !skipConfig {
 		errors.CheckErr(fmt.Errorf("agent configuration file must be specified"), formatType)
 	}
 	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
@@ -45,6 +54,6 @@ func runUpdateCmd(cmd *cobra.Command, args []string) {
 	a, err := agent.New(config, targetUrl, formatType, dryRun)
 	errors.CheckErr(err, formatType)
 
-	err = a.Update()
+	err = a.Update(skipConfig, skipBinaries)
 	errors.CheckErr(err, formatType)
 }

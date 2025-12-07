@@ -94,7 +94,7 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "create agent")
 
 	record := capture(func() {
-		err = a.Update()
+		err = a.Update(false, false)
 	})
 	assert.NoError(t, err, "update agent")
 
@@ -111,7 +111,7 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "create agent")
 
 	record = capture(func() {
-		err = a.Update()
+		err = a.Update(false, false)
 	})
 	assert.NoError(t, err, "update agent")
 
