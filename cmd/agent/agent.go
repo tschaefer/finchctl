@@ -15,4 +15,5 @@ func init() {
 	Cmd.AddCommand(deregisterCmd)
 	Cmd.AddCommand(configCmd)
 	Cmd.AddCommand(updateCmd)
+	Cmd.AddCommand(describeCmd)
 }

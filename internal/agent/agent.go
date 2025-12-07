@@ -16,6 +16,7 @@ type Agent interface {
 	Deregister(string, string) error
 	Config(string, string) ([]byte, error)
 	Update(bool, bool) error
+	Describe(string, string) (*DescribeData, error)
 }
 
 type agent struct {
@@ -113,4 +114,8 @@ func (a *agent) Update(skipConfig bool, skipBinaries bool) error {
 	}
 
 	return a.updateAgent(machine, skipConfig, skipBinaries)
+}
+
+func (a *agent) Describe(service, resourceID string) (*DescribeData, error) {
+	return a.describeAgent(service, resourceID)
 }

@@ -69,6 +69,15 @@ func (e *ConfigAgentError) Error() string {
 	return strings.TrimSpace(fmt.Sprintf("Failed to get agent config: %s %s", e.Message, e.Reason))
 }
 
+type DescribeAgentError struct {
+	Message string
+	Reason  string
+}
+
+func (e *DescribeAgentError) Error() string {
+	return strings.TrimSpace(fmt.Sprintf("Failed to get agent description: %s %s", e.Message, e.Reason))
+}
+
 func convertError(err error, to any) error {
 	if err == nil {
 		return nil
