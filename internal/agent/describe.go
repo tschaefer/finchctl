@@ -65,7 +65,7 @@ func (a *agent) describeAgent(service, rid string) (*DescribeData, error) {
 		logSources = append(logSources, url.Path)
 	}
 
-	labels := data.Tags
+	labels := data.Labels
 	if labels == nil {
 		labels = []string{}
 	}

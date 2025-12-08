@@ -18,7 +18,7 @@ type RegisterData struct {
 	Metrics        bool     `json:"metrics"`
 	MetricsTargets []string `json:"metrics_targets"`
 	Profiles       bool     `json:"profiles"`
-	Tags           []string `json:"tags"`
+	Labels         []string `json:"labels"`
 }
 
 func (a *agent) registerAgent(service string, data *RegisterData) ([]byte, error) {
@@ -39,7 +39,7 @@ func (a *agent) registerAgent(service string, data *RegisterData) ([]byte, error
 		Metrics:        data.Metrics,
 		MetricsTargets: data.MetricsTargets,
 		Profiles:       data.Profiles,
-		Tags:           data.Tags,
+		Labels:         data.Labels,
 	})
 	if err != nil {
 		return nil, &RegisterAgentError{Message: err.Error(), Reason: ""}
