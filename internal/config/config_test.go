@@ -70,7 +70,7 @@ func Test_LookupStackAuthReturnErrorIfStackNotExist(t *testing.T) {
 	assert.NoError(t, err, "update stack")
 
 	hostname := gofakeit.DomainName()
-	_, _, err = LookupStackAuth(hostname)
+	_, err = LookupStackAuth(hostname)
 	wanted := "Config error: stack not found"
 	assert.EqualError(t, err, wanted, "lookup stack")
 }
@@ -83,11 +83,10 @@ func Test_LookupStackAuthReturnCredentialsIfStackExist(t *testing.T) {
 	err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
 	assert.NoError(t, err, "update stack")
 
-	username, password, err := LookupStackAuth(stack.Hostname)
+	token, err := LookupStackAuth(stack.Hostname)
 	assert.NoError(t, err, "lookup stack")
 
-	assert.Equal(t, stack.Username, username, "auth username")
-	assert.Equal(t, stack.Password, password, "auth password")
+	assert.Equal(t, encodeToken(stack.Username, stack.Password), token, "auth token")
 }
 
 func Test_RemoveStackAuthReturnNoErrorIfStackNotExist(t *testing.T) {
@@ -115,7 +114,7 @@ func Test_RemoveStackAuthSucceedIfStackExist(t *testing.T) {
 	err = RemoveStackAuth(stack.Hostname)
 	assert.NoError(t, err, "remove stack")
 
-	_, _, err = LookupStackAuth(stack.Hostname)
+	_, err = LookupStackAuth(stack.Hostname)
 	assert.Error(t, err, "lookup stack")
 
 	wanted := "Config error: stack not found"

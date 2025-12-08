@@ -67,14 +67,14 @@ func UpdateStackAuth(name, username, password string) error {
 	return WriteConfig(&config)
 }
 
-func LookupStackAuth(name string) (string, string, error) {
+func LookupStackAuth(name string) (string, error) {
 	if !fileExists() {
-		return "", "", &ConfigError{Message: "config file does not exist", Reason: ""}
+		return "", &ConfigError{Message: "config file does not exist", Reason: ""}
 	}
 
 	config, err := ReadConfig()
 	if err != nil {
-		return "", "", &ConfigError{Message: "failed to read config", Reason: err.Error()}
+		return "", &ConfigError{Message: "failed to read config", Reason: err.Error()}
 	}
 
 	var token string
@@ -85,15 +85,10 @@ func LookupStackAuth(name string) (string, string, error) {
 		}
 	}
 	if token == "" {
-		return "", "", &ConfigError{Message: "stack not found", Reason: ""}
+		return "", &ConfigError{Message: "stack not found", Reason: ""}
 	}
 
-	username, password, err := decodeToken(token)
-	if err != nil {
-		return "", "", &ConfigError{Message: "failed to decode auth token", Reason: err.Error()}
-	}
-
-	return username, password, nil
+	return token, nil
 }
 
 func RemoveStackAuth(name string) error {
@@ -168,20 +163,6 @@ func configFile() string {
 	}
 
 	return fmt.Sprintf("%s/config.json", dir)
-}
-
-func decodeToken(input string) (string, string, error) {
-	decoded, err := base64.StdEncoding.DecodeString(input)
-	if err != nil {
-		return "", "", &ConfigError{Message: err.Error(), Reason: ""}
-	}
-
-	parts := strings.SplitN(string(decoded), ":", 2)
-	if len(parts) != 2 {
-		return "", "", &ConfigError{Message: "invalid token format", Reason: ""}
-	}
-
-	return parts[0], parts[1], nil
 }
 
 func encodeToken(username, password string) string {
