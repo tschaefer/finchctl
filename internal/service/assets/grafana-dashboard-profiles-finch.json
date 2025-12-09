@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 9,
+  "id": 2,
   "links": [],
   "panels": [
     {
@@ -139,6 +139,21 @@
           "profileTypeId": "memory:inuse_space:bytes:space:bytes",
           "queryType": "metrics",
           "refId": "B",
+          "spanSelector": []
+        },
+        {
+          "annotations": true,
+          "datasource": {
+            "type": "grafana-pyroscope-datasource",
+            "uid": "finch-pyroscope"
+          },
+          "groupBy": [],
+          "hide": false,
+          "labelSelector": "{service_name=\"finch\"}",
+          "limit": 10,
+          "profileTypeId": "goroutines:goroutine:count:goroutine:count",
+          "queryType": "metrics",
+          "refId": "C",
           "spanSelector": []
         }
       ],
@@ -341,5 +356,5 @@
   "timezone": "browser",
   "title": "Profiles / Finch",
   "uid": "tspj9wn",
-  "version": 2
+  "version": 1
 }

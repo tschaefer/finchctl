@@ -84,12 +84,7 @@ func parseFlags(cmd *cobra.Command, formatType target.Format) *agent.RegisterDat
 		errors.CheckErr("at least one log source must be enabled", formatType)
 	}
 
-	var tags []string
 	labels, _ := cmd.Flags().GetStringSlice("agent.labels")
-	if len(labels) > 0 {
-		tags = append(tags, labels...)
-	}
-
 	metrics, _ := cmd.Flags().GetBool("agent.metrics")
 	metricsTargets, _ := cmd.Flags().GetStringSlice("agent.metrics.target")
 	profiles, _ := cmd.Flags().GetBool("agent.profiles")
@@ -100,7 +95,7 @@ func parseFlags(cmd *cobra.Command, formatType target.Format) *agent.RegisterDat
 		Metrics:        metrics,
 		MetricsTargets: metricsTargets,
 		Profiles:       profiles,
-		Tags:           tags,
+		Labels:         labels,
 	}
 
 	return data

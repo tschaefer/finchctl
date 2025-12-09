@@ -7,7 +7,6 @@ package grpc
 import (
 	"context"
 	"crypto/tls"
-	"encoding/base64"
 	"fmt"
 	"os"
 	"strings"
@@ -29,11 +28,10 @@ type Client[T any] struct {
 }
 
 func NewClient[T any](ctx context.Context, service string, newHandler func(grpc.ClientConnInterface) T) (context.Context, *Client[T], error) {
-	username, password, err := config.LookupStackAuth(service)
+	token, err := config.LookupStackAuth(service)
 	if err != nil {
 		return ctx, nil, err
 	}
-	token := base64.StdEncoding.EncodeToString([]byte(username + ":" + password))
 	ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Basic "+token)
 
 	skipTLSVerify := false
