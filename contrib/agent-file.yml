@@ -1,0 +1,37 @@
+# Agent configuration file
+#
+# This is a sample configuration file used to register a new observability
+# agent.
+#
+# Apply it with the following command:
+#   finchctl agent register --agent.file agent-file.yml finch.example.com
+---
+
+# Unique hostname
+hostname: cc.coresec.zone
+
+# At leas one log source is required
+log:
+  # Collect systemd journal logs
+  journal:
+    enable: true
+
+  # Collect Docker logs
+  docker:
+    enable: false
+
+  # Collect log files
+  files:
+    - /var/log/*.log
+    - /var/log/nginx/access.log
+
+# Collect node metrics (optional)
+metrics:
+  enable: true
+  # Scrape metrics from custom endpoints
+  targets:
+    - http://localhost:9100/metrics
+
+# Enable profiling (optional)
+profiles:
+  enable: true
