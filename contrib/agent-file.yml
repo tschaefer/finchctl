@@ -8,9 +8,10 @@
 ---
 
 # Unique hostname
-hostname: cc.coresec.zone
+hostname: sparrow.example.com
 
-# At leas one log source is required
+# Log sources
+# At least one source is required
 log:
   # Collect systemd journal logs
   journal:
@@ -18,7 +19,7 @@ log:
 
   # Collect Docker logs
   docker:
-    enable: false
+    enable: true
 
   # Collect log files
   files:

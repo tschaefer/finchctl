@@ -40,19 +40,19 @@ func init() {
 	_ = viper.BindPFlag("metrics.enable", registerCmd.Flags().Lookup("agent.metrics"))
 
 	registerCmd.Flags().StringSlice("agent.metrics.targets", nil, "Collect metrics from specific targets")
-	_ = viper.BindPFlag("metrics.targets", registerCmd.Flags().Lookup("agent.metrics.target"))
+	_ = viper.BindPFlag("metrics.targets", registerCmd.Flags().Lookup("agent.metrics.targets"))
 
 	registerCmd.Flags().Bool("agent.profiles", false, "Enable profiles collector")
 	_ = viper.BindPFlag("profiles.enable", registerCmd.Flags().Lookup("agent.profiles"))
 
 	registerCmd.Flags().StringSlice("agent.log.files", nil, "Collect logs from file paths")
-	_ = viper.BindPFlag("log.files", registerCmd.Flags().Lookup("agent.log.file"))
+	_ = viper.BindPFlag("log.files", registerCmd.Flags().Lookup("agent.log.files"))
 
 	registerCmd.Flags().StringSlice("agent.labels", nil, "Optional labels for identifying the agent")
 	_ = viper.BindPFlag("labels", registerCmd.Flags().Lookup("agent.labels"))
 
 	registerCmd.Flags().String("agent.config", "finch-agent.cfg", "Path to the configuration file")
-	registerCmd.Flags().String("agent.file", "", "Path to a JSON file containing agent data")
+	registerCmd.Flags().String("agent.file", "", "Path to a file containing agent data")
 }
 
 func runRegisterPreCmd(cmd *cobra.Command, args []string) {
@@ -137,9 +137,7 @@ func initConfig(cfgFile string) error {
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			if cfgFile != "" {
-				return fmt.Errorf("config file not found: %w", err)
-			}
+			return fmt.Errorf("config file not found: %w", err)
 		} else {
 			return fmt.Errorf("error reading config file: %w", err)
 		}
