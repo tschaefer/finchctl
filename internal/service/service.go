@@ -15,14 +15,7 @@ const (
 	ServiceLibEnv string = "FINCH_SERVICE_LIB"
 )
 
-type Service interface {
-	Deploy() error
-	Update() error
-	Teardown() error
-	Info() (*InfoData, error)
-}
-
-type service struct {
+type Service struct {
 	config *ServiceConfig
 	target target.Target
 	format target.Format
@@ -58,7 +51,7 @@ type FinchConfig struct {
 	} `json:"credentials"`
 }
 
-func New(config *ServiceConfig, targetUrl string, format target.Format, dryRun bool) (Service, error) {
+func New(config *ServiceConfig, targetUrl string, format target.Format, dryRun bool) (*Service, error) {
 	target, err := target.NewTarget(targetUrl, format, dryRun)
 	if err != nil {
 		return nil, err
@@ -68,7 +61,7 @@ func New(config *ServiceConfig, targetUrl string, format target.Format, dryRun b
 		config = &ServiceConfig{}
 	}
 
-	return &service{
+	return &Service{
 		config: config,
 		target: target,
 		format: format,
@@ -76,7 +69,7 @@ func New(config *ServiceConfig, targetUrl string, format target.Format, dryRun b
 	}, nil
 }
 
-func (s *service) Teardown() error {
+func (s *Service) Teardown() error {
 	defer func() {
 		if s.format == target.FormatProgress {
 			println()
@@ -98,7 +91,7 @@ func (s *service) Teardown() error {
 	return config.RemoveStackAuth(s.config.Hostname)
 }
 
-func (s *service) Deploy() error {
+func (s *Service) Deploy() error {
 	defer func() {
 		if s.format == target.FormatProgress {
 			println()
@@ -124,7 +117,7 @@ func (s *service) Deploy() error {
 	return config.UpdateStackAuth(s.config.Hostname, s.config.Username, s.config.Password)
 }
 
-func (s *service) Update() error {
+func (s *Service) Update() error {
 	defer func() {
 		if s.format == target.FormatProgress {
 			println()
@@ -142,7 +135,7 @@ func (s *service) Update() error {
 	return nil
 }
 
-func (s *service) Info() (*InfoData, error) {
+func (s *Service) Info() (*InfoData, error) {
 	defer func() {
 		if s.format == target.FormatProgress {
 			println()
@@ -152,7 +145,7 @@ func (s *service) Info() (*InfoData, error) {
 	return s.infoService()
 }
 
-func (s *service) libDir() string {
+func (s *Service) libDir() string {
 	var dir string
 	dir = os.Getenv(ServiceLibEnv)
 

@@ -17,7 +17,7 @@ type ListData struct {
 	ResourceID string `json:"rid"`
 }
 
-func (a *agent) listAgents(service string) (*[]ListData, error) {
+func (a *Agent) listAgents(service string) (*[]ListData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 

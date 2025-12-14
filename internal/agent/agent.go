@@ -8,31 +8,20 @@ import (
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
-type Agent interface {
-	Deploy() error
-	Teardown() error
-	Register(string, *RegisterData) ([]byte, error)
-	List(string) (*[]ListData, error)
-	Deregister(string, string) error
-	Config(string, string) ([]byte, error)
-	Update(bool, bool) error
-	Describe(string, string) (*DescribeData, error)
-}
-
-type agent struct {
+type Agent struct {
 	target target.Target
 	config string
 	format target.Format
 	dryRun bool
 }
 
-func New(config, targetUrl string, format target.Format, dryRun bool) (Agent, error) {
+func New(config, targetUrl string, format target.Format, dryRun bool) (*Agent, error) {
 	target, err := target.NewTarget(targetUrl, format, dryRun)
 	if err != nil {
 		return nil, err
 	}
 
-	return &agent{
+	return &Agent{
 		target: target,
 		config: config,
 		format: format,
@@ -40,7 +29,7 @@ func New(config, targetUrl string, format target.Format, dryRun bool) (Agent, er
 	}, nil
 }
 
-func (a *agent) Teardown() error {
+func (a *Agent) Teardown() error {
 	defer func() {
 		if a.format == target.FormatProgress {
 			println()
@@ -58,7 +47,7 @@ func (a *agent) Teardown() error {
 	return nil
 }
 
-func (a *agent) Deploy() error {
+func (a *Agent) Deploy() error {
 	defer func() {
 		if a.format == target.FormatProgress {
 			println()
@@ -81,23 +70,23 @@ func (a *agent) Deploy() error {
 	return nil
 }
 
-func (a *agent) Register(service string, data *RegisterData) ([]byte, error) {
+func (a *Agent) Register(service string, data *RegisterData) ([]byte, error) {
 	return a.registerAgent(service, data)
 }
 
-func (a *agent) List(service string) (*[]ListData, error) {
+func (a *Agent) List(service string) (*[]ListData, error) {
 	return a.listAgents(service)
 }
 
-func (a *agent) Deregister(service, resourceID string) error {
+func (a *Agent) Deregister(service, resourceID string) error {
 	return a.deregisterAgent(service, resourceID)
 }
 
-func (a *agent) Config(service, resourceID string) ([]byte, error) {
+func (a *Agent) Config(service, resourceID string) ([]byte, error) {
 	return a.configAgent(service, resourceID)
 }
 
-func (a *agent) Update(skipConfig bool, skipBinaries bool) error {
+func (a *Agent) Update(skipConfig bool, skipBinaries bool) error {
 	defer func() {
 		if a.format == target.FormatProgress {
 			println()
@@ -116,6 +105,6 @@ func (a *agent) Update(skipConfig bool, skipBinaries bool) error {
 	return a.updateAgent(machine, skipConfig, skipBinaries)
 }
 
-func (a *agent) Describe(service, resourceID string) (*DescribeData, error) {
+func (a *Agent) Describe(service, resourceID string) (*DescribeData, error) {
 	return a.describeAgent(service, resourceID)
 }

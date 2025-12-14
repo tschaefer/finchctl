@@ -15,7 +15,7 @@ import (
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
-func (a *agent) __updateServiceBinaryIsNeeded() (bool, error) {
+func (a *Agent) __updateServiceBinaryIsNeeded() (bool, error) {
 	if a.dryRun {
 		target.PrintProgress("Skipping update check due to dry-run mode", a.format)
 		return false, nil
@@ -56,7 +56,7 @@ func (a *agent) __updateServiceBinaryIsNeeded() (bool, error) {
 	return latestVersion != currentVersion, nil
 }
 
-func (a *agent) __updateServiceBinary(machine *MachineInfo) error {
+func (a *Agent) __updateServiceBinary(machine *MachineInfo) error {
 	ok, err := a.__updateServiceBinaryIsNeeded()
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func (a *agent) __updateServiceBinary(machine *MachineInfo) error {
 	return nil
 }
 
-func (a *agent) updateAgent(machine *MachineInfo, skipConfig bool, skipBinaries bool) error {
+func (a *Agent) updateAgent(machine *MachineInfo, skipConfig bool, skipBinaries bool) error {
 	if !skipConfig {
 		if err := a.__deployCopyConfigFile(); err != nil {
 			return convertError(err, &UpdateAgentError{})

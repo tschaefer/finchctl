@@ -21,7 +21,7 @@ type RegisterData struct {
 	Labels         []string `json:"labels"`
 }
 
-func (a *agent) registerAgent(service string, data *RegisterData) ([]byte, error) {
+func (a *Agent) registerAgent(service string, data *RegisterData) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 

@@ -11,22 +11,22 @@ import (
 	"strings"
 )
 
-func (s *service) __dockerIsAvailable() bool {
+func (s *Service) __dockerIsAvailable() bool {
 	_, err := s.target.Run("sudo docker -v")
 	return err == nil
 }
 
-func (s *service) __dockerIsRunning() bool {
+func (s *Service) __dockerIsRunning() bool {
 	_, err := s.target.Run("sudo docker version")
 	return err == nil
 }
 
-func (s *service) __dockerComposeIsAvailable() bool {
+func (s *Service) __dockerComposeIsAvailable() bool {
 	_, err := s.target.Run("sudo docker compose version")
 	return err == nil
 }
 
-func (s *service) __dockerInstallService() error {
+func (s *Service) __dockerInstallService() error {
 	raw, err := s.target.Run("mktemp -p /tmp -d finch-XXXXXX")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
@@ -49,7 +49,7 @@ func (s *service) __dockerInstallService() error {
 	return nil
 }
 
-func (s *service) __dockerCopyConfig() error {
+func (s *Service) __dockerCopyConfig() error {
 	dest := "/etc/docker/daemon.json"
 
 	content, err := fs.ReadFile(Assets, "daemon.json")
@@ -79,7 +79,7 @@ func (s *service) __dockerCopyConfig() error {
 	return nil
 }
 
-func (s *service) dockerService() error {
+func (s *Service) dockerService() error {
 	if !s.__dockerIsAvailable() {
 		if err := s.__dockerInstallService(); err != nil {
 			return err

@@ -45,7 +45,7 @@ type DescribeData struct {
 	Profiles   DescribeProfiles `json:"profiles"`
 }
 
-func (a *agent) describeAgent(service, rid string) (*DescribeData, error) {
+func (a *Agent) describeAgent(service, rid string) (*DescribeData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 

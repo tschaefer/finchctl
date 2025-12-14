@@ -9,7 +9,7 @@ import (
 	"fmt"
 )
 
-func (s *service) __updateSetTargetConfiguration() error {
+func (s *Service) __updateSetTargetConfiguration() error {
 	out, err := s.target.Run(fmt.Sprintf("sudo cat %s/finch.json", s.libDir()))
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
@@ -38,7 +38,7 @@ func (s *service) __updateSetTargetConfiguration() error {
 	return nil
 }
 
-func (s *service) __updateRecomposeDockerServices() error {
+func (s *Service) __updateRecomposeDockerServices() error {
 	err := s.__deployCopyComposeFile()
 	if err != nil {
 		return convertError(err, &UpdateServiceError{})
@@ -66,7 +66,7 @@ func (s *service) __updateRecomposeDockerServices() error {
 	return nil
 }
 
-func (s *service) updateService() error {
+func (s *Service) updateService() error {
 	if err := s.__updateSetTargetConfiguration(); err != nil {
 		return err
 	}

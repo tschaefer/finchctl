@@ -20,7 +20,7 @@ type InfoData struct {
 	Commit    string `json:"commit"`
 }
 
-func (s *service) infoService() (*InfoData, error) {
+func (s *Service) infoService() (*InfoData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 

@@ -19,7 +19,7 @@ import (
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
-func (a *agent) __deployMakeDirHierarchy() error {
+func (a *Agent) __deployMakeDirHierarchy() error {
 	directories := []string{
 		"/var/lib/alloy/data",
 		"/etc/alloy",
@@ -34,7 +34,7 @@ func (a *agent) __deployMakeDirHierarchy() error {
 	return nil
 }
 
-func (a *agent) __deployCopyConfigFile() error {
+func (a *Agent) __deployCopyConfigFile() error {
 	if err := a.target.Copy(a.config, "/etc/alloy/alloy.config", "400", "root:root"); err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
@@ -42,7 +42,7 @@ func (a *agent) __deployCopyConfigFile() error {
 	return nil
 }
 
-func (a *agent) __deployCopySystemdServiceUnit() error {
+func (a *Agent) __deployCopySystemdServiceUnit() error {
 	dest := "/etc/systemd/system/alloy.service"
 
 	content, err := fs.ReadFile(Assets, "alloy.service")
@@ -68,7 +68,7 @@ func (a *agent) __deployCopySystemdServiceUnit() error {
 	return nil
 }
 
-func (a *agent) __deployDownloadRelease(release string, tmpdir string) (string, error) {
+func (a *Agent) __deployDownloadRelease(release string, tmpdir string) (string, error) {
 	url := fmt.Sprintf("https://github.com/grafana/alloy/releases/latest/download/%s.zip", release)
 	tmpfile := fmt.Sprintf("%s/%s-%s.zip", tmpdir, release, time.Now().Format("19800212015200"))
 
@@ -114,7 +114,7 @@ func (a *agent) __deployDownloadRelease(release string, tmpdir string) (string, 
 	return tmpfile, nil
 }
 
-func (a *agent) __deployUnzipRelease(release string, file string) (string, error) {
+func (a *Agent) __deployUnzipRelease(release string, file string) (string, error) {
 	tmpdir := filepath.Dir(file)
 	tmpfile := fmt.Sprintf("%s/%s", tmpdir, release)
 
@@ -174,7 +174,7 @@ func (a *agent) __deployUnzipRelease(release string, file string) (string, error
 	return binary.Name(), nil
 }
 
-func (a *agent) __deployInstallBinary(binary string) error {
+func (a *Agent) __deployInstallBinary(binary string) error {
 	err := a.target.Copy(binary, "/usr/bin/alloy", "755", "root:root")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
@@ -183,7 +183,7 @@ func (a *agent) __deployInstallBinary(binary string) error {
 	return nil
 }
 
-func (a *agent) __deployEnableSystemdService() error {
+func (a *Agent) __deployEnableSystemdService() error {
 	out, err := a.target.Run("sudo systemctl enable --now alloy")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
@@ -191,7 +191,7 @@ func (a *agent) __deployEnableSystemdService() error {
 	return nil
 }
 
-func (a *agent) __helperPrintProgress(message string) {
+func (a *Agent) __helperPrintProgress(message string) {
 	username := "unknown"
 	user, err := user.Current()
 	if err == nil {
@@ -201,7 +201,7 @@ func (a *agent) __helperPrintProgress(message string) {
 	target.PrintProgress(fmt.Sprintf("%s as %s@localhost", message, username), a.format)
 }
 
-func (a *agent) deployAgent(machine *MachineInfo) error {
+func (a *Agent) deployAgent(machine *MachineInfo) error {
 	if err := a.__deployMakeDirHierarchy(); err != nil {
 		return err
 	}

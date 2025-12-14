@@ -12,7 +12,7 @@ import (
 	"github.com/tschaefer/finchctl/internal/grpc"
 )
 
-func (a *agent) deregisterAgent(service, resourceID string) error {
+func (a *Agent) deregisterAgent(service, resourceID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 

@@ -4,7 +4,7 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 */
 package agent
 
-func (a *agent) teardownAgent() error {
+func (a *Agent) teardownAgent() error {
 	out, err := a.target.Run("sudo systemctl stop alloy.service")
 	if err != nil {
 		return &TeardownAgentError{Message: err.Error(), Reason: string(out)}

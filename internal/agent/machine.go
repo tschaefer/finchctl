@@ -14,7 +14,7 @@ type MachineInfo struct {
 	Arch   string
 }
 
-func (a *agent) __machineGetLinuxArch(machine string) (string, error) {
+func (a *Agent) __machineGetLinuxArch(machine string) (string, error) {
 	switch machine {
 	case "x86_64":
 		return "amd64", nil
@@ -29,7 +29,7 @@ func (a *agent) __machineGetLinuxArch(machine string) (string, error) {
 	}
 }
 
-func (a *agent) __machineGetDarwinArch(machine string) (string, error) {
+func (a *Agent) __machineGetDarwinArch(machine string) (string, error) {
 	switch machine {
 	case "x86_64":
 		return "amd64", nil
@@ -40,7 +40,7 @@ func (a *agent) __machineGetDarwinArch(machine string) (string, error) {
 	}
 }
 
-func (a *agent) __machineGetFreebsdArch(machine string) (string, error) {
+func (a *Agent) __machineGetFreebsdArch(machine string) (string, error) {
 	switch machine {
 	case "amd64":
 		return "amd64", nil
@@ -49,7 +49,7 @@ func (a *agent) __machineGetFreebsdArch(machine string) (string, error) {
 	}
 }
 
-func (a *agent) machineInfo() (*MachineInfo, error) {
+func (a *Agent) machineInfo() (*MachineInfo, error) {
 	out, err := a.target.Run("uname -sm")
 	if err != nil {
 		return nil, &DeployAgentError{Message: err.Error(), Reason: ""}

@@ -12,7 +12,7 @@ import (
 	"github.com/tschaefer/finchctl/internal/grpc"
 )
 
-func (a *agent) configAgent(service, rid string) ([]byte, error) {
+func (a *Agent) configAgent(service, rid string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
