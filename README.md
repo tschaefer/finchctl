@@ -66,21 +66,30 @@ finchctl service deploy \
 ```bash
 finchctl agent register \
     --agent.hostname sparrow.example.com \
-    --agent.log.journal finch.example.com
+    --agent.logs.journal finch.example.com
 ```
 
 This registers a new agent for the specified Finch service.  
 The agent config file is saved as `finch-agent.cfg`, ready to deploy, including
 all endpoints and credentials. By default, it sends systemd journal records.
 
-You can also collect logs from Docker containers (`--agent.log.docker`) and
-files (`--agent.log.file /var/log/*.log`). Metrics can be included via
-`--agent.metrics`.
+You can also collect logs from Docker containers (`--agents.log.docker`) and
+files (`--agent.logs.file /var/log/*.log`). Node metrics can be included via
+`--agent.metrics` and metrics targets to scrape can be added with
+`--agent.metrics.targets <target>`. Profiling data collection can be enabled
+with `--agent.profiles`.
+
+Alternatively, you can register an agent with a [configuration
+file](contrib/agent-file.yml):
+
+```bash
+finchctl agent register --agent.file agent-file.yml finch.example.com
+```
 
 To deploy the agent:
 
 ```bash
-finchctl agent deploy --config finch-agent.cfg root@app.machine
+finchctl agent deploy --agent.config finch-agent.cfg root@app.machine
 ```
 
 Alloy will be enrolled and started with the provided configuration.
