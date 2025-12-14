@@ -67,7 +67,7 @@ func runDescribeCmd(cmd *cobra.Command, args []string) {
 		}
 		_ = t.Append([]string{"Metrics", fmt.Sprintf("%v", desc.Metrics.Enable)})
 		if (len(desc.Metrics.Targets)) > 0 {
-			_ = t.Append([]string{"Metrics.Targets", strings.Join(desc.Metrics.Targets, "\n")})
+			_ = t.Append([]string{"Metrics targets", strings.Join(desc.Metrics.Targets, "\n")})
 		}
 		_ = t.Append([]string{"Profiles", fmt.Sprintf("%v", desc.Profiles.Enable)})
 		_ = t.Render()

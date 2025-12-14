@@ -34,7 +34,7 @@ func init() {
 	_ = viper.BindPFlag("logs.journal.enable", registerCmd.Flags().Lookup("agent.logs.journal"))
 
 	registerCmd.Flags().Bool("agent.logs.docker", false, "Collect docker logs")
-	_ = viper.BindPFlag("logs.docker.enable", registerCmd.Flags().Lookup("agents.log.docker"))
+	_ = viper.BindPFlag("logs.docker.enable", registerCmd.Flags().Lookup("agent.logs.docker"))
 
 	registerCmd.Flags().Bool("agent.metrics", false, "Collect node metrics")
 	_ = viper.BindPFlag("metrics.enable", registerCmd.Flags().Lookup("agent.metrics"))
@@ -138,9 +138,8 @@ func initConfig(cfgFile string) error {
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			return fmt.Errorf("config file not found: %w", err)
-		} else {
-			return fmt.Errorf("error reading config file: %w", err)
 		}
+		return fmt.Errorf("error reading config file: %w", err)
 	}
 
 	return nil
