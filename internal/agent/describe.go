@@ -13,16 +13,36 @@ import (
 	"github.com/tschaefer/finchctl/internal/grpc"
 )
 
+type DescribeLogsJournal struct {
+	Enable bool `json:"enable"`
+}
+
+type DescribeLogsDocker struct {
+	Enable bool `json:"enable"`
+}
+
+type DescribeLogs struct {
+	Files   []string            `json:"files"`
+	Journal DescribeLogsJournal `json:"journal"`
+	Docker  DescribeLogsDocker  `json:"docker"`
+}
+
+type DescribeMetrics struct {
+	Enable  bool     `json:"enable"`
+	Targets []string `json:"targets"`
+}
+
+type DescribeProfiles struct {
+	Enable bool `json:"enable"`
+}
+
 type DescribeData struct {
-	Hostname       string   `json:"hostname"`
-	ResourceID     string   `json:"resource_id"`
-	Files          []string `json:"files"`
-	Journal        bool     `json:"journal"`
-	Docker         bool     `json:"docker"`
-	Metrics        bool     `json:"metrics"`
-	MetricsTargets []string `json:"metrics_targets"`
-	Profiles       bool     `json:"profiles"`
-	Labels         []string `json:"labels"`
+	ResourceID string           `json:"rid"`
+	Hostname   string           `json:"hostname"`
+	Labels     []string         `json:"labels"`
+	Logs       DescribeLogs     `json:"logs"`
+	Metrics    DescribeMetrics  `json:"metrics"`
+	Profiles   DescribeProfiles `json:"profiles"`
 }
 
 func (a *agent) describeAgent(service, rid string) (*DescribeData, error) {
@@ -46,7 +66,7 @@ func (a *agent) describeAgent(service, rid string) (*DescribeData, error) {
 
 	journal := false
 	docker := false
-	logSources := []string{}
+	files := []string{}
 	for _, src := range data.LogSources {
 		url, err := url.Parse(src)
 		if err != nil {
@@ -62,7 +82,7 @@ func (a *agent) describeAgent(service, rid string) (*DescribeData, error) {
 			continue
 		}
 
-		logSources = append(logSources, url.Path)
+		files = append(files, url.Path)
 	}
 
 	labels := data.Labels
@@ -76,14 +96,24 @@ func (a *agent) describeAgent(service, rid string) (*DescribeData, error) {
 	}
 
 	return &DescribeData{
-		Hostname:       data.Hostname,
-		ResourceID:     data.ResourceId,
-		Files:          logSources,
-		Journal:        journal,
-		Docker:         docker,
-		Metrics:        data.Metrics,
-		MetricsTargets: metricsTargets,
-		Profiles:       data.Profiles,
-		Labels:         labels,
+		ResourceID: data.ResourceId,
+		Hostname:   data.Hostname,
+		Labels:     labels,
+		Logs: DescribeLogs{
+			Files: files,
+			Journal: DescribeLogsJournal{
+				Enable: journal,
+			},
+			Docker: DescribeLogsDocker{
+				Enable: docker,
+			},
+		},
+		Metrics: DescribeMetrics{
+			Enable:  data.Metrics,
+			Targets: metricsTargets,
+		},
+		Profiles: DescribeProfiles{
+			Enable: data.Profiles,
+		},
 	}, nil
 }

@@ -60,16 +60,16 @@ func runDescribeCmd(cmd *cobra.Command, args []string) {
 		if (len(desc.Labels)) > 0 {
 			_ = t.Append([]string{"Labels", strings.Join(desc.Labels, ", ")})
 		}
-		_ = t.Append([]string{"Journal", fmt.Sprintf("%v", desc.Journal)})
-		_ = t.Append([]string{"Docker", fmt.Sprintf("%v", desc.Docker)})
-		_ = t.Append([]string{"Metrics", fmt.Sprintf("%v", desc.Metrics)})
-		_ = t.Append([]string{"Profiles", fmt.Sprintf("%v", desc.Profiles)})
-		if (len(desc.Files)) > 0 {
-			_ = t.Append([]string{"Files", strings.Join(desc.Files, "\n")})
+		_ = t.Append([]string{"Docker", fmt.Sprintf("%v", desc.Logs.Docker.Enable)})
+		_ = t.Append([]string{"Journal", fmt.Sprintf("%v", desc.Logs.Journal.Enable)})
+		if (len(desc.Logs.Files)) > 0 {
+			_ = t.Append([]string{"Files", strings.Join(desc.Logs.Files, "\n")})
 		}
-		if (len(desc.MetricsTargets)) > 0 {
-			_ = t.Append([]string{"Metrics targets", strings.Join(desc.MetricsTargets, "\n")})
+		_ = t.Append([]string{"Metrics", fmt.Sprintf("%v", desc.Metrics.Enable)})
+		if (len(desc.Metrics.Targets)) > 0 {
+			_ = t.Append([]string{"Metrics.Targets", strings.Join(desc.Metrics.Targets, "\n")})
 		}
+		_ = t.Append([]string{"Profiles", fmt.Sprintf("%v", desc.Profiles.Enable)})
 		_ = t.Render()
 	}
 }

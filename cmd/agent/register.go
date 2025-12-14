@@ -30,11 +30,11 @@ func init() {
 	registerCmd.Flags().String("agent.hostname", "", "Hostname of the agent")
 	_ = viper.BindPFlag("hostname", registerCmd.Flags().Lookup("agent.hostname"))
 
-	registerCmd.Flags().Bool("agent.log.journal", false, "Collect journal logs")
-	_ = viper.BindPFlag("log.journal.enable", registerCmd.Flags().Lookup("agent.log.journal"))
+	registerCmd.Flags().Bool("agent.logs.journal", false, "Collect journal logs")
+	_ = viper.BindPFlag("logs.journal.enable", registerCmd.Flags().Lookup("agent.logs.journal"))
 
-	registerCmd.Flags().Bool("agent.log.docker", false, "Collect docker logs")
-	_ = viper.BindPFlag("log.docker.enable", registerCmd.Flags().Lookup("agent.log.docker"))
+	registerCmd.Flags().Bool("agent.logs.docker", false, "Collect docker logs")
+	_ = viper.BindPFlag("logs.docker.enable", registerCmd.Flags().Lookup("agents.log.docker"))
 
 	registerCmd.Flags().Bool("agent.metrics", false, "Collect node metrics")
 	_ = viper.BindPFlag("metrics.enable", registerCmd.Flags().Lookup("agent.metrics"))
@@ -45,8 +45,8 @@ func init() {
 	registerCmd.Flags().Bool("agent.profiles", false, "Enable profiles collector")
 	_ = viper.BindPFlag("profiles.enable", registerCmd.Flags().Lookup("agent.profiles"))
 
-	registerCmd.Flags().StringSlice("agent.log.files", nil, "Collect logs from file paths")
-	_ = viper.BindPFlag("log.files", registerCmd.Flags().Lookup("agent.log.files"))
+	registerCmd.Flags().StringSlice("agent.logs.files", nil, "Collect logs from file paths")
+	_ = viper.BindPFlag("logs.files", registerCmd.Flags().Lookup("agent.logs.files"))
 
 	registerCmd.Flags().StringSlice("agent.labels", nil, "Optional labels for identifying the agent")
 	_ = viper.BindPFlag("labels", registerCmd.Flags().Lookup("agent.labels"))
@@ -89,15 +89,15 @@ func parseFlags(formatType target.Format) *agent.RegisterData {
 
 	var logSources []string
 
-	if viper.GetBool("log.journal.enable") {
+	if viper.GetBool("logs.journal.enable") {
 		logSources = append(logSources, "journal://")
 	}
 
-	if viper.GetBool("log.docker.enable") {
+	if viper.GetBool("logs.docker.enable") {
 		logSources = append(logSources, "docker://")
 	}
 
-	logFiles := viper.GetStringSlice("log.files")
+	logFiles := viper.GetStringSlice("logs.files")
 	if len(logFiles) != 0 {
 		for _, file := range logFiles {
 			logSources = append(logSources, "file://"+file)

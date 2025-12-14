@@ -12,7 +12,7 @@ hostname: sparrow.example.com
 
 # Log sources
 # At least one source is required
-log:
+logs:
   # Collect systemd journal logs
   journal:
     enable: true
