@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "rebaseWhen": "conflicted",
+  "packageRules": [
+    {
+      "description": "Dynamic stack grouping",
+      "groupName": "{{packageFileDir}}",
+      "matchDatasources": ["docker"],
+      "matchManagers": ["docker-compose"],
+      "matchFileNames": ["internal/service/assets/docker-compose.yaml.tmpl"],
+      "separateMajorMinor": false,
+      "separateMinorPatch": false
+    }
+  ]
+}
