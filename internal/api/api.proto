@@ -1,7 +1,3 @@
-/*
-Copyright (c) 2025 Tobias Schäfer. All rights reserved.
-Licensed under the MIT license, see LICENSE in the project root for details.
-*/
 syntax = "proto3";
 
 package finch;
@@ -14,6 +10,7 @@ service AgentService {
   rpc GetAgent(GetAgentRequest) returns (GetAgentResponse);
   rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse);
   rpc GetAgentConfig(GetAgentConfigRequest) returns (GetAgentConfigResponse);
+  rpc UpdateAgent(UpdateAgentRequest) returns (UpdateAgentResponse);
 }
 
 service InfoService {
@@ -82,3 +79,14 @@ message GetServiceInfoResponse {
   string release = 4;
   string commit = 5;
 }
+
+message UpdateAgentRequest {
+  string rid = 1;
+  repeated string labels = 2;
+  repeated string log_sources = 3;
+  bool metrics = 4;
+  repeated string metrics_targets = 5;
+  bool profiles = 6;
+}
+
+message UpdateAgentResponse {}

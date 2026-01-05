@@ -108,3 +108,7 @@ func (a *Agent) Update(skipConfig bool, skipBinaries bool) error {
 func (a *Agent) Describe(service, resourceID string) (*DescribeData, error) {
 	return a.describeAgent(service, resourceID)
 }
+
+func (a *Agent) Edit(service string, data *EditData) error {
+	return a.editAgent(service, data)
+}
