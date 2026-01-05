@@ -27,7 +27,7 @@ func (a *Agent) editAgent(service string, data *EditData) error {
 
 	ctx, client, err := grpc.NewClient(ctx, service, api.NewAgentServiceClient)
 	if err != nil {
-		return &RegisterAgentError{Message: err.Error(), Reason: ""}
+		return &EditAgentError{Message: err.Error(), Reason: ""}
 	}
 	defer func() {
 		_ = client.Close()
@@ -42,7 +42,7 @@ func (a *Agent) editAgent(service string, data *EditData) error {
 		Labels:         data.Labels,
 	})
 	if err != nil {
-		return &RegisterAgentError{Message: err.Error(), Reason: ""}
+		return &EditAgentError{Message: err.Error(), Reason: ""}
 	}
 
 	return nil
