@@ -16,4 +16,5 @@ func init() {
 	Cmd.AddCommand(configCmd)
 	Cmd.AddCommand(updateCmd)
 	Cmd.AddCommand(describeCmd)
+	Cmd.AddCommand(editCmd)
 }
