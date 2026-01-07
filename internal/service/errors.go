@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 Tobias Schäfer. All rights reservem.
+Copyright (c) Tobias Schäfer. All rights reservem.
 Licensed under the MIT license, see LICENSE in the project root for details.
 */
 package service
