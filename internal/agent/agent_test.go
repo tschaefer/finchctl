@@ -24,7 +24,7 @@ func Test_Deploy(t *testing.T) {
 	assert.NoError(t, err, "create agent")
 
 	record := capture(func() {
-		err = a.Deploy()
+		err = a.Deploy("latest")
 	})
 	assert.NoError(t, err)
 
@@ -41,7 +41,7 @@ func Test_Deploy(t *testing.T) {
 	assert.NoError(t, err, "create agent")
 
 	record = capture(func() {
-		err = a.Deploy()
+		err = a.Deploy("latest")
 	})
 	assert.NoError(t, err)
 
@@ -94,7 +94,7 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "create agent")
 
 	record := capture(func() {
-		err = a.Update(false, false)
+		err = a.Update(false, false, "latest")
 	})
 	assert.NoError(t, err, "update agent")
 
@@ -111,7 +111,7 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "create agent")
 
 	record = capture(func() {
-		err = a.Update(false, false)
+		err = a.Update(false, false, "latest")
 	})
 	assert.NoError(t, err, "update agent")
 

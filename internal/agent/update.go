@@ -15,39 +15,54 @@ import (
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
-func (a *Agent) __updateServiceBinaryIsNeeded() (bool, error) {
-	if a.dryRun {
-		target.PrintProgress("Skipping update check due to dry-run mode", a.format)
-		return false, nil
-	}
-
+func (a *Agent) __updateServiceBinaryGetLatestTag() (string, error) {
 	url := "https://api.github.com/repos/grafana/alloy/releases/latest"
 	a.__helperPrintProgress(fmt.Sprintf("Running 'GET %s'", url))
 	resp, err := http.Get(url)
 	if err != nil {
-		return false, &UpdateAgentError{Message: err.Error(), Reason: ""}
+		return "", &UpdateAgentError{Message: err.Error(), Reason: ""}
 	}
 	defer func() {
 		_ = resp.Body.Close()
 	}()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return false, &UpdateAgentError{Message: "failed to fetch latest release info", Reason: fmt.Sprintf("status code: %d", resp.StatusCode)}
+		return "", &UpdateAgentError{Message: "failed to fetch latest release info", Reason: fmt.Sprintf("status code: %d", resp.StatusCode)}
 	}
 
 	out, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return false, &UpdateAgentError{Message: err.Error(), Reason: ""}
+		return "", &UpdateAgentError{Message: err.Error(), Reason: ""}
 	}
 
 	a.__helperPrintProgress("Running 'JSON unmarshal \"tag_name\"'")
 	var data any
 	if err := json.Unmarshal(out, &data); err != nil {
-		return false, &UpdateAgentError{Message: err.Error(), Reason: string(out)}
+		return "", &UpdateAgentError{Message: err.Error(), Reason: string(out)}
 	}
-	latestVersion := data.(map[string]any)["tag_name"].(string)
 
-	out, err = a.target.Run("alloy --version | grep -o -E 'v[0-9\\.]+'")
+	return data.(map[string]any)["tag_name"].(string), nil
+}
+
+func (a *Agent) __updateServiceBinaryIsNeeded(version string) (bool, error) {
+	if a.dryRun {
+		target.PrintProgress(
+			fmt.Sprintf("Skipping Alloy update check for version '%s' due to dry-run mode", version),
+			a.format,
+		)
+		return false, nil
+	}
+
+	latestVersion := version
+	if version == "latest" {
+		var err error
+		latestVersion, err = a.__updateServiceBinaryGetLatestTag()
+		if err != nil {
+			return false, err
+		}
+	}
+
+	out, err := a.target.Run("alloy --version | grep -o -E 'v[0-9\\.]+'")
 	if err != nil {
 		return false, &UpdateAgentError{Message: err.Error(), Reason: string(out)}
 	}
@@ -56,8 +71,8 @@ func (a *Agent) __updateServiceBinaryIsNeeded() (bool, error) {
 	return latestVersion != currentVersion, nil
 }
 
-func (a *Agent) __updateServiceBinary(machine *MachineInfo) error {
-	ok, err := a.__updateServiceBinaryIsNeeded()
+func (a *Agent) __updateServiceBinary(machine *MachineInfo, version string) error {
+	ok, err := a.__updateServiceBinaryIsNeeded(version)
 	if err != nil {
 		return err
 	}
@@ -75,7 +90,7 @@ func (a *Agent) __updateServiceBinary(machine *MachineInfo) error {
 	}()
 
 	release := fmt.Sprintf("alloy-%s-%s", machine.Kernel, machine.Arch)
-	zip, err := a.__deployDownloadRelease(release, tmpdir)
+	zip, err := a.__deployDownloadRelease(release, version, tmpdir)
 	if err != nil {
 		return convertError(err, &UpdateAgentError{})
 	}
@@ -92,7 +107,7 @@ func (a *Agent) __updateServiceBinary(machine *MachineInfo) error {
 	return nil
 }
 
-func (a *Agent) updateAgent(machine *MachineInfo, skipConfig bool, skipBinaries bool) error {
+func (a *Agent) updateAgent(machine *MachineInfo, skipConfig bool, skipBinaries bool, version string) error {
 	if !skipConfig {
 		if err := a.__deployCopyConfigFile(); err != nil {
 			return convertError(err, &UpdateAgentError{})
@@ -100,7 +115,7 @@ func (a *Agent) updateAgent(machine *MachineInfo, skipConfig bool, skipBinaries 
 	}
 
 	if !skipBinaries {
-		if err := a.__updateServiceBinary(machine); err != nil {
+		if err := a.__updateServiceBinary(machine, version); err != nil {
 			return convertError(err, &UpdateAgentError{})
 		}
 	}

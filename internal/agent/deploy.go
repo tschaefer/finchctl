@@ -68,8 +68,13 @@ func (a *Agent) __deployCopySystemdServiceUnit() error {
 	return nil
 }
 
-func (a *Agent) __deployDownloadRelease(release string, tmpdir string) (string, error) {
-	url := fmt.Sprintf("https://github.com/grafana/alloy/releases/latest/download/%s.zip", release)
+func (a *Agent) __deployDownloadRelease(release string, version string, tmpdir string) (string, error) {
+	var url string
+	if version != "latest" {
+		url = fmt.Sprintf("https://github.com/grafana/alloy/releases/download/%s/%s.zip", version, release)
+	} else {
+		url = fmt.Sprintf("https://github.com/grafana/alloy/releases/latest/download/%s.zip", release)
+	}
 	tmpfile := fmt.Sprintf("%s/%s-%s.zip", tmpdir, release, time.Now().Format("19800212015200"))
 
 	a.__helperPrintProgress(fmt.Sprintf("Running 'GET %s'", url))
@@ -201,7 +206,7 @@ func (a *Agent) __helperPrintProgress(message string) {
 	target.PrintProgress(fmt.Sprintf("%s as %s@localhost", message, username), a.format)
 }
 
-func (a *Agent) deployAgent(machine *MachineInfo) error {
+func (a *Agent) deployAgent(machine *MachineInfo, alloyVersion string) error {
 	if err := a.__deployMakeDirHierarchy(); err != nil {
 		return err
 	}
@@ -223,7 +228,7 @@ func (a *Agent) deployAgent(machine *MachineInfo) error {
 	}()
 
 	release := fmt.Sprintf("alloy-%s-%s", machine.Kernel, machine.Arch)
-	zip, err := a.__deployDownloadRelease(release, tmpdir)
+	zip, err := a.__deployDownloadRelease(release, alloyVersion, tmpdir)
 	if err != nil {
 		return err
 	}

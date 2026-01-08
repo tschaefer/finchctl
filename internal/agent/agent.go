@@ -47,7 +47,7 @@ func (a *Agent) Teardown() error {
 	return nil
 }
 
-func (a *Agent) Deploy() error {
+func (a *Agent) Deploy(version string) error {
 	defer func() {
 		if a.format == target.FormatProgress {
 			println()
@@ -63,7 +63,7 @@ func (a *Agent) Deploy() error {
 		return err
 	}
 
-	if err := a.deployAgent(machine); err != nil {
+	if err := a.deployAgent(machine, version); err != nil {
 		return err
 	}
 
@@ -86,7 +86,7 @@ func (a *Agent) Config(service, resourceID string) ([]byte, error) {
 	return a.configAgent(service, resourceID)
 }
 
-func (a *Agent) Update(skipConfig bool, skipBinaries bool) error {
+func (a *Agent) Update(skipConfig bool, skipBinaries bool, version string) error {
 	defer func() {
 		if a.format == target.FormatProgress {
 			println()
@@ -102,7 +102,7 @@ func (a *Agent) Update(skipConfig bool, skipBinaries bool) error {
 		return err
 	}
 
-	return a.updateAgent(machine, skipConfig, skipBinaries)
+	return a.updateAgent(machine, skipConfig, skipBinaries, version)
 }
 
 func (a *Agent) Describe(service, resourceID string) (*DescribeData, error) {
