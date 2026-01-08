@@ -25,6 +25,7 @@ func init() {
 	deployCmd.Flags().String("agent.config", "", "path to agent configuration file")
 	deployCmd.Flags().String("run.format", "progress", "output format")
 	deployCmd.Flags().Bool("run.dry-run", false, "perform a dry run without deploying the agent")
+	deployCmd.Flags().String("alloy.version", "latest", "version of Alloy to install")
 
 	_ = deployCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
@@ -45,6 +46,7 @@ func runDeployCmd(cmd *cobra.Command, args []string) {
 	a, err := agent.New(config, targetUrl, formatType, dryRun)
 	errors.CheckErr(err, formatType)
 
-	err = a.Deploy()
+	alloyVersion, _ := cmd.Flags().GetString("alloy.version")
+	err = a.Deploy(alloyVersion)
 	errors.CheckErr(err, formatType)
 }

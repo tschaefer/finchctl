@@ -24,9 +24,10 @@ var updateCmd = &cobra.Command{
 func init() {
 	updateCmd.Flags().String("agent.config", "", "path to agent configuration file")
 	updateCmd.Flags().String("run.format", "progress", "output format")
-	updateCmd.Flags().Bool("run.dry-run", false, "perform a dry run without updateing the agent")
+	updateCmd.Flags().Bool("run.dry-run", false, "perform a dry run without updating the agent")
 	updateCmd.Flags().Bool("skip.config", false, "skip configuration file update")
 	updateCmd.Flags().Bool("skip.binaries", false, "skip binaries update")
+	updateCmd.Flags().String("alloy.version", "latest", "version of Alloy to install")
 
 	_ = updateCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
@@ -39,6 +40,7 @@ func runUpdateCmd(cmd *cobra.Command, args []string) {
 	config, _ := cmd.Flags().GetString("agent.config")
 	skipConfig, _ := cmd.Flags().GetBool("skip.config")
 	skipBinaries, _ := cmd.Flags().GetBool("skip.binaries")
+	alloyVersion, _ := cmd.Flags().GetString("alloy.version")
 
 	if skipConfig && skipBinaries {
 		errors.CheckErr(fmt.Errorf("at least one of --skip.config or --skip.binaries must be false"), formatType)
@@ -54,6 +56,6 @@ func runUpdateCmd(cmd *cobra.Command, args []string) {
 	a, err := agent.New(config, targetUrl, formatType, dryRun)
 	errors.CheckErr(err, formatType)
 
-	err = a.Update(skipConfig, skipBinaries)
+	err = a.Update(skipConfig, skipBinaries, alloyVersion)
 	errors.CheckErr(err, formatType)
 }
