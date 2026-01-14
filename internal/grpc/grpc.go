@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net"
 	"os"
 	"strings"
 
@@ -54,6 +55,11 @@ func NewClient[T any](ctx context.Context, service string, newHandler func(grpc.
 	}
 
 	userAgent := fmt.Sprintf("finchctl/%s", version.Release())
+
+	ip := net.ParseIP(service)
+	if ip != nil && ip.To4() == nil {
+		service = fmt.Sprintf("[%s]", service)
+	}
 
 	conn, err := grpc.NewClient(service+":443", grpc.WithTransportCredentials(creds), grpc.WithUserAgent(userAgent))
 	if err != nil {
