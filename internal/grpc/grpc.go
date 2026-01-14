@@ -46,9 +46,9 @@ func NewClient[T any](ctx context.Context, service string, newHandler func(grpc.
 	if skipTLSVerify {
 		tlsCfg := &tls.Config{
 			InsecureSkipVerify: true,
-			ServerName:         service,
 		}
 		creds = credentials.NewTLS(tlsCfg)
+		fmt.Fprintf(os.Stderr, "Warning: skipping TLS verification for service %s\n", service)
 	} else {
 		creds = credentials.NewClientTLSFromCert(nil, service)
 	}

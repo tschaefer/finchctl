@@ -25,6 +25,12 @@ var rootCmd = &cobra.Command{
 		}
 		_ = cmd.Help()
 	},
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		skipTLSVerify, _ := cmd.Flags().GetBool("tls.skip-verify")
+		if skipTLSVerify {
+			_ = os.Setenv(grpc.SkipTLSVerifyEnv, "true")
+		}
+	},
 }
 
 func Execute() {
@@ -44,10 +50,6 @@ func init() {
 	}
 
 	rootCmd.PersistentFlags().Bool("tls.skip-verify", false, "Skip TLS certificate verification (not recommended)")
-	skipTLSVerify, _ := rootCmd.Flags().GetBool("tls.skip-verify")
-	if skipTLSVerify {
-		_ = os.Setenv(grpc.SkipTLSVerifyEnv, "true")
-	}
 
 	rootCmd.AddCommand(agent.Cmd)
 	rootCmd.AddCommand(service.Cmd)
