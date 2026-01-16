@@ -45,7 +45,7 @@ func Test_UpdateStackAuthFailIfPermissionDenied(t *testing.T) {
 
 	stack := newStack()
 	err = UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
-	wanted := "Config error: open " + cfgLoc + "/config.json: permission denied"
+	wanted := "Config error: open " + cfgLoc + "/finch.json: permission denied"
 	assert.EqualError(t, err, wanted, "update stack")
 }
 
@@ -57,7 +57,7 @@ func Test_UpdateStackAuthCreateConfigIfNotExist(t *testing.T) {
 	err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
 	assert.NoError(t, err, "update stack")
 
-	_, err = os.Stat(cfgLoc + "/config.json")
+	_, err = os.Stat(cfgLoc + "/finch.json")
 	assert.False(t, os.IsNotExist(err), "create config file")
 }
 

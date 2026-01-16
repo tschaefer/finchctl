@@ -159,10 +159,10 @@ func configFile() string {
 		if err != nil {
 			panic(&ConfigError{Message: err.Error(), Reason: ""})
 		}
-		dir = fmt.Sprintf("%s/.finch", dir)
+		dir = fmt.Sprintf("%s/.config", dir)
 	}
 
-	return fmt.Sprintf("%s/config.json", dir)
+	return fmt.Sprintf("%s/finch.json", dir)
 }
 
 func encodeToken(username, password string) string {
