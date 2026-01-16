@@ -20,10 +20,6 @@ func (a *Agent) __machineGetLinuxArch(machine string) (string, error) {
 		return "amd64", nil
 	case "aarch64":
 		return "arm64", nil
-	case "ppc64le":
-		return "ppc64le", nil
-	case "s390x":
-		return "s390x", nil
 	default:
 		return "", &DeployAgentError{Message: "unsupported target architecture", Reason: machine}
 	}
