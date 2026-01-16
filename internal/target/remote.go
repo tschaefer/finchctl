@@ -154,7 +154,7 @@ func authorize() (goph.Auth, error) {
 		if err != nil {
 			return nil, err
 		}
-		auth = goph.Password(password)
+		auth = goph.KeyboardInteractive(password)
 
 	}
 
