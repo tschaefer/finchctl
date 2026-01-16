@@ -16,4 +16,5 @@ func init() {
 	Cmd.AddCommand(updateCmd)
 	Cmd.AddCommand(teardownCmd)
 	Cmd.AddCommand(infoCmd)
+	Cmd.AddCommand(dashboardCmd)
 }

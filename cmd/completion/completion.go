@@ -19,9 +19,7 @@ func CompleteStackName(cmd *cobra.Command, args []string, toComplete string) ([]
 	}
 
 	config, err := config.ReadConfig()
-	if err != nil {
-		cobra.CheckErr(err)
-	}
+	cobra.CheckErr(err)
 
 	var stackNames []string
 	for _, stack := range config.Stacks {
