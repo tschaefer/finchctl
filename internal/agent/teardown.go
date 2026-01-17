@@ -29,7 +29,7 @@ func (a *Agent) __teardownRcService() error {
 		return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
 	}
 
-	out, err = a.target.Run("sudo sysrc -x enable_alloy || true")
+	out, err = a.target.Run("sudo sysrc -x alloy_enable || true")
 	if err != nil {
 		return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
 	}
