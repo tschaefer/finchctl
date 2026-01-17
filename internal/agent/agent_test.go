@@ -29,12 +29,12 @@ func Test_Deploy(t *testing.T) {
 	assert.NoError(t, err)
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 12, "number of log lines")
+	assert.Len(t, tracks, 10, "number of log lines")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
-	wanted = "Running 'sudo systemctl enable --now alloy' as .+@localhost"
+	wanted = "Copying from '/tmp/.+ to '/usr/bin/alloy' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
 	a, err = New("", "localhost", target.FormatJSON, true)
@@ -64,12 +64,12 @@ func Test_Teardown(t *testing.T) {
 	assert.NoError(t, err, "teardown agent")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 8, "number of log lines mismatch")
+	assert.Len(t, tracks, 7, "number of log lines mismatch")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
-	wanted = "Running 'sudo rm -rf /var/lib/alloy' as .+@localhost"
+	wanted = "Running 'sudo rm -f /usr/bin/alloy' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
 	a, err = New("", "localhost", target.FormatJSON, true)
@@ -99,12 +99,12 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "update agent")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 7, "number of log lines mismatch")
+	assert.Len(t, tracks, 6, "number of log lines mismatch")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
-	wanted = "Running 'sudo systemctl restart alloy.service' as .+@localhost"
+	wanted = "Skipping Alloy update check for version 'latest' due to dry-run mode"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
 	a, err = New("finch-agent.conf", "localhost", target.FormatJSON, true)
