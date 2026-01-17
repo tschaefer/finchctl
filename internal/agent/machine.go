@@ -83,11 +83,10 @@ func (a *Agent) machineInfo() (*MachineInfo, error) {
 		}
 		return nil, fmt.Errorf("yet unsupported target kernel: %s", kernel)
 	case "freebsd":
-		_, err = a.__machineGetFreebsdArch(machine)
+		arch, err = a.__machineGetFreebsdArch(machine)
 		if err != nil {
 			return nil, err
 		}
-		return nil, &DeployAgentError{Message: "yet unsupported target kernel", Reason: kernel}
 	default:
 		return nil, &DeployAgentError{Message: "unsupported target kernel", Reason: kernel}
 	}
