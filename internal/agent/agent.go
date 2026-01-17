@@ -40,7 +40,12 @@ func (a *Agent) Teardown() error {
 		return convertError(err, &TeardownAgentError{})
 	}
 
-	if err := a.teardownAgent(); err != nil {
+	machine, err := a.machineInfo()
+	if err != nil {
+		return err
+	}
+
+	if err := a.teardownAgent(machine); err != nil {
 		return err
 	}
 

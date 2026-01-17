@@ -35,7 +35,7 @@ func (a *Agent) __deployMakeDirHierarchy() error {
 }
 
 func (a *Agent) __deployCopyConfigFile() error {
-	if err := a.target.Copy(a.config, "/etc/alloy/alloy.config", "400", "root:root"); err != nil {
+	if err := a.target.Copy(a.config, "/etc/alloy/alloy.config", "400", "0:0"); err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 
@@ -61,8 +61,39 @@ func (a *Agent) __deployCopySystemdServiceUnit() error {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := a.target.Copy(f.Name(), dest, "444", "root:root"); err != nil {
+	if err := a.target.Copy(f.Name(), dest, "444", "0:0"); err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	return nil
+}
+
+func (a *Agent) __deployCopyRcServiceFile() error {
+	dest := "/etc/rc.d/alloy"
+
+	content, err := fs.ReadFile(Assets, "alloy.rc")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	f, err := os.CreateTemp("", "alloy.rc")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+	defer func() {
+		_ = os.Remove(f.Name())
+	}()
+	if _, err := f.Write(content); err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	if err := a.target.Copy(f.Name(), dest, "444", "0:0"); err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	out, err := a.target.Run("sudo chmod +x " + dest)
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
 
 	return nil
@@ -180,7 +211,7 @@ func (a *Agent) __deployUnzipRelease(release string, file string) (string, error
 }
 
 func (a *Agent) __deployInstallBinary(binary string) error {
-	err := a.target.Copy(binary, "/usr/bin/alloy", "755", "root:root")
+	err := a.target.Copy(binary, "/usr/bin/alloy", "755", "0:0")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
@@ -193,6 +224,20 @@ func (a *Agent) __deployEnableSystemdService() error {
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
+	return nil
+}
+
+func (a *Agent) __deployEnableRcService() error {
+	out, err := a.target.Run("sudo sysrc alloy_enable=YES")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+	}
+
+	out, err = a.target.Run("sudo service alloy start")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+	}
+
 	return nil
 }
 
@@ -212,10 +257,6 @@ func (a *Agent) deployAgent(machine *MachineInfo, alloyVersion string) error {
 	}
 
 	if err := a.__deployCopyConfigFile(); err != nil {
-		return err
-	}
-
-	if err := a.__deployCopySystemdServiceUnit(); err != nil {
 		return err
 	}
 
@@ -242,8 +283,23 @@ func (a *Agent) deployAgent(machine *MachineInfo, alloyVersion string) error {
 		return err
 	}
 
-	if err := a.__deployEnableSystemdService(); err != nil {
-		return err
+	switch machine.Kernel {
+	case "linux":
+		if err := a.__deployCopySystemdServiceUnit(); err != nil {
+			return err
+		}
+		if err := a.__deployEnableSystemdService(); err != nil {
+			return err
+		}
+	case "freebsd":
+		if err := a.__deployCopyRcServiceFile(); err != nil {
+			return err
+		}
+		if err := a.__deployEnableRcService(); err != nil {
+			return err
+		}
+	default:
+		// no-op
 	}
 
 	return nil

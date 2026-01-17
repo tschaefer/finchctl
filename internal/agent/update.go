@@ -120,9 +120,19 @@ func (a *Agent) updateAgent(machine *MachineInfo, skipConfig bool, skipBinaries 
 		}
 	}
 
-	out, err := a.target.Run("sudo systemctl restart alloy.service")
-	if err != nil {
-		return &UpdateAgentError{Message: err.Error(), Reason: string(out)}
+	switch machine.Kernel {
+	case "linux":
+		out, err := a.target.Run("sudo systemctl restart alloy.service")
+		if err != nil {
+			return &UpdateAgentError{Message: err.Error(), Reason: string(out)}
+		}
+	case "freebsd":
+		out, err := a.target.Run("sudo service alloy restart")
+		if err != nil {
+			return &UpdateAgentError{Message: err.Error(), Reason: string(out)}
+		}
+	default:
+		// no-op
 	}
 
 	return nil

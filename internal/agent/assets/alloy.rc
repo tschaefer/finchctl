@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# PROVIDE: alloy
+# REQUIRE: DAEMON NETWORKING FILESYSTEMS
+# KEYWORD: nojail shutdown
+
+. /etc/rc.subr
+
+name="alloy"
+desc="Vendor-agnostic OpenTelemetry Collector distribution with programmable pipelines"
+rcvar="alloy_enable"
+
+: ${alloy_pidfile:="/var/run/alloy.pid"}
+: ${alloy_logfile:="/var/log/alloy.log"}
+
+command="/usr/sbin/daemon"
+command_args="-f -p ${alloy_pidfile} -o ${alloy_logfile} -- \
+  /usr/bin/alloy run --storage.path=/var/lib/alloy/data --disable-reporting=true /etc/alloy/alloy.config"
+
+pidfile="${alloy_pidfile}"
+
+load_rc_config $name
+run_rc_command "$1"
