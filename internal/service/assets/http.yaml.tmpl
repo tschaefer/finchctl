@@ -23,6 +23,8 @@ http:
       entrypoints:
         - websecure
       service: finch
+      middlewares:
+        - finch-passtls
       tls: true
 
     mimir:
@@ -87,7 +89,16 @@ http:
         prefixes:
           - "/pyroscope"
 
+    finch-passtls:
+      passtlsclientcert:
+        pem: true
+
 tls:
   certificates:
     - certfile: /etc/traefik/certs.d/cert.pem
       keyfile: /etc/traefik/certs.d/key.pem
+  options:
+    default:
+      clientauth:
+        clientauthtype: RequestClientCert
+

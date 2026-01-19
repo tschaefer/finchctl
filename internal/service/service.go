@@ -28,8 +28,6 @@ type ServiceConfig struct {
 		Enabled bool
 		Email   string
 	}
-	Username  string
-	Password  string
 	CustomTLS struct {
 		Enabled      bool
 		CertFilePath string
@@ -38,17 +36,13 @@ type ServiceConfig struct {
 }
 
 type FinchConfig struct {
-	CreatedAt   string `json:"created_at"`
-	Id          string `json:"id"`
-	Database    string `json:"database"`
-	Profiler    string `json:"profiler"`
-	Secret      string `json:"secret"`
-	Hostname    string `json:"hostname"`
-	Version     string `json:"version"`
-	Credentials struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	} `json:"credentials"`
+	CreatedAt string `json:"created_at"`
+	Id        string `json:"id"`
+	Database  string `json:"database"`
+	Profiler  string `json:"profiler"`
+	Secret    string `json:"secret"`
+	Hostname  string `json:"hostname"`
+	Version   string `json:"version"`
 }
 
 func New(config *ServiceConfig, targetUrl string, format target.Format, dryRun bool) (*Service, error) {
@@ -88,7 +82,7 @@ func (s *Service) Teardown() error {
 		return nil
 	}
 
-	return config.RemoveStackAuth(s.config.Hostname)
+	return config.RemoveStack(s.config.Hostname)
 }
 
 func (s *Service) Deploy() error {
@@ -110,11 +104,7 @@ func (s *Service) Deploy() error {
 		return err
 	}
 
-	if s.dryRun {
-		return nil
-	}
-
-	return config.UpdateStackAuth(s.config.Hostname, s.config.Username, s.config.Password)
+	return nil
 }
 
 func (s *Service) Update() error {

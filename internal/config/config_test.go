@@ -15,8 +15,8 @@ import (
 
 type stack struct {
 	Hostname string
-	Username string
-	Password string
+	Cert     []byte
+	Key      []byte
 }
 
 func Test_ErrorString(t *testing.T) {
@@ -29,7 +29,7 @@ func Test_ErrorString(t *testing.T) {
 	assert.Equal(t, wanted, err.Error(), "error message")
 }
 
-func Test_UpdateStackAuthFailIfPermissionDenied(t *testing.T) {
+func Test_UpdateStackFailIfPermissionDenied(t *testing.T) {
 	user, err := user.Current()
 	assert.NoError(t, err, "get current user")
 
@@ -44,81 +44,100 @@ func Test_UpdateStackAuthFailIfPermissionDenied(t *testing.T) {
 	assert.NoError(t, err, "change permissions of config directory")
 
 	stack := newStack()
-	err = UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
-	wanted := "Config error: open " + cfgLoc + "/finch.json: permission denied"
+	err = UpdateStack(stack.Hostname, stack.Cert, stack.Key)
+	wanted := "Config error: failed to backup config open " + cfgLoc + "/finch.json: permission denied"
 	assert.EqualError(t, err, wanted, "update stack")
 }
 
-func Test_UpdateStackAuthCreateConfigIfNotExist(t *testing.T) {
+func Test_UpdateStackCreateConfigIfNotExist(t *testing.T) {
 	cfgLoc := setup(t)
 	defer teardown(cfgLoc, t)
 
 	stack := newStack()
-	err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
+	err := UpdateStack(stack.Hostname, stack.Cert, stack.Key)
 	assert.NoError(t, err, "update stack")
 
 	_, err = os.Stat(cfgLoc + "/finch.json")
 	assert.False(t, os.IsNotExist(err), "create config file")
 }
 
-func Test_LookupStackAuthReturnErrorIfStackNotExist(t *testing.T) {
+func Test_LookupStackReturnErrorIfStackNotExist(t *testing.T) {
 	cfgLoc := setup(t)
 	defer teardown(cfgLoc, t)
 
 	stack := newStack()
-	err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
+	err := UpdateStack(stack.Hostname, stack.Cert, stack.Key)
 	assert.NoError(t, err, "update stack")
 
 	hostname := gofakeit.DomainName()
-	_, err = LookupStackAuth(hostname)
+	_, _, err = LookupStack(hostname)
 	wanted := "Config error: stack not found"
 	assert.EqualError(t, err, wanted, "lookup stack")
 }
 
-func Test_LookupStackAuthReturnCredentialsIfStackExist(t *testing.T) {
+func Test_LookupStackReturnPathsIfStackExist(t *testing.T) {
 	cfgLoc := setup(t)
 	defer teardown(cfgLoc, t)
 
 	stack := newStack()
-	err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
+	err := UpdateStack(stack.Hostname, stack.Cert, stack.Key)
 	assert.NoError(t, err, "update stack")
 
-	token, err := LookupStackAuth(stack.Hostname)
+	cert, key, err := LookupStack(stack.Hostname)
 	assert.NoError(t, err, "lookup stack")
 
-	assert.Equal(t, encodeToken(stack.Username, stack.Password), token, "auth token")
+	assert.Equal(t, stack.Cert, cert, "cert PEM")
+	assert.Equal(t, stack.Key, key, "key PEM")
 }
 
-func Test_RemoveStackAuthReturnNoErrorIfStackNotExist(t *testing.T) {
+func Test_RemoveStackReturnNoErrorIfStackNotExist(t *testing.T) {
 	cfgLoc := setup(t)
 	defer teardown(cfgLoc, t)
 
 	stack := newStack()
-	err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
+	err := UpdateStack(stack.Hostname, stack.Cert, stack.Key)
 	assert.NoError(t, err, "update stack")
 
 	hostname := gofakeit.DomainName()
 
-	err = RemoveStackAuth(hostname)
+	err = RemoveStack(hostname)
 	assert.NoError(t, err, "remove stack")
 }
 
-func Test_RemoveStackAuthSucceedIfStackExist(t *testing.T) {
+func Test_RemoveStackSucceedIfStackExist(t *testing.T) {
 	cfgLoc := setup(t)
 	defer teardown(cfgLoc, t)
 
 	stack := newStack()
-	err := UpdateStackAuth(stack.Hostname, stack.Username, stack.Password)
+	err := UpdateStack(stack.Hostname, stack.Cert, stack.Key)
 	assert.NoError(t, err, "update stack")
 
-	err = RemoveStackAuth(stack.Hostname)
+	err = RemoveStack(stack.Hostname)
 	assert.NoError(t, err, "remove stack")
 
-	_, err = LookupStackAuth(stack.Hostname)
+	_, _, err = LookupStack(stack.Hostname)
 	assert.Error(t, err, "lookup stack")
 
 	wanted := "Config error: stack not found"
 	assert.Equal(t, wanted, err.Error(), "error message")
+
+	last := cfgLoc + "/finch.json~"
+	_, err = os.Stat(last)
+	assert.False(t, os.IsNotExist(err), "backup config file exists")
+}
+
+func Test_LookupStackReturnErrorIfStackNotExist2(t *testing.T) {
+	cfgLoc := setup(t)
+	defer teardown(cfgLoc, t)
+
+	stack := newStack()
+	err := UpdateStack(stack.Hostname, stack.Cert, stack.Key)
+	assert.NoError(t, err, "update stack")
+
+	hostname := gofakeit.DomainName()
+	_, _, err = LookupStack(hostname)
+	wanted := "Config error: stack not found"
+	assert.EqualError(t, err, wanted, "lookup stack certs")
 }
 
 func setup(t *testing.T) string {
@@ -141,8 +160,8 @@ func teardown(cfgLoc string, t *testing.T) {
 
 func newStack() stack {
 	return stack{
-		Hostname: gofakeit.DomainName(),
-		Username: gofakeit.Username(),
-		Password: gofakeit.Password(true, true, true, true, false, 12),
+		Hostname: "finch." + gofakeit.DomainName(),
+		Cert:     []byte("certificate data"),
+		Key:      []byte("key data"),
 	}
 }
