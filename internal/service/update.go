@@ -7,6 +7,8 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/tschaefer/finchctl/internal/config"
 )
 
 func (s *Service) __updateSetTargetConfiguration() error {
@@ -26,13 +28,33 @@ func (s *Service) __updateSetTargetConfiguration() error {
 	}
 
 	s.config.Hostname = config.Hostname
-	s.config.Username = config.Credentials.Username
-	s.config.Password = config.Credentials.Password
 
 	yaml := fmt.Sprintf("%s/traefik/etc/conf.d/letsencrypt.yaml", s.libDir())
 	_, err = s.target.Run(fmt.Sprintf("test -e %s", yaml))
 	if err == nil {
 		s.config.LetsEncrypt.Enabled = true
+	}
+
+	return nil
+}
+
+func (s *Service) __updateRegenerateMTLSCertificatesIfNeeded() error {
+	certPEM, _, err := config.LookupStack(s.config.Hostname)
+
+	needsRegeneration := false
+	if err != nil {
+		needsRegeneration = true
+	} else {
+		expired, err := __mtlsIsCertificateExpired(certPEM)
+		if err != nil || expired {
+			needsRegeneration = true
+		}
+	}
+
+	if needsRegeneration {
+		if err := s.__deployGenerateMTLSCertificates(); err != nil {
+			return convertError(err, &UpdateServiceError{})
+		}
 	}
 
 	return nil
@@ -68,6 +90,10 @@ func (s *Service) __updateRecomposeDockerServices() error {
 
 func (s *Service) updateService() error {
 	if err := s.__updateSetTargetConfiguration(); err != nil {
+		return err
+	}
+
+	if err := s.__updateRegenerateMTLSCertificatesIfNeeded(); err != nil {
 		return err
 	}
 

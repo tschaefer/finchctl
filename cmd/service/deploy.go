@@ -5,7 +5,6 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package service
 
 import (
-	"crypto/rand"
 	"fmt"
 	"net/url"
 	"strings"
@@ -29,8 +28,6 @@ func init() {
 	deployCmd.Flags().String("run.format", "progress", "output format")
 	deployCmd.Flags().Bool("run.dry-run", false, "do not deploy, just print the commands that would be run")
 	deployCmd.Flags().String("service.host", "", "service host (default: auto-detected from target URL)")
-	deployCmd.Flags().String("service.user", "", "service user (default: 'admin')")
-	deployCmd.Flags().String("service.password", "", "service password (default: random password)")
 	deployCmd.Flags().Bool("service.letsencrypt", false, "use Let's Encrypt for TLS certificate (default: false)")
 	deployCmd.Flags().String("service.letsencrypt.email", "", "email address for Let's Encrypt registration (required if --service.letsencrypt is true)")
 	deployCmd.Flags().Bool("service.customtls", false, "use custom TLS certificate (default: false)")
@@ -75,18 +72,6 @@ func deployConfig(cmd *cobra.Command, args []string, formatType target.Format) (
 		hostname = target.Hostname()
 	}
 	config.Hostname = hostname
-
-	user, _ := cmd.Flags().GetString("service.user")
-	if user == "" {
-		user = "admin"
-	}
-	config.Username = user
-
-	password, _ := cmd.Flags().GetString("service.password")
-	if password == "" {
-		password = rand.Text()
-	}
-	config.Password = password
 
 	letsencrypt, _ := cmd.Flags().GetBool("service.letsencrypt")
 	letsencryptEmail, _ := cmd.Flags().GetString("service.letsencrypt.email")

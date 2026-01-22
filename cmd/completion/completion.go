@@ -18,13 +18,8 @@ func CompleteStackName(cmd *cobra.Command, args []string, toComplete string) ([]
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	config, err := config.ReadConfig()
+	stacks, err := config.ListStacks()
 	cobra.CheckErr(err)
 
-	var stackNames []string
-	for _, stack := range config.Stacks {
-		stackNames = append(stackNames, stack.Name)
-	}
-
-	return stackNames, cobra.ShellCompDirectiveNoFileComp
+	return stacks, cobra.ShellCompDirectiveNoFileComp
 }

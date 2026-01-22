@@ -17,7 +17,7 @@ import (
 	"text/template"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
+	"github.com/tschaefer/finchctl/internal/config"
 )
 
 func (s *Service) __deployMakeDirHierarchy() error {
@@ -69,25 +69,6 @@ func (s *Service) __deploySetDirHierarchyPermission() error {
 func (s *Service) __deployCopyLokiConfig() error {
 	path := fmt.Sprintf("%s/loki/etc/loki.yaml", s.libDir())
 	return s.__helperCopyConfig(path, "400", "10001:10001")
-}
-
-func (s *Service) __deployCopyLokiUserAuthFile() error {
-	path := fmt.Sprintf("%s/traefik/etc/conf.d/loki-users.yaml", s.libDir())
-
-	hash, err := bcrypt.GenerateFromPassword([]byte(s.config.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-
-	data := struct {
-		Username string
-		Password string
-	}{
-		Username: s.config.Username,
-		Password: string(hash),
-	}
-
-	return s.__helperCopyTemplate(path, "400", "0:0", data)
 }
 
 func (s *Service) __deployCopyTraefikConfig() error {
@@ -152,6 +133,43 @@ func (s *Service) __deployCopyTraefikHttpTlsConfig() error {
 	return nil
 }
 
+func (s *Service) __deployGenerateMTLSCertificates() error {
+	if s.dryRun {
+		return nil
+	}
+
+	caCertPEM, caKeyPEM, err := __mtlsGenerateCA(s.config.Hostname)
+	if err != nil {
+		return &DeployServiceError{Message: "failed to generate CA certificate", Reason: err.Error()}
+	}
+
+	clientCertPEM, clientKeyPEM, err := __mtlsGenerateClientCert(s.config.Hostname, caCertPEM, caKeyPEM)
+	if err != nil {
+		return &DeployServiceError{Message: "failed to generate client certificate", Reason: err.Error()}
+	}
+
+	caCertPath := fmt.Sprintf("%s/traefik/etc/certs.d/ca.pem", s.libDir())
+	f, err := os.CreateTemp("", "ca.pem")
+	if err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
+	defer func() {
+		_ = os.Remove(f.Name())
+	}()
+	if _, err := f.Write(caCertPEM); err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
+	if err := s.target.Copy(f.Name(), caCertPath, "400", "0:0"); err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
+
+	if err := config.UpdateStack(s.config.Hostname, clientCertPEM, clientKeyPEM); err != nil {
+		return &DeployServiceError{Message: "failed to update stack certificates", Reason: err.Error()}
+	}
+
+	return nil
+}
+
 func (s *Service) __deployCopyAlloyConfig() error {
 	path := fmt.Sprintf("%s/alloy/etc/alloy.config", s.libDir())
 
@@ -182,13 +200,6 @@ func (s *Service) __deployCopyFinchConfig() error {
 		Profiler:  "http://pyroscope:4040",
 		Secret:    secret,
 		Version:   "1.3.0",
-		Credentials: struct {
-			Username string `json:"username"`
-			Password string `json:"password"`
-		}{
-			Username: s.config.Username,
-			Password: s.config.Password,
-		},
 	}
 
 	return s.__helperCopyTemplate(path, "400", "10002:10002", data)
@@ -282,13 +293,9 @@ func (s *Service) __deployCopyComposeFile() error {
 	path := fmt.Sprintf("%s/docker-compose.yaml", s.libDir())
 
 	data := struct {
-		RootUrl  string
-		Username string
-		Password string
+		RootUrl string
 	}{
-		RootUrl:  fmt.Sprintf("https://%s", s.config.Hostname),
-		Username: s.config.Username,
-		Password: s.config.Password,
+		RootUrl: fmt.Sprintf("https://%s", s.config.Hostname),
 	}
 
 	return s.__helperCopyTemplate(path, "400", "0:0", data)
@@ -327,10 +334,6 @@ func (s *Service) deployService() error {
 		return err
 	}
 
-	if err := s.__deployCopyLokiUserAuthFile(); err != nil {
-		return err
-	}
-
 	if err := s.__deployCopyTraefikConfig(); err != nil {
 		return err
 	}
@@ -340,6 +343,10 @@ func (s *Service) deployService() error {
 	}
 
 	if err := s.__deployCopyTraefikHttpTlsConfig(); err != nil {
+		return err
+	}
+
+	if err := s.__deployGenerateMTLSCertificates(); err != nil {
 		return err
 	}
 

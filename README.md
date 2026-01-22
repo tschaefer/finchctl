@@ -37,21 +37,22 @@ finchctl service deploy root@10.19.80.100
 ```
 
 This deploys the stack and exposes services at `https://10.19.80.100`.
-Admin credentials are in `~/.finch/config.json`.
-Visualization and dashboards are available under `/grafana`.
-TLS uses Traefik's default self-signed certificate.
+Visualization and dashboards are available under `/grafana`. TLS uses Traefik's
+default self-signed certificate. Credentials for Grafana are user `admin` and
+password `admin`. mTLS secures communication between the Finch client and
+service. The client certificate and key are generated during deployment and
+stored in `~/.config/finch.json`.
 
 For a public machine with DNS and Let's Encrypt certificate:
 
 ```bash
 finchctl service deploy \
     --service.letsencrypt --service.letsencrypt.email acme@example.com \
-    --service.user admin --service.password secret \
     --service.host finch.example.com root@cloud.machine
 ```
 
 Services are exposed at `https://finch.example.com` with a Let's Encrypt
-certificate. Credentials for Grafana and Finch: user `admin`, password `secret`.
+certificate.
 
 To use a custom TLS certificate:
 

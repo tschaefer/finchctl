@@ -14,7 +14,7 @@ func raiseError() error {
 	return &DeployAgentError{Message: "deployment failed", Reason: "insufficient resources"}
 }
 
-func Test_convertError(t *testing.T) {
+func Test_ConvertError(t *testing.T) {
 	err := raiseError()
 	assert.Error(t, err, "expected an error from raiseError function")
 	assert.IsType(t, &DeployAgentError{}, err, "expected error to be of type DeployAgentError")

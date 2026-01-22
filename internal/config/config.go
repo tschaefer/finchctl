@@ -26,84 +26,93 @@ const (
 	ConfigLocationEnv string = "FINCH_CONFIG"
 )
 
-type Config struct {
-	Stacks []Stack `json:"stacks"`
+type Stacks struct {
+	List []Stack `json:"stacks"`
 }
 
 type Stack struct {
-	Name  string `json:"name,omitempty"`
-	Token string `json:"token,omitempty"`
+	Name string `json:"name,omitempty"`
+	Cert string `json:"cert,omitempty"`
+	Key  string `json:"key,omitempty"`
 }
 
-func UpdateStackAuth(name, username, password string) error {
-	var config Config
-	if fileExists() {
-		cfg, err := ReadConfig()
-		if err != nil {
-			return err
+func UpdateStack(name string, certPEM, keyPEM []byte) error {
+	var stacks Stacks
+	if exist() {
+		if err := backup(); err != nil {
+			return &ConfigError{Message: "failed to backup config", Reason: err.Error()}
 		}
-		config = *cfg
+
+		cfg, err := read()
+		if err != nil {
+			return &ConfigError{Message: "failed to read config", Reason: err.Error()}
+		}
+		stacks = *cfg
 	}
 
 	exists := false
-	for _, authConfig := range config.Stacks {
-		if authConfig.Name == name {
+	for _, stack := range stacks.List {
+		if stack.Name == name {
 			exists = true
 			break
 		}
 	}
 
 	if exists {
-		config.Stacks = slices.DeleteFunc(config.Stacks, func(s Stack) bool {
+		stacks.List = slices.DeleteFunc(stacks.List, func(s Stack) bool {
 			return s.Name == name
 		})
 	}
 
-	config.Stacks = append(config.Stacks, Stack{
-		Name:  name,
-		Token: encodeToken(username, password),
+	stacks.List = append(stacks.List, Stack{
+		Name: name,
+		Cert: base64.StdEncoding.EncodeToString(certPEM),
+		Key:  base64.StdEncoding.EncodeToString(keyPEM),
 	})
 
-	return WriteConfig(&config)
+	return write(&stacks)
 }
 
-func LookupStackAuth(name string) (string, error) {
-	if !fileExists() {
-		return "", &ConfigError{Message: "config file does not exist", Reason: ""}
+func LookupStack(name string) ([]byte, []byte, error) {
+	if !exist() {
+		return nil, nil, &ConfigError{Message: "config file does not exist", Reason: ""}
 	}
 
-	config, err := ReadConfig()
+	stacks, err := read()
 	if err != nil {
-		return "", &ConfigError{Message: "failed to read config", Reason: err.Error()}
+		return nil, nil, &ConfigError{Message: "failed to read config", Reason: err.Error()}
 	}
 
-	var token string
-	for _, authConfig := range config.Stacks {
-		if authConfig.Name == name {
-			token = authConfig.Token
-			break
+	for _, stack := range stacks.List {
+		if stack.Name == name {
+			certPEM, err := base64.StdEncoding.DecodeString(stack.Cert)
+			if err != nil {
+				return nil, nil, &ConfigError{Message: "failed to decode certificate", Reason: err.Error()}
+			}
+			keyPEM, err := base64.StdEncoding.DecodeString(stack.Key)
+			if err != nil {
+				return nil, nil, &ConfigError{Message: "failed to decode key", Reason: err.Error()}
+			}
+			return certPEM, keyPEM, nil
 		}
 	}
-	if token == "" {
-		return "", &ConfigError{Message: "stack not found", Reason: ""}
-	}
 
-	return token, nil
+	return nil, nil, &ConfigError{Message: "stack not found", Reason: ""}
 }
 
-func RemoveStackAuth(name string) error {
-	if !fileExists() {
+func RemoveStack(name string) error {
+	if !exist() {
 		return &ConfigError{Message: "config file does not exist", Reason: ""}
 	}
 
-	config, err := ReadConfig()
+	stacks, err := read()
 	if err != nil {
 		return &ConfigError{Message: "failed to read config", Reason: err.Error()}
 	}
 
 	index := -1
-	for i, authConfig := range config.Stacks {
-		if authConfig.Name == name {
+	for i, stack := range stacks.List {
+		if stack.Name == name {
 			index = i
 			break
 		}
@@ -113,43 +122,71 @@ func RemoveStackAuth(name string) error {
 		return nil
 	}
 
-	config.Stacks = slices.Delete(config.Stacks, index, index+1)
-
-	return WriteConfig(config)
-}
-
-func fileExists() bool {
-	if _, err := os.Stat(configFile()); err != nil && os.IsNotExist(err) {
-		return false
+	if err := backup(); err != nil {
+		return &ConfigError{Message: "failed to backup config", Reason: err.Error()}
 	}
 
-	return true
+	stacks.List = slices.Delete(stacks.List, index, index+1)
+
+	return write(stacks)
 }
 
-func WriteConfig(config *Config) error {
-	data, err := json.MarshalIndent(config, "", "  ")
+func ListStacks() ([]string, error) {
+	if !exist() {
+		return nil, &ConfigError{Message: "config file does not exist", Reason: ""}
+	}
+
+	stacks, err := read()
 	if err != nil {
-		return &ConfigError{Message: err.Error(), Reason: ""}
+		return nil, &ConfigError{Message: "failed to read config", Reason: err.Error()}
 	}
 
-	return os.WriteFile(configFile(), data, 0600)
+	var names []string
+	for _, stack := range stacks.List {
+		names = append(names, stack.Name)
+	}
+
+	return names, nil
 }
 
-func ReadConfig() (*Config, error) {
-	data, err := os.ReadFile(configFile())
+func backup() error {
+	data, err := os.ReadFile(path())
 	if err != nil {
-		return nil, &ConfigError{Message: err.Error(), Reason: ""}
+		return err
 	}
 
-	var config Config
-	if err := json.Unmarshal(data, &config); err != nil {
-		return nil, &ConfigError{Message: err.Error(), Reason: ""}
+	err = os.WriteFile(fmt.Sprintf("%s~", path()), data, 0400)
+	if err != nil {
+		return err
 	}
 
-	return &config, nil
+	return nil
 }
 
-func configFile() string {
+func write(stacks *Stacks) error {
+	data, err := json.MarshalIndent(stacks, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(path(), data, 0600)
+}
+
+func read() (*Stacks, error) {
+	data, err := os.ReadFile(path())
+	if err != nil {
+		return nil, err
+	}
+
+	var stacks Stacks
+	if err := json.Unmarshal(data, &stacks); err != nil {
+		return nil, err
+	}
+
+	return &stacks, nil
+}
+
+func path() string {
 	var dir string
 	dir = os.Getenv(ConfigLocationEnv)
 
@@ -165,9 +202,10 @@ func configFile() string {
 	return fmt.Sprintf("%s/finch.json", dir)
 }
 
-func encodeToken(username, password string) string {
-	plain := fmt.Sprintf("%s:%s", username, password)
-	encoded := base64.StdEncoding.EncodeToString([]byte(plain))
+func exist() bool {
+	if _, err := os.Stat(path()); err != nil && os.IsNotExist(err) {
+		return false
+	}
 
-	return encoded
+	return true
 }

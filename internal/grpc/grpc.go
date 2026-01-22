@@ -16,7 +16,6 @@ import (
 	"github.com/tschaefer/finchctl/internal/version"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -29,30 +28,25 @@ type Client[T any] struct {
 }
 
 func NewClient[T any](ctx context.Context, service string, newHandler func(grpc.ClientConnInterface) T) (context.Context, *Client[T], error) {
-	token, err := config.LookupStackAuth(service)
+	certPEM, keyPEM, err := config.LookupStack(service)
 	if err != nil {
 		return ctx, nil, err
 	}
-	ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Basic "+token)
 
-	skipTLSVerify := false
-	if v, ok := os.LookupEnv(SkipTLSVerifyEnv); ok {
-		l := strings.ToLower(v)
-		if l == "1" || l == "true" {
-			skipTLSVerify = true
-		}
+	// Parse the certificate and key from PEM
+	cert, err := tls.X509KeyPair(certPEM, keyPEM)
+	if err != nil {
+		return ctx, nil, fmt.Errorf("failed to parse client certificate: %w", err)
 	}
 
-	var creds credentials.TransportCredentials
-	if skipTLSVerify {
-		tlsCfg := &tls.Config{
-			InsecureSkipVerify: true,
-		}
-		creds = credentials.NewTLS(tlsCfg)
-		fmt.Fprintf(os.Stderr, "Warning: skipping TLS verification for service %s\n", service)
-	} else {
-		creds = credentials.NewClientTLSFromCert(nil, service)
+	tlsCfg := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ServerName:   service,
 	}
+	if skipTLSVerify() {
+		tlsCfg.InsecureSkipVerify = true
+	}
+	creds := credentials.NewTLS(tlsCfg)
 
 	userAgent := fmt.Sprintf("finchctl/%s", version.Release())
 
@@ -79,4 +73,14 @@ func (c *Client[T]) Handler() T {
 
 func (c *Client[T]) Close() error {
 	return c.conn.Close()
+}
+
+func skipTLSVerify() bool {
+	if v, ok := os.LookupEnv(SkipTLSVerifyEnv); ok {
+		l := strings.ToLower(v)
+		if l == "1" || l == "true" {
+			return true
+		}
+	}
+	return false
 }
