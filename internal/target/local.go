@@ -44,7 +44,7 @@ func (l *local) Copy(src, dest, mode, owner string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
 	defer cancel()
 
-	c := exec.CommandContext(ctx, "sudo", "cp", src, dest)
+	c := exec.CommandContext(ctx, "sudo", "cp", "-f", src, dest)
 	c.Stdout = nil
 	c.Stderr = nil
 	if err := c.Run(); err != nil {
