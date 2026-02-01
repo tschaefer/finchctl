@@ -27,6 +27,13 @@ http:
         - finch-passtls
       tls: true
 
+    dashboard:
+      rule: (PathPrefix(`/dashboard`) || PathPrefix(`/ws`) || PathPrefix(`/login`)) {{ .HostRule }}
+      entrypoints:
+        - websecure
+      service: dashboard
+      tls: true
+
     mimir:
       rule: PathPrefix(`/mimir`) {{ .HostRule }}
       entrypoints:
@@ -62,6 +69,11 @@ http:
       loadBalancer:
         servers:
           - url: h2c://finch:3000
+
+    dashboard:
+      loadBalancer:
+        servers:
+          - url: http://finch:3001
 
     mimir:
       loadBalancer:
