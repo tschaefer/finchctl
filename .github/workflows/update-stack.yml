@@ -1,0 +1,66 @@
+---
+name: Update Stack Images
+
+on:  # yamllint disable-line rule:truthy
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Close existing PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER=$(gh pr list --head update-stack-images --json number --jq '.[0].number')
+          if [ -n "$PR_NUMBER" ]; then
+            gh pr close $PR_NUMBER --comment "Closing to create a new updated PR."
+            git push origin --delete update-stack-images || true
+          fi
+
+      - name: Check for image updates
+        id: check
+        run: |
+          chmod +x .github/scripts/update-stack.sh
+          if .github/scripts/update-stack.sh > /tmp/check-output.json; then
+            echo "updates_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "updates_available=false" >> $GITHUB_OUTPUT
+          fi
+          cat /tmp/check-output.json
+
+      - name: Apply updates
+        if: steps.check.outputs.updates_available == 'true'
+        run: |
+          .github/scripts/update-stack.sh -w
+
+      - name: Create Pull Request
+        if: steps.check.outputs.updates_available == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: "chore: bump service versions"
+          title: "chore: update stack Docker images"
+          body: |
+            Automated update of Docker image versions in the stack.
+
+            This PR updates the following images to their latest versions:
+            - Grafana
+            - Loki
+            - Traefik
+            - Alloy
+            - Mimir
+            - Pyroscope
+
+            Please review the changes before merging.
+          branch: update-stack-images
+          delete-branch: true
+          labels: dependencies,docker
