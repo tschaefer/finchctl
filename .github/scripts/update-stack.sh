@@ -38,19 +38,43 @@ get_latest_tag() {
 }
 
 check_image() {
-    local name=$1
-    local repo=$2
-    local current_version=$3
-    local prefix=$4
-    local image_name=$5
+    local full_image=$1
+
+    local image_name
+    local current_version
+    image_name=$(echo "$full_image" | cut -d: -f1)
+    current_version=$(echo "$full_image" | cut -d: -f2)
+
+    if [[ "$image_name" == ghcr.io/* ]]; then
+        echo "{
+            \"image\":\"$image_name\",
+            \"current\":\"$current_version\",
+            \"latest\":null,
+            \"status\":\"skipped\"
+        }"
+        return
+    fi
+
+    local prefix=""
+    if [[ "$current_version" == v* ]]; then
+        prefix="v"
+        current_version="${current_version#v}"
+    fi
+
+    local repo
+    if [[ "$image_name" != */* ]]; then
+        repo="library/$image_name"
+    else
+        repo="$image_name"
+    fi
 
     local latest
     latest=$(get_latest_tag "$repo" "$prefix")
 
     if [[ -z "$latest" ]]; then
         echo "{
-            \"name\":\"$name\",
-            \"current\":\"$current_version\",
+            \"image\":\"$image_name\",
+            \"current\":\"${prefix}${current_version}\",
             \"latest\":null,
             \"status\":\"error\"
         }"
@@ -59,8 +83,8 @@ check_image() {
 
     if [[ "$current_version" == "$latest" ]]; then
         echo "{
-            \"name\":\"$name\",
-            \"current\":\"$current_version\",
+            \"image\":\"$image_name\",
+            \"current\":\"${prefix}${current_version}\",
             \"latest\":\"$latest\",
             \"status\":\"up-to-date\"
         }"
@@ -68,10 +92,10 @@ check_image() {
     fi
 
     if [[ "$WRITE_MODE" == true ]]; then
-        sed -i "s|${image_name}:${current_version}|${image_name}:${latest}|g" "$COMPOSE_FILE"
+        sed -i "s|${image_name}:${prefix}${current_version}|${image_name}:${latest}|g" "$COMPOSE_FILE"
         echo "{
-            \"name\":\"$name\",
-            \"current\":\"$current_version\",
+            \"image\":\"$image_name\",
+            \"current\":\"${prefix}${current_version}\",
             \"latest\":\"$latest\",
             \"status\":\"updated\"
         }"
@@ -79,8 +103,8 @@ check_image() {
     fi
 
     echo "{
-        \"name\":\"$name\",
-        \"current\":\"$current_version\",
+        \"image\":\"$image_name\",
+        \"current\":\"${prefix}${current_version}\",
         \"latest\":\"$latest\",
         \"status\":\"available\"
     }"
@@ -89,23 +113,14 @@ check_image() {
 main() {
     get_opts ${1+"$@"}
 
-    local grafana_version loki_version traefik_version alloy_version mimir_version pyroscope_version
-    local results json_output
+    local images results json_output
 
-    grafana_version=$(grep -oP 'grafana/grafana:\K[0-9]+\.[0-9]+\.[0-9]+' "$COMPOSE_FILE")
-    loki_version=$(grep -oP 'grafana/loki:\K[0-9]+\.[0-9]+\.[0-9]+' "$COMPOSE_FILE")
-    traefik_version=$(grep -oP 'traefik:v\K[0-9]+\.[0-9]+\.[0-9]+' "$COMPOSE_FILE")
-    alloy_version=$(grep -oP 'grafana/alloy:v\K[0-9]+\.[0-9]+\.[0-9]+' "$COMPOSE_FILE")
-    mimir_version=$(grep -oP 'grafana/mimir:\K[0-9]+\.[0-9]+\.[0-9]+' "$COMPOSE_FILE")
-    pyroscope_version=$(grep -oP 'grafana/pyroscope:\K[0-9]+\.[0-9]+\.[0-9]+' "$COMPOSE_FILE")
+    readarray -t images < <(yq -r '.services[].image' "$COMPOSE_FILE")
 
     results=()
-    results+=("$(check_image "grafana" "grafana/grafana" "$grafana_version" "" "grafana/grafana")")
-    results+=("$(check_image "loki" "grafana/loki" "$loki_version" "" "grafana/loki")")
-    results+=("$(check_image "traefik" "library/traefik" "v$traefik_version" "v" "traefik")")
-    results+=("$(check_image "alloy" "grafana/alloy" "v$alloy_version" "v" "grafana/alloy")")
-    results+=("$(check_image "mimir" "grafana/mimir" "$mimir_version" "" "grafana/mimir")")
-    results+=("$(check_image "pyroscope" "grafana/pyroscope" "$pyroscope_version" "" "grafana/pyroscope")")
+    for image in "${images[@]}"; do
+        results+=("$(check_image "$image")")
+    done
 
     json_output="["
     for i in "${!results[@]}"; do

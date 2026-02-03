@@ -17,6 +17,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl jq yq
+
       - name: Close existing PR
         env:
           GH_TOKEN: ${{ github.token }}
