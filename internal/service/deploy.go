@@ -260,7 +260,7 @@ func (s *Service) __helperCopyConfig(path, mode, owner string) error {
 func (s *Service) __helperCopyTemplate(path, mode, owner string, data any) error {
 	fileName := filepath.Base(path)
 
-	tmpl, err := template.New(fileName+".tmpl").ParseFS(Assets, fileName+".tmpl")
+	tmpl, err := template.New(fileName).ParseFS(Assets, fileName)
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
