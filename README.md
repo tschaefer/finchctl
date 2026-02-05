@@ -106,6 +106,16 @@ Applications can forward log, metrics and profiling data to Alloy:
 Alloy is pre-configured to accept and forward this data to Loki, Mimir and
 Pyroscope.
 
+## Access Web Dashboard
+
+Finch provides a lightweight dashboard for visualizing agents with real-time
+updates. The dashboard is protected by token-based authentication.
+Retrieve token and open in browser:
+
+```bash
+finchctl service dashboard --web=true --session-timeout=1800 finch.example.com
+```
+
 ## Further Controller Commands
 
 Both `service` and `agent` commands have several subcommands, including:

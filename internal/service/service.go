@@ -135,6 +135,10 @@ func (s *Service) Info() (*InfoData, error) {
 	return s.infoService()
 }
 
+func (s *Service) Dashboard(sessionTimeout int32) (*DashboardData, error) {
+	return s.dashboardService(sessionTimeout)
+}
+
 func (s *Service) libDir() string {
 	var dir string
 	dir = os.Getenv(ServiceLibEnv)

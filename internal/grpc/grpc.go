@@ -33,7 +33,6 @@ func NewClient[T any](ctx context.Context, service string, newHandler func(grpc.
 		return ctx, nil, err
 	}
 
-	// Parse the certificate and key from PEM
 	cert, err := tls.X509KeyPair(certPEM, keyPEM)
 	if err != nil {
 		return ctx, nil, fmt.Errorf("failed to parse client certificate: %w", err)
