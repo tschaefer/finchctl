@@ -28,7 +28,7 @@ http:
       tls: true
 
     dashboard:
-      rule: (PathPrefix(`/dashboard`) || PathPrefix(`/ws`) || PathPrefix(`/login`)) {{ .HostRule }}
+      rule: (PathPrefix(`/dashboard`) || PathPrefix(`/ws`) || PathPrefix(`/login`) || PathPrefix(`/logout`)) {{ .HostRule }}
       entrypoints:
         - websecure
       service: dashboard
