@@ -64,7 +64,7 @@ services:
 
   loki:
     container_name: loki
-    image: grafana/loki:3.6.4
+    image: grafana/loki:3.6.5
     command:
       - "-config.file=/etc/loki/loki.yaml"
       - "-target=all"
@@ -89,7 +89,7 @@ services:
 
   alloy:
     container_name: alloy
-    image: grafana/alloy:v1.12.2
+    image: grafana/alloy:v1.13.0
     volumes:
       - /var/lib/finch/alloy/etc:/etc/alloy
       - /var/lib/finch/alloy/data:/var/lib/alloy/data
