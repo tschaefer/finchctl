@@ -15,7 +15,7 @@ http:
       service: loki
       middlewares:
         - strip-loki-prefix
-        - loki-auth
+        - finch-auth
       tls: true
 
     finch:
@@ -41,7 +41,7 @@ http:
       service: mimir
       middlewares:
         - strip-mimir-prefix
-        - loki-auth
+        - finch-auth
       tls: true
 
     pyroscope:
@@ -51,7 +51,7 @@ http:
       service: pyroscope
       middlewares:
         - strip-pyroscope-prefix
-        - loki-auth
+        - finch-auth
       tls: true
 
   services:
@@ -105,6 +105,10 @@ http:
       passtlsclientcert:
         pem: true
 
+    finch-auth:
+      forwardauth:
+        address: http://finch:3002/auth
+
 tls:
   certificates:
     - certfile: /etc/traefik/certs.d/cert.pem
@@ -113,4 +117,3 @@ tls:
     default:
       clientauth:
         clientauthtype: RequestClientCert
-
