@@ -93,7 +93,14 @@ To deploy the agent:
 finchctl agent deploy --agent.config finch-agent.cfg root@app.machine
 ```
 
-Alloy will be enrolled and started with the provided configuration.
+Alloy will be enrolled and started with the provided configuration. Alloy
+authenticates with the Finch service using a JWT token with a **365-day
+expiration** included in the config file. Request a new config at least after
+one year or on compromise.
+
+```bash
+finchctl agent config --agent.rid rid:finch... finch.example.com
+```
 
 ## Metrics and Profiling Data Collection
 
