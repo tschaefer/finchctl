@@ -127,6 +127,41 @@ func Test_Update(t *testing.T) {
 	assert.NotEmpty(t, track.Timestamp, "first log line timestamp")
 }
 
+func Test_RotateSecret(t *testing.T) {
+	s, err := New(nil, "localhost", target.FormatDocumentation, true)
+	assert.NoError(t, err, "create service")
+
+	record := capture(func() {
+		err = s.RotateSecret()
+	})
+	assert.NoError(t, err, "rotate secret")
+
+	tracks := strings.Split(record, "\n")
+	assert.Len(t, tracks, 7, "number of log lines mismatch")
+
+	wanted := "Running 'command -v sudo' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[0], "first log line")
+
+	wanted = "Running 'sudo docker compose --file .+/docker-compose.yaml restart finch' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
+
+	s, err = New(nil, "localhost", target.FormatJSON, true)
+	assert.NoError(t, err, "create service")
+
+	record = capture(func() {
+		err = s.RotateSecret()
+	})
+	assert.NoError(t, err, "rotate secret")
+
+	tracks = strings.Split(record, "\n")
+	var track track
+	err = json.Unmarshal([]byte(tracks[0]), &track)
+	assert.NoError(t, err, "unmarshal json output")
+
+	wanted = "Running 'command -v sudo' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[0], "first log line")
+}
+
 func capture(f func()) string {
 	originalStdout := os.Stdout
 

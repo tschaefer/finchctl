@@ -149,3 +149,21 @@ func (s *Service) libDir() string {
 
 	return dir
 }
+
+func (s *Service) RotateSecret() error {
+	defer func() {
+		if s.format == target.FormatProgress {
+			println()
+		}
+	}()
+
+	if err := s.requirementsService(); err != nil {
+		return convertError(err, &RotateServiceSecretError{})
+	}
+
+	if err := s.rotateServiceSecret(); err != nil {
+		return err
+	}
+
+	return nil
+}

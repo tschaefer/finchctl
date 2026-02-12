@@ -17,4 +17,5 @@ func init() {
 	Cmd.AddCommand(teardownCmd)
 	Cmd.AddCommand(infoCmd)
 	Cmd.AddCommand(dashboardCmd)
+	Cmd.AddCommand(rotateSecretCmd)
 }

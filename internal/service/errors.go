@@ -46,6 +46,15 @@ func (e *InfoServiceError) Error() string {
 	return strings.TrimSpace(fmt.Sprintf("Failed to get service info: %s %s", e.Message, e.Reason))
 }
 
+type RotateServiceSecretError struct {
+	Message string
+	Reason  string
+}
+
+func (e *RotateServiceSecretError) Error() string {
+	return strings.TrimSpace(fmt.Sprintf("Failed to rotate service secret: %s %s", e.Message, e.Reason))
+}
+
 func convertError(err error, to any) error {
 	if err == nil {
 		return nil
