@@ -199,10 +199,10 @@ func (s *Service) __deployCopyFinchConfig() error {
 		Database:  "sqlite://finch.db",
 		Profiler:  "http://pyroscope:4040",
 		Secret:    secret,
-		Version:   "1.3.0",
+		Version:   "1.7.0",
 	}
 
-	return s.__helperCopyTemplate(path, "400", "10002:10002", data)
+	return s.__helperCopyTemplate(path, "400", "0:0", data)
 }
 
 func (s *Service) __deployCopyGrafanaDashboards() error {
