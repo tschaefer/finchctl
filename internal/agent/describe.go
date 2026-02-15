@@ -22,6 +22,7 @@ type DescribeLogsDocker struct {
 }
 
 type DescribeLogs struct {
+	Events  []string            `json:"events"`
 	Files   []string            `json:"files"`
 	Journal DescribeLogsJournal `json:"journal"`
 	Docker  DescribeLogsDocker  `json:"docker"`
@@ -39,6 +40,7 @@ type DescribeProfiles struct {
 type DescribeData struct {
 	ResourceID string           `json:"rid"`
 	Hostname   string           `json:"hostname"`
+	Node       string           `json:"node"`
 	Labels     []string         `json:"labels"`
 	Logs       DescribeLogs     `json:"logs"`
 	Metrics    DescribeMetrics  `json:"metrics"`
@@ -67,6 +69,7 @@ func (a *Agent) describeAgent(service, rid string) (*DescribeData, error) {
 	journal := false
 	docker := false
 	files := []string{}
+	events := []string{}
 	for _, src := range data.LogSources {
 		url, err := url.Parse(src)
 		if err != nil {
@@ -76,13 +79,13 @@ func (a *Agent) describeAgent(service, rid string) (*DescribeData, error) {
 		switch url.Scheme {
 		case "journal":
 			journal = true
-			continue
 		case "docker":
 			docker = true
-			continue
+		case "file":
+			files = append(files, url.Path)
+		case "event":
+			events = append(events, url.Host)
 		}
-
-		files = append(files, url.Path)
 	}
 
 	labels := data.Labels
@@ -98,9 +101,11 @@ func (a *Agent) describeAgent(service, rid string) (*DescribeData, error) {
 	return &DescribeData{
 		ResourceID: data.ResourceId,
 		Hostname:   data.Hostname,
+		Node:       data.Node,
 		Labels:     labels,
 		Logs: DescribeLogs{
-			Files: files,
+			Events: events,
+			Files:  files,
 			Journal: DescribeLogsJournal{
 				Enable: journal,
 			},

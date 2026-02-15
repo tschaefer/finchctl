@@ -44,7 +44,7 @@ func (a *Agent) __updateServiceBinaryGetLatestTag() (string, error) {
 	return data.(map[string]any)["tag_name"].(string), nil
 }
 
-func (a *Agent) __updateServiceBinaryIsNeeded(version string) (bool, error) {
+func (a *Agent) __updateServiceBinaryIsNeeded(version string, machine *MachineInfo) (bool, error) {
 	if a.dryRun {
 		target.PrintProgress(
 			fmt.Sprintf("Skipping Alloy update check for version '%s' due to dry-run mode", version),
@@ -62,7 +62,12 @@ func (a *Agent) __updateServiceBinaryIsNeeded(version string) (bool, error) {
 		}
 	}
 
-	out, err := a.target.Run("alloy --version | grep -o -E 'v[0-9\\.]+'")
+	path := "/usr/bin/alloy"
+	if machine.Kernel == "darwin" {
+		path = "/usr/local/bin/alloy"
+	}
+
+	out, err := a.target.Run(path + " --version | grep -o -E 'v[0-9\\.]+'")
 	if err != nil {
 		return false, &UpdateAgentError{Message: err.Error(), Reason: string(out)}
 	}
@@ -72,7 +77,7 @@ func (a *Agent) __updateServiceBinaryIsNeeded(version string) (bool, error) {
 }
 
 func (a *Agent) __updateServiceBinary(machine *MachineInfo, version string) error {
-	ok, err := a.__updateServiceBinaryIsNeeded(version)
+	ok, err := a.__updateServiceBinaryIsNeeded(version, machine)
 	if err != nil {
 		return err
 	}
@@ -100,7 +105,7 @@ func (a *Agent) __updateServiceBinary(machine *MachineInfo, version string) erro
 		return convertError(err, &UpdateAgentError{})
 	}
 
-	if err := a.__deployInstallBinary(binary); err != nil {
+	if err := a.__deployInstallBinary(binary, machine); err != nil {
 		return convertError(err, &UpdateAgentError{})
 	}
 
@@ -128,6 +133,11 @@ func (a *Agent) updateAgent(machine *MachineInfo, skipConfig bool, skipBinaries 
 		}
 	case "freebsd":
 		out, err := a.target.Run("sudo service alloy restart")
+		if err != nil {
+			return &UpdateAgentError{Message: err.Error(), Reason: string(out)}
+		}
+	case "darwin":
+		out, err := a.target.Run("sudo launchctl kickstart -k system/com.github.tschaefer.finch.agent")
 		if err != nil {
 			return &UpdateAgentError{Message: err.Error(), Reason: string(out)}
 		}

@@ -77,11 +77,10 @@ func (a *Agent) machineInfo() (*MachineInfo, error) {
 			return nil, fmt.Errorf("unsupported target init system: %w", err)
 		}
 	case "darwin":
-		_, err = a.__machineGetDarwinArch(machine)
+		arch, err = a.__machineGetDarwinArch(machine)
 		if err != nil {
 			return nil, err
 		}
-		return nil, fmt.Errorf("yet unsupported target kernel: %s", kernel)
 	case "freebsd":
 		arch, err = a.__machineGetFreebsdArch(machine)
 		if err != nil {
