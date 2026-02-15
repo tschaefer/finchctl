@@ -53,6 +53,14 @@ func init() {
 
 	registerCmd.Flags().String("agent.config", "finch-agent.cfg", "Path to the configuration file")
 	registerCmd.Flags().String("agent.file", "", "Path to a file containing agent data")
+
+	registerCmd.Flags().StringSlice("agent.logs.events", nil, "Collect windows log events")
+	_ = viper.BindPFlag("logs.events", registerCmd.Flags().Lookup("agent.logs.events"))
+
+	registerCmd.Flags().String("agent.node", "unix", "Node type of the agent (unix, windows)")
+	_ = viper.BindPFlag("agent.node", registerCmd.Flags().Lookup("agent.node"))
+
+	_ = registerCmd.RegisterFlagCompletionFunc("agent.node", completion.CompleteNodeName)
 }
 
 func runRegisterPreCmd(cmd *cobra.Command, args []string) {
@@ -104,10 +112,18 @@ func parseFlags(formatType target.Format) *agent.RegisterData {
 		}
 	}
 
+	logEvents := viper.GetStringSlice("logs.events")
+	if len(logEvents) != 0 {
+		for _, event := range logEvents {
+			logSources = append(logSources, "event://"+event)
+		}
+	}
+
 	if len(logSources) == 0 {
 		errors.CheckErr("at least one log source must be enabled", formatType)
 	}
 
+	node := viper.GetString("agent.node")
 	labels := viper.GetStringSlice("labels")
 	metrics := viper.GetBool("metrics.enable")
 	metricsTargets := viper.GetStringSlice("metrics.targets")
@@ -124,6 +140,7 @@ func parseFlags(formatType target.Format) *agent.RegisterData {
 		MetricsTargets: metricsTargets,
 		Profiles:       profiles,
 		Labels:         labels,
+		Node:           node,
 	}
 
 	return data
