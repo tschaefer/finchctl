@@ -2,7 +2,7 @@
 services:
   grafana:
     container_name: grafana
-    image: grafana/grafana:12.3.2
+    image: grafana/grafana:12.3.3
     environment:
       - GF_SERVER_ROOT_URL={{ .RootUrl }}/grafana
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
@@ -76,7 +76,7 @@ services:
 
   traefik:
     container_name: traefik
-    image: traefik:v3.6.7
+    image: traefik:v3.6.8
     command:
       - "--configfile=/etc/traefik/traefik.yaml"
     ports:
@@ -89,7 +89,7 @@ services:
 
   alloy:
     container_name: alloy
-    image: grafana/alloy:v1.13.0
+    image: grafana/alloy:v1.13.1
     volumes:
       - /var/lib/finch/alloy/etc:/etc/alloy
       - /var/lib/finch/alloy/data:/var/lib/alloy/data
@@ -114,7 +114,7 @@ services:
 
   mimir:
     container_name: mimir
-    image: grafana/mimir:3.0.2
+    image: grafana/mimir:3.0.3
     volumes:
       - /var/lib/finch/mimir/data:/var/lib/mimir
       - /var/lib/finch/mimir/etc:/etc/mimir
@@ -125,7 +125,7 @@ services:
 
   pyroscope:
     container_name: pyroscope
-    image: grafana/pyroscope:1.18.0
+    image: grafana/pyroscope:1.18.1
     volumes:
       - /var/lib/finch/pyroscope/data:/var/lib/pyroscope
     command:
