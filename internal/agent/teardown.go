@@ -42,18 +42,34 @@ func (a *Agent) __teardownRcService() error {
 	return nil
 }
 
+func (a *Agent) __teardownLaunchdService() error {
+	out, err := a.target.Run("sudo launchctl bootout system/com.github.tschaefer.finch.agent || true")
+	if err != nil {
+		return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
+	}
+
+	out, err = a.target.Run("sudo rm -f /Library/LaunchDaemons/com.github.tschaefer.finch.agent.plist")
+	if err != nil {
+		return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
+	}
+
+	return nil
+}
+
 func (a *Agent) teardownAgent(machine *MachineInfo) error {
+	var err error
 	switch machine.Kernel {
 	case "linux":
-		if err := a.__teardownSystemdService(); err != nil {
-			return err
-		}
+		err = a.__teardownSystemdService()
 	case "freebsd":
-		if err := a.__teardownRcService(); err != nil {
-			return err
-		}
+		err = a.__teardownRcService()
+	case "darwin":
+		err = a.__teardownLaunchdService()
 	default:
 		// no-op
+	}
+	if err != nil {
+		return err
 	}
 
 	out, err := a.target.Run("sudo rm -rf /etc/alloy")
@@ -66,7 +82,12 @@ func (a *Agent) teardownAgent(machine *MachineInfo) error {
 		return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
 	}
 
-	out, err = a.target.Run("sudo rm -f /usr/bin/alloy")
+	path := "/usr/bin/alloy"
+	if machine.Kernel == "darwin" {
+		path = "/usr/local/bin/alloy"
+	}
+
+	out, err = a.target.Run("sudo rm -f " + path)
 	if err != nil {
 		return &TeardownAgentError{Message: err.Error(), Reason: string(out)}
 	}

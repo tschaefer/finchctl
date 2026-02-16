@@ -99,6 +99,32 @@ func (a *Agent) __deployCopyRcServiceFile() error {
 	return nil
 }
 
+func (a *Agent) __deployCopyLaunchdServiceFile() error {
+	dest := "/Library/LaunchDaemons/com.github.tschaefer.finch.agent.plist"
+
+	content, err := fs.ReadFile(Assets, "com.github.tschaefer.finch.agent.plist")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	f, err := os.CreateTemp("", "com.github.tschaefer.finch.agent.plist")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+	defer func() {
+		_ = os.Remove(f.Name())
+	}()
+	if _, err := f.Write(content); err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	if err := a.target.Copy(f.Name(), dest, "444", "0:0"); err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	return nil
+}
+
 func (a *Agent) __deployDownloadRelease(release string, version string, tmpdir string) (string, error) {
 	var url string
 	if version != "latest" {
@@ -210,8 +236,17 @@ func (a *Agent) __deployUnzipRelease(release string, file string) (string, error
 	return binary.Name(), nil
 }
 
-func (a *Agent) __deployInstallBinary(binary string) error {
-	err := a.target.Copy(binary, "/usr/bin/alloy", "755", "0:0")
+func (a *Agent) __deployInstallBinary(binary string, machine *MachineInfo) error {
+	path := "/usr/bin/alloy"
+	if machine.Kernel == "darwin" {
+		path = "/usr/local/bin/alloy"
+		out, err := a.target.Run("sudo mkdir -p " + filepath.Dir(path))
+		if err != nil {
+			return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+		}
+	}
+
+	err := a.target.Copy(binary, path, "755", "0:0")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
@@ -234,6 +269,20 @@ func (a *Agent) __deployEnableRcService() error {
 	}
 
 	out, err = a.target.Run("sudo service alloy start")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+	}
+
+	return nil
+}
+
+func (a *Agent) __deployEnableLaunchdService() error {
+	out, err := a.target.Run("sudo launchctl bootstrap system /Library/LaunchDaemons/com.github.tschaefer.finch.agent.plist")
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+	}
+
+	out, err = a.target.Run("sudo launchctl kickstart -k system/com.github.tschaefer.finch.agent")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
@@ -279,7 +328,7 @@ func (a *Agent) deployAgent(machine *MachineInfo, alloyVersion string) error {
 		return err
 	}
 
-	if err := a.__deployInstallBinary(binary); err != nil {
+	if err := a.__deployInstallBinary(binary, machine); err != nil {
 		return err
 	}
 
@@ -296,6 +345,13 @@ func (a *Agent) deployAgent(machine *MachineInfo, alloyVersion string) error {
 			return err
 		}
 		if err := a.__deployEnableRcService(); err != nil {
+			return err
+		}
+	case "darwin":
+		if err := a.__deployCopyLaunchdServiceFile(); err != nil {
+			return err
+		}
+		if err := a.__deployEnableLaunchdService(); err != nil {
 			return err
 		}
 	default:

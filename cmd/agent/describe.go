@@ -57,6 +57,7 @@ func runDescribeCmd(cmd *cobra.Command, args []string) {
 		t := tablewriter.NewWriter(os.Stdout)
 		t.Header([]string{"Property", "Value"})
 		_ = t.Append([]string{"Hostname", desc.Hostname})
+		_ = t.Append([]string{"Node", desc.Node})
 		if (len(desc.Labels)) > 0 {
 			_ = t.Append([]string{"Labels", strings.Join(desc.Labels, ", ")})
 		}
@@ -64,6 +65,9 @@ func runDescribeCmd(cmd *cobra.Command, args []string) {
 		_ = t.Append([]string{"Journal", fmt.Sprintf("%v", desc.Logs.Journal.Enable)})
 		if (len(desc.Logs.Files)) > 0 {
 			_ = t.Append([]string{"Files", strings.Join(desc.Logs.Files, "\n")})
+		}
+		if (len(desc.Logs.Events)) > 0 {
+			_ = t.Append([]string{"Events", strings.Join(desc.Logs.Events, "\n")})
 		}
 		_ = t.Append([]string{"Metrics", fmt.Sprintf("%v", desc.Metrics.Enable)})
 		if (len(desc.Metrics.Targets)) > 0 {
