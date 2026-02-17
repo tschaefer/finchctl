@@ -18,7 +18,7 @@ type DashboardData struct {
 	Url       string `json:"url"`
 }
 
-func (s *Service) dashboardService(sessionTimeout int32) (*DashboardData, error) {
+func (s *Service) dashboardService(sessionTimeout int32, role string, scope []string) (*DashboardData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -32,6 +32,8 @@ func (s *Service) dashboardService(sessionTimeout int32) (*DashboardData, error)
 
 	data, err := client.Handler().GetDashboardToken(ctx, &api.GetDashboardTokenRequest{
 		SessionTimeout: &sessionTimeout,
+		Role:           role,
+		Scope:          scope,
 	})
 	if err != nil {
 		return nil, &InfoServiceError{Message: err.Error(), Reason: ""}
