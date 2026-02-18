@@ -26,7 +26,11 @@ var dashboardCmd = &cobra.Command{
 
 func init() {
 	dashboardCmd.Flags().Bool("web", false, "Open dashboard in web browser")
-	dashboardCmd.Flags().Int32("session-timeout", 1800, "Session timeout in seconds")
+	dashboardCmd.Flags().Int32("permission.session-timeout", 1800, "Session timeout in seconds")
+	dashboardCmd.Flags().String("permission.role", "viewer", "Role for the dashboard token (viewer, operator, admin)")
+	dashboardCmd.Flags().StringSlice("permission.scope", []string{}, "List of agents to limit the dashboard token access")
+
+	_ = dashboardCmd.RegisterFlagCompletionFunc("permission.role", completion.CompleteDashboardRole)
 }
 
 func runDashboardCmd(cmd *cobra.Command, args []string) {
@@ -41,8 +45,10 @@ func runDashboardCmd(cmd *cobra.Command, args []string) {
 	s, err := service.New(config, "localhost", formatType, false)
 	errors.CheckErr(err, formatType)
 
-	sessionTimeout, _ := cmd.Flags().GetInt32("session-timeout")
-	data, err := s.Dashboard(sessionTimeout)
+	sessionTimeout, _ := cmd.Flags().GetInt32("permission.session-timeout")
+	role, _ := cmd.Flags().GetString("permission.role")
+	scope, _ := cmd.Flags().GetStringSlice("permission.scope")
+	data, err := s.Dashboard(sessionTimeout, role, scope)
 	errors.CheckErr(err, formatType)
 
 	openInWeb, _ := cmd.Flags().GetBool("web")

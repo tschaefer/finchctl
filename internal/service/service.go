@@ -135,8 +135,8 @@ func (s *Service) Info() (*InfoData, error) {
 	return s.infoService()
 }
 
-func (s *Service) Dashboard(sessionTimeout int32) (*DashboardData, error) {
-	return s.dashboardService(sessionTimeout)
+func (s *Service) Dashboard(sessionTimeout int32, role string, scope []string) (*DashboardData, error) {
+	return s.dashboardService(sessionTimeout, role, scope)
 }
 
 func (s *Service) libDir() string {

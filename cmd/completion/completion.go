@@ -31,3 +31,11 @@ func CompleteNodeName(cmd *cobra.Command, args []string, toComplete string) ([]c
 
 	return []string{"unix", "windows"}, cobra.ShellCompDirectiveNoFileComp
 }
+
+func CompleteDashboardRole(cmd *cobra.Command, args []string, toComplete string) ([]cobra.Completion, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	return []string{"viewer", "operator", "admin"}, cobra.ShellCompDirectiveNoFileComp
+}
