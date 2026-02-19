@@ -47,7 +47,7 @@ func NewClient[T any](ctx context.Context, service string, newHandler func(grpc.
 	}
 	creds := credentials.NewTLS(tlsCfg)
 
-	userAgent := fmt.Sprintf("%s/%s", version.ResourceId(), version.Release())
+	userAgent := fmt.Sprintf("%s/%s", version.ResourceID(), version.Release())
 
 	ip := net.ParseIP(service)
 	if ip != nil && ip.To4() == nil {

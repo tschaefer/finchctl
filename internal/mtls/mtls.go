@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	CertValidityDays        = 90
+	CertValidityDays        = 90 * 24 * time.Hour
 	CertExpirationThreshold = 3 * 24 * time.Hour
 )
 
@@ -39,7 +39,7 @@ func GenerateCA(hostname string) ([]byte, []byte, error) {
 			CommonName:   fmt.Sprintf("Finch CA - %s", hostname),
 		},
 		NotBefore:             time.Now(),
-		NotAfter:              time.Now().Add(CertValidityDays * 24 * time.Hour),
+		NotAfter:              time.Now().Add(CertValidityDays),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageDigitalSignature,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
@@ -103,7 +103,7 @@ func GenerateClient(hostname string, caCertPEM, caKeyPEM []byte) ([]byte, []byte
 			CommonName:   fmt.Sprintf("Finch Client - %s", hostname),
 		},
 		NotBefore:   time.Now(),
-		NotAfter:    time.Now().Add(CertValidityDays * 24 * time.Hour),
+		NotAfter:    time.Now().Add(CertValidityDays),
 		KeyUsage:    x509.KeyUsageDigitalSignature,
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 	}

@@ -15,6 +15,12 @@ func (s *Service) teardownService() error {
 		return convertError(err, &TeardownServiceError{})
 	}
 
+	if !s.dryRun {
+		if _, err := config.LookupStack(s.config.Hostname); err != nil {
+			return &TeardownServiceError{Message: err.Error(), Reason: ""}
+		}
+	}
+
 	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml down --volumes", s.libDir()))
 	if err != nil {
 		return &TeardownServiceError{Message: err.Error(), Reason: string(out)}

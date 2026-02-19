@@ -136,10 +136,6 @@ func (s *Service) __deployCopyTraefikHttpTlsConfig() error {
 }
 
 func (s *Service) __deployGenerateMTLSCertificates() error {
-	if s.dryRun {
-		return nil
-	}
-
 	caCertPEM, caKeyPEM, err := mtls.GenerateCA(s.config.Hostname)
 	if err != nil {
 		return &DeployServiceError{Message: "failed to generate CA certificate", Reason: err.Error()}
@@ -150,13 +146,7 @@ func (s *Service) __deployGenerateMTLSCertificates() error {
 		return &DeployServiceError{Message: "failed to generate client certificate", Reason: err.Error()}
 	}
 
-	caCertPath := fmt.Sprintf("%s/traefik/etc/certs.d/ca.pem", s.libDir())
-	out, err := s.target.Run(fmt.Sprintf("rm -f %s", caCertPath))
-	if err != nil {
-		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
-	}
-
-	caCertPath = fmt.Sprintf("%s/traefik/etc/certs.d/%s.pem", s.libDir(), version.ResourceId())
+	caCertPath := fmt.Sprintf("%s/traefik/etc/certs.d/%s.pem", s.libDir(), version.ResourceID())
 	f, err := os.CreateTemp("", "ca.pem")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
@@ -169,6 +159,10 @@ func (s *Service) __deployGenerateMTLSCertificates() error {
 	}
 	if err := s.target.Copy(f.Name(), caCertPath, "400", "0:0"); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
+
+	if s.dryRun {
+		return nil
 	}
 
 	if err := config.UpdateStack(s.config.Hostname, clientCertPEM, clientKeyPEM); err != nil {

@@ -19,4 +19,6 @@ func init() {
 	Cmd.AddCommand(dashboardCmd)
 	Cmd.AddCommand(rotateSecretCmd)
 	Cmd.AddCommand(rotateCertificateCmd)
+	Cmd.AddCommand(registerCmd)
+	Cmd.AddCommand(deregisterCmd)
 }

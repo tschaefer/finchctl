@@ -27,13 +27,18 @@ func Commit() string {
 	return GitCommit
 }
 
-func ResourceId() string {
+func ResourceID() string {
 	id, err := machineid.ProtectedID("finchctl")
 	if err != nil {
 		panic(fmt.Errorf("failed to read machine ID: %w", err))
 	}
 
-	return fmt.Sprintf("rid:finchctl:%s", id[0:16])
+	prefix := id
+	if len(id) > 16 {
+		prefix = id[:16]
+	}
+
+	return fmt.Sprintf("rid:finchctl:%s", prefix)
 }
 
 func Banner() string {
@@ -55,5 +60,5 @@ func Print() {
 	}
 	fmt.Printf("Release:    %s\n", Release())
 	fmt.Printf("Commit:     %s\n", Commit())
-	fmt.Printf("ResourceID: %s\n", ResourceId())
+	fmt.Printf("ResourceID: %s\n", ResourceID())
 }
