@@ -7,6 +7,8 @@ package version
 import (
 	"fmt"
 	"os"
+
+	"github.com/denisbrodbeck/machineid"
 )
 
 var (
@@ -23,6 +25,15 @@ func Release() string {
 
 func Commit() string {
 	return GitCommit
+}
+
+func ResourceId() string {
+	id, err := machineid.ProtectedID("finchctl")
+	if err != nil {
+		panic(fmt.Errorf("failed to read machine ID: %w", err))
+	}
+
+	return fmt.Sprintf("rid:finchctl:%s", id[0:16])
 }
 
 func Banner() string {
@@ -42,6 +53,7 @@ func Print() {
 	} else {
 		fmt.Printf("\033[34m%s\033[0m\n", Banner())
 	}
-	fmt.Printf("Release: %s\n", Release())
-	fmt.Printf("Commit:  %s\n", Commit())
+	fmt.Printf("Release:    %s\n", Release())
+	fmt.Printf("Commit:     %s\n", Commit())
+	fmt.Printf("ResourceID: %s\n", ResourceId())
 }

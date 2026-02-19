@@ -18,6 +18,8 @@ import (
 	"time"
 
 	"github.com/tschaefer/finchctl/internal/config"
+	"github.com/tschaefer/finchctl/internal/mtls"
+	"github.com/tschaefer/finchctl/internal/version"
 )
 
 func (s *Service) __deployMakeDirHierarchy() error {
@@ -138,17 +140,23 @@ func (s *Service) __deployGenerateMTLSCertificates() error {
 		return nil
 	}
 
-	caCertPEM, caKeyPEM, err := __mtlsGenerateCA(s.config.Hostname)
+	caCertPEM, caKeyPEM, err := mtls.GenerateCA(s.config.Hostname)
 	if err != nil {
 		return &DeployServiceError{Message: "failed to generate CA certificate", Reason: err.Error()}
 	}
 
-	clientCertPEM, clientKeyPEM, err := __mtlsGenerateClientCert(s.config.Hostname, caCertPEM, caKeyPEM)
+	clientCertPEM, clientKeyPEM, err := mtls.GenerateClient(s.config.Hostname, caCertPEM, caKeyPEM)
 	if err != nil {
 		return &DeployServiceError{Message: "failed to generate client certificate", Reason: err.Error()}
 	}
 
 	caCertPath := fmt.Sprintf("%s/traefik/etc/certs.d/ca.pem", s.libDir())
+	out, err := s.target.Run(fmt.Sprintf("rm -f %s", caCertPath))
+	if err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
+	}
+
+	caCertPath = fmt.Sprintf("%s/traefik/etc/certs.d/%s.pem", s.libDir(), version.ResourceId())
 	f, err := os.CreateTemp("", "ca.pem")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}

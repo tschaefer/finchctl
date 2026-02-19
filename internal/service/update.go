@@ -18,7 +18,12 @@ func (s *Service) __updateSetTargetConfiguration() error {
 	}
 
 	if s.dryRun {
+		s.config.Hostname = ""
 		return nil
+	}
+
+	if _, err := config.LookupStack(s.config.Hostname); err != nil {
+		return &UpdateServiceError{Message: err.Error(), Reason: ""}
 	}
 
 	var config FinchConfig
@@ -33,28 +38,6 @@ func (s *Service) __updateSetTargetConfiguration() error {
 	_, err = s.target.Run(fmt.Sprintf("test -e %s", yaml))
 	if err == nil {
 		s.config.LetsEncrypt.Enabled = true
-	}
-
-	return nil
-}
-
-func (s *Service) __updateRegenerateMTLSCertificatesIfNeeded() error {
-	certPEM, _, err := config.LookupStack(s.config.Hostname)
-
-	needsRegeneration := false
-	if err != nil {
-		needsRegeneration = true
-	} else {
-		expired, err := __mtlsIsCertificateExpired(certPEM)
-		if err != nil || expired {
-			needsRegeneration = true
-		}
-	}
-
-	if needsRegeneration {
-		if err := s.__deployGenerateMTLSCertificates(); err != nil {
-			return convertError(err, &UpdateServiceError{})
-		}
 	}
 
 	return nil
@@ -90,10 +73,6 @@ func (s *Service) __updateRecomposeDockerServices() error {
 
 func (s *Service) updateService() error {
 	if err := s.__updateSetTargetConfiguration(); err != nil {
-		return err
-	}
-
-	if err := s.__updateRegenerateMTLSCertificatesIfNeeded(); err != nil {
 		return err
 	}
 

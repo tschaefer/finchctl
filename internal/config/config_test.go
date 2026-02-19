@@ -70,7 +70,7 @@ func Test_LookupStackReturnErrorIfStackNotExist(t *testing.T) {
 	assert.NoError(t, err, "update stack")
 
 	hostname := gofakeit.DomainName()
-	_, _, err = LookupStack(hostname)
+	_, err = LookupStack(hostname)
 	wanted := "Config error: stack not found"
 	assert.EqualError(t, err, wanted, "lookup stack")
 }
@@ -83,11 +83,11 @@ func Test_LookupStackReturnPathsIfStackExist(t *testing.T) {
 	err := UpdateStack(stack.Hostname, stack.Cert, stack.Key)
 	assert.NoError(t, err, "update stack")
 
-	cert, key, err := LookupStack(stack.Hostname)
+	lstack, err := LookupStack(stack.Hostname)
 	assert.NoError(t, err, "lookup stack")
 
-	assert.Equal(t, stack.Cert, cert, "cert PEM")
-	assert.Equal(t, stack.Key, key, "key PEM")
+	assert.Equal(t, stack.Cert, []byte(lstack.Cert), "cert PEM")
+	assert.Equal(t, stack.Key, []byte(lstack.Key), "key PEM")
 }
 
 func Test_RemoveStackReturnNoErrorIfStackNotExist(t *testing.T) {
@@ -115,7 +115,7 @@ func Test_RemoveStackSucceedIfStackExist(t *testing.T) {
 	err = RemoveStack(stack.Hostname)
 	assert.NoError(t, err, "remove stack")
 
-	_, _, err = LookupStack(stack.Hostname)
+	_, err = LookupStack(stack.Hostname)
 	assert.Error(t, err, "lookup stack")
 
 	wanted := "Config error: stack not found"
@@ -135,7 +135,7 @@ func Test_LookupStackReturnErrorIfStackNotExist2(t *testing.T) {
 	assert.NoError(t, err, "update stack")
 
 	hostname := gofakeit.DomainName()
-	_, _, err = LookupStack(hostname)
+	_, err = LookupStack(hostname)
 	wanted := "Config error: stack not found"
 	assert.EqualError(t, err, wanted, "lookup stack certs")
 }

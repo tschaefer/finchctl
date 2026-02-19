@@ -73,31 +73,35 @@ func UpdateStack(name string, certPEM, keyPEM []byte) error {
 	return write(&stacks)
 }
 
-func LookupStack(name string) ([]byte, []byte, error) {
+func LookupStack(name string) (*Stack, error) {
 	if !exist() {
-		return nil, nil, &ConfigError{Message: "config file does not exist", Reason: ""}
+		return nil, &ConfigError{Message: "config file does not exist", Reason: ""}
 	}
 
 	stacks, err := read()
 	if err != nil {
-		return nil, nil, &ConfigError{Message: "failed to read config", Reason: err.Error()}
+		return nil, &ConfigError{Message: "failed to read config", Reason: err.Error()}
 	}
 
 	for _, stack := range stacks.List {
 		if stack.Name == name {
 			certPEM, err := base64.StdEncoding.DecodeString(stack.Cert)
 			if err != nil {
-				return nil, nil, &ConfigError{Message: "failed to decode certificate", Reason: err.Error()}
+				return nil, &ConfigError{Message: "failed to decode certificate", Reason: err.Error()}
 			}
 			keyPEM, err := base64.StdEncoding.DecodeString(stack.Key)
 			if err != nil {
-				return nil, nil, &ConfigError{Message: "failed to decode key", Reason: err.Error()}
+				return nil, &ConfigError{Message: "failed to decode key", Reason: err.Error()}
 			}
-			return certPEM, keyPEM, nil
+			return &Stack{
+				Name: stack.Name,
+				Cert: string(certPEM),
+				Key:  string(keyPEM),
+			}, nil
 		}
 	}
 
-	return nil, nil, &ConfigError{Message: "stack not found", Reason: ""}
+	return nil, &ConfigError{Message: "stack not found", Reason: ""}
 }
 
 func RemoveStack(name string) error {

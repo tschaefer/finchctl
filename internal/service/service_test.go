@@ -65,7 +65,7 @@ func Test_Teardown(t *testing.T) {
 	assert.NoError(t, err, "teardown service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 6, "number of log lines mismatch")
+	assert.Len(t, tracks, 7, "number of log lines mismatch")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
@@ -137,7 +137,7 @@ func Test_RotateSecret(t *testing.T) {
 	assert.NoError(t, err, "rotate secret")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 7, "number of log lines mismatch")
+	assert.Len(t, tracks, 8, "number of log lines mismatch")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
@@ -160,6 +160,42 @@ func Test_RotateSecret(t *testing.T) {
 
 	wanted = "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
+}
+
+func Test_RotateCertificate(t *testing.T) {
+	s, err := New(nil, "localhost", target.FormatDocumentation, true)
+	assert.NoError(t, err, "create service")
+
+	record := capture(func() {
+		err = s.RotateCertificate()
+	})
+	assert.NoError(t, err, "rotate certificate")
+
+	tracks := strings.Split(record, "\n")
+	assert.Len(t, tracks, 7, "number of log lines mismatch")
+
+	wanted := "Running 'command -v sudo' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[0], "first log line")
+
+	wanted = "Running 'rm -f .+/traefik/etc/certs.d/ca.pem' as .+@localhost"
+	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
+
+	s, err = New(nil, "localhost", target.FormatJSON, true)
+	assert.NoError(t, err, "create service")
+
+	record = capture(func() {
+		err = s.RotateCertificate()
+	})
+	assert.NoError(t, err, "rotate certificate")
+
+	tracks = strings.Split(record, "\n")
+	var track track
+	err = json.Unmarshal([]byte(tracks[0]), &track)
+	assert.NoError(t, err, "unmarshal json output")
+
+	wanted = "Running 'command -v sudo' as .+@localhost"
+	assert.Regexp(t, wanted, track.Message, "first log line")
+	assert.NotEmpty(t, track.Timestamp, "first log line timestamp")
 }
 
 func capture(f func()) string {

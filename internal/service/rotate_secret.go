@@ -12,6 +12,10 @@ import (
 )
 
 func (s *Service) rotateServiceSecret() error {
+	if err := s.__updateSetTargetConfiguration(); err != nil {
+		return convertError(err, &RotateCertificateError{})
+	}
+
 	cfgPath := fmt.Sprintf("%s/finch.json", s.libDir())
 	out, err := s.target.Run(fmt.Sprintf("sudo cat %s", cfgPath))
 	if err != nil {
