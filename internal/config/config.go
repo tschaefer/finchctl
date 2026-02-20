@@ -159,7 +159,7 @@ func backup() error {
 		return err
 	}
 
-	err = os.WriteFile(fmt.Sprintf("%s~", path()), data, 0400)
+	err = os.WriteFile(fmt.Sprintf("%s~", path()), data, 0600)
 	if err != nil {
 		return err
 	}
