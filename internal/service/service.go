@@ -7,7 +7,6 @@ package service
 import (
 	"os"
 
-	"github.com/tschaefer/finchctl/internal/config"
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
@@ -78,11 +77,7 @@ func (s *Service) Teardown() error {
 		return err
 	}
 
-	if s.dryRun {
-		return nil
-	}
-
-	return config.RemoveStack(s.config.Hostname)
+	return nil
 }
 
 func (s *Service) Deploy() error {
@@ -148,6 +143,60 @@ func (s *Service) libDir() string {
 	}
 
 	return dir
+}
+
+func (s *Service) Register() error {
+	defer func() {
+		if s.format == target.FormatProgress {
+			println()
+		}
+	}()
+
+	if err := s.requirementsService(); err != nil {
+		return convertError(err, &RegisterServiceError{})
+	}
+
+	if err := s.registerService(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) Deregister() error {
+	defer func() {
+		if s.format == target.FormatProgress {
+			println()
+		}
+	}()
+
+	if err := s.requirementsService(); err != nil {
+		return convertError(err, &DeregisterServiceError{})
+	}
+
+	if err := s.deregisterService(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) RotateCertificate() error {
+	defer func() {
+		if s.format == target.FormatProgress {
+			println()
+		}
+	}()
+
+	if err := s.requirementsService(); err != nil {
+		return convertError(err, &RotateServiceCertificateError{})
+	}
+
+	if err := s.rotateCertificate(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Service) RotateSecret() error {

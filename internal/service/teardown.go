@@ -4,9 +4,23 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 */
 package service
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/tschaefer/finchctl/internal/config"
+)
 
 func (s *Service) teardownService() error {
+	if err := s.__updateSetTargetConfiguration(); err != nil {
+		return convertError(err, &TeardownServiceError{})
+	}
+
+	if !s.dryRun {
+		if _, err := config.LookupStack(s.config.Hostname); err != nil {
+			return &TeardownServiceError{Message: err.Error(), Reason: ""}
+		}
+	}
+
 	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml down --volumes", s.libDir()))
 	if err != nil {
 		return &TeardownServiceError{Message: err.Error(), Reason: string(out)}
@@ -17,5 +31,9 @@ func (s *Service) teardownService() error {
 		return &TeardownServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
-	return nil
+	if s.dryRun {
+		return nil
+	}
+
+	return config.RemoveStack(s.config.Hostname)
 }

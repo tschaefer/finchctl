@@ -2,7 +2,7 @@
 Copyright (c) Tobias Schäfer. All rights reserved.
 Licensed under the MIT license, see LICENSE in the project root for details.
 */
-package service
+package mtls
 
 import (
 	"crypto/ecdsa"
@@ -17,11 +17,11 @@ import (
 )
 
 const (
-	certValidityDays        = 90
-	certExpirationThreshold = 3 * 24 * time.Hour
+	CertValidityDays        = 90 * 24 * time.Hour
+	CertExpirationThreshold = 3 * 24 * time.Hour
 )
 
-func __mtlsGenerateCA(hostname string) ([]byte, []byte, error) {
+func GenerateCA(hostname string) ([]byte, []byte, error) {
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate CA private key: %w", err)
@@ -39,7 +39,7 @@ func __mtlsGenerateCA(hostname string) ([]byte, []byte, error) {
 			CommonName:   fmt.Sprintf("Finch CA - %s", hostname),
 		},
 		NotBefore:             time.Now(),
-		NotAfter:              time.Now().Add(certValidityDays * 24 * time.Hour),
+		NotAfter:              time.Now().Add(CertValidityDays),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageDigitalSignature,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
@@ -67,7 +67,7 @@ func __mtlsGenerateCA(hostname string) ([]byte, []byte, error) {
 	return certPEM, keyPEM, nil
 }
 
-func __mtlsGenerateClientCert(hostname string, caCertPEM, caKeyPEM []byte) ([]byte, []byte, error) {
+func GenerateClient(hostname string, caCertPEM, caKeyPEM []byte) ([]byte, []byte, error) {
 	caCertBlock, _ := pem.Decode(caCertPEM)
 	if caCertBlock == nil {
 		return nil, nil, fmt.Errorf("failed to decode CA certificate PEM")
@@ -103,7 +103,7 @@ func __mtlsGenerateClientCert(hostname string, caCertPEM, caKeyPEM []byte) ([]by
 			CommonName:   fmt.Sprintf("Finch Client - %s", hostname),
 		},
 		NotBefore:   time.Now(),
-		NotAfter:    time.Now().Add(certValidityDays * 24 * time.Hour),
+		NotAfter:    time.Now().Add(CertValidityDays),
 		KeyUsage:    x509.KeyUsageDigitalSignature,
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 	}
@@ -128,19 +128,4 @@ func __mtlsGenerateClientCert(hostname string, caCertPEM, caKeyPEM []byte) ([]by
 	})
 
 	return clientCertPEM, clientKeyPEM, nil
-}
-
-func __mtlsIsCertificateExpired(certPEM []byte) (bool, error) {
-	certBlock, _ := pem.Decode(certPEM)
-	if certBlock == nil {
-		return true, fmt.Errorf("failed to decode certificate PEM")
-	}
-
-	cert, err := x509.ParseCertificate(certBlock.Bytes)
-	if err != nil {
-		return true, fmt.Errorf("failed to parse certificate: %w", err)
-	}
-
-	expirationThreshold := time.Now().Add(certExpirationThreshold)
-	return cert.NotAfter.Before(expirationThreshold), nil
 }

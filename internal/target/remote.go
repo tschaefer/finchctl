@@ -73,7 +73,7 @@ func (s *remote) Copy(src, dest, mode, owner string) error {
 		return fmt.Errorf("upload timed out after 300s")
 	}
 
-	_, err = s.Run(fmt.Sprintf("sudo mv %s %s", tmpdest+"/file", dest))
+	_, err = s.Run(fmt.Sprintf("sudo mv -f %s %s", tmpdest+"/file", dest))
 	if err != nil {
 		return err
 	}

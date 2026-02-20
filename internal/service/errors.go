@@ -46,6 +46,33 @@ func (e *InfoServiceError) Error() string {
 	return strings.TrimSpace(fmt.Sprintf("Failed to get service info: %s %s", e.Message, e.Reason))
 }
 
+type RotateServiceCertificateError struct {
+	Message string
+	Reason  string
+}
+
+func (e *RotateServiceCertificateError) Error() string {
+	return strings.TrimSpace(fmt.Sprintf("Failed to rotate service certificates: %s %s", e.Message, e.Reason))
+}
+
+type RegisterServiceError struct {
+	Message string
+	Reason  string
+}
+
+func (e *RegisterServiceError) Error() string {
+	return strings.TrimSpace(fmt.Sprintf("Failed to register service: %s %s", e.Message, e.Reason))
+}
+
+type DeregisterServiceError struct {
+	Message string
+	Reason  string
+}
+
+func (e *DeregisterServiceError) Error() string {
+	return strings.TrimSpace(fmt.Sprintf("Failed to deregister service: %s %s", e.Message, e.Reason))
+}
+
 type RotateServiceSecretError struct {
 	Message string
 	Reason  string

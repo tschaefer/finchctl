@@ -17,45 +17,24 @@ func (s *Service) __updateSetTargetConfiguration() error {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
+	letsencrypt := false
+	yaml := fmt.Sprintf("%s/traefik/etc/conf.d/letsencrypt.yaml", s.libDir())
+	if _, err = s.target.Run(fmt.Sprintf("test -e %s", yaml)); err == nil {
+		letsencrypt = true
+	}
+
 	if s.dryRun {
+		s.config.Hostname = ""
 		return nil
 	}
 
-	var config FinchConfig
-	err = json.Unmarshal([]byte(out), &config)
-	if err != nil {
+	var cfg FinchConfig
+	if err = json.Unmarshal([]byte(out), &cfg); err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	s.config.Hostname = config.Hostname
-
-	yaml := fmt.Sprintf("%s/traefik/etc/conf.d/letsencrypt.yaml", s.libDir())
-	_, err = s.target.Run(fmt.Sprintf("test -e %s", yaml))
-	if err == nil {
-		s.config.LetsEncrypt.Enabled = true
-	}
-
-	return nil
-}
-
-func (s *Service) __updateRegenerateMTLSCertificatesIfNeeded() error {
-	certPEM, _, err := config.LookupStack(s.config.Hostname)
-
-	needsRegeneration := false
-	if err != nil {
-		needsRegeneration = true
-	} else {
-		expired, err := __mtlsIsCertificateExpired(certPEM)
-		if err != nil || expired {
-			needsRegeneration = true
-		}
-	}
-
-	if needsRegeneration {
-		if err := s.__deployGenerateMTLSCertificates(); err != nil {
-			return convertError(err, &UpdateServiceError{})
-		}
-	}
+	s.config.Hostname = cfg.Hostname
+	s.config.LetsEncrypt.Enabled = letsencrypt
 
 	return nil
 }
@@ -93,8 +72,10 @@ func (s *Service) updateService() error {
 		return err
 	}
 
-	if err := s.__updateRegenerateMTLSCertificatesIfNeeded(); err != nil {
-		return err
+	if !s.dryRun {
+		if _, err := config.LookupStack(s.config.Hostname); err != nil {
+			return &UpdateServiceError{Message: err.Error(), Reason: ""}
+		}
 	}
 
 	if err := s.__deployMakeDirHierarchy(); err != nil {

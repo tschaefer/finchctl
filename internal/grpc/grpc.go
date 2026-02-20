@@ -28,12 +28,12 @@ type Client[T any] struct {
 }
 
 func NewClient[T any](ctx context.Context, service string, newHandler func(grpc.ClientConnInterface) T) (context.Context, *Client[T], error) {
-	certPEM, keyPEM, err := config.LookupStack(service)
+	stack, err := config.LookupStack(service)
 	if err != nil {
 		return ctx, nil, err
 	}
 
-	cert, err := tls.X509KeyPair(certPEM, keyPEM)
+	cert, err := tls.X509KeyPair([]byte(stack.Cert), []byte(stack.Key))
 	if err != nil {
 		return ctx, nil, fmt.Errorf("failed to parse client certificate: %w", err)
 	}
@@ -47,7 +47,7 @@ func NewClient[T any](ctx context.Context, service string, newHandler func(grpc.
 	}
 	creds := credentials.NewTLS(tlsCfg)
 
-	userAgent := fmt.Sprintf("finchctl/%s", version.Release())
+	userAgent := fmt.Sprintf("%s/%s", version.ResourceID(), version.Release())
 
 	ip := net.ParseIP(service)
 	if ip != nil && ip.To4() == nil {

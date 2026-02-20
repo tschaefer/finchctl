@@ -12,21 +12,21 @@ import (
 	"github.com/tschaefer/finchctl/internal/service"
 )
 
-var rotateSecretCmd = &cobra.Command{
-	Use:   "rotate-secret [user@]host[:port]",
-	Short: "Rotate secret of a service on a remote host",
+var registerCmd = &cobra.Command{
+	Use:   "register [user@]host[:port]",
+	Short: "Register the client with a service on a remote host",
 	Args:  cobra.ExactArgs(1),
-	Run:   runRotateSecretCmd,
+	Run:   runRegisterCmd,
 }
 
 func init() {
-	rotateSecretCmd.Flags().String("run.format", "progress", "output format")
-	rotateSecretCmd.Flags().Bool("run.dry-run", false, "do not rotate secret, just print the commands that would be run")
+	registerCmd.Flags().String("run.format", "progress", "output format")
+	registerCmd.Flags().Bool("run.dry-run", false, "do not register, just print the commands that would be run")
 
-	_ = rotateSecretCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
+	_ = registerCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
 
-func runRotateSecretCmd(cmd *cobra.Command, args []string) {
+func runRegisterCmd(cmd *cobra.Command, args []string) {
 	targetUrl := args[0]
 
 	formatName, _ := cmd.Flags().GetString("run.format")
@@ -37,6 +37,6 @@ func runRotateSecretCmd(cmd *cobra.Command, args []string) {
 	s, err := service.New(nil, targetUrl, formatType, dryRun)
 	errors.CheckErr(err, formatType)
 
-	err = s.RotateSecret()
+	err = s.Register()
 	errors.CheckErr(err, formatType)
 }

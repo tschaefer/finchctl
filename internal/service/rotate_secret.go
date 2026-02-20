@@ -9,9 +9,21 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+
+	"github.com/tschaefer/finchctl/internal/config"
 )
 
 func (s *Service) rotateServiceSecret() error {
+	if err := s.__updateSetTargetConfiguration(); err != nil {
+		return convertError(err, &RotateServiceSecretError{})
+	}
+
+	if !s.dryRun {
+		if _, err := config.LookupStack(s.config.Hostname); err != nil {
+			return &RotateServiceSecretError{Message: err.Error(), Reason: ""}
+		}
+	}
+
 	cfgPath := fmt.Sprintf("%s/finch.json", s.libDir())
 	out, err := s.target.Run(fmt.Sprintf("sudo cat %s", cfgPath))
 	if err != nil {
