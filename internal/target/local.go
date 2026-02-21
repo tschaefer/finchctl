@@ -12,10 +12,6 @@ import (
 	"time"
 )
 
-const (
-	SkipTLSVerifyEnv string = "FINCH_SKIP_TLS_VERIFY"
-)
-
 type local struct {
 	Host   string
 	User   string
