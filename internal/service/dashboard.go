@@ -1,5 +1,5 @@
 /*
-Copyright (c) Tobias Schäfer. All rights reservem.
+Copyright (c) Tobias Schäfer. All rights reserved.
 Licensed under the MIT license, see LICENSE in the project root for details.
 */
 package service
@@ -24,7 +24,7 @@ func (s *Service) dashboardService(sessionTimeout int32, role string, scope []st
 
 	ctx, client, err := grpc.NewClient(ctx, s.config.Hostname, api.NewDashboardServiceClient)
 	if err != nil {
-		return nil, &InfoServiceError{Message: err.Error(), Reason: ""}
+		return nil, &DashboardServiceError{Message: err.Error(), Reason: ""}
 	}
 	defer func() {
 		_ = client.Close()
@@ -36,7 +36,7 @@ func (s *Service) dashboardService(sessionTimeout int32, role string, scope []st
 		Scope:          scope,
 	})
 	if err != nil {
-		return nil, &InfoServiceError{Message: err.Error(), Reason: ""}
+		return nil, &DashboardServiceError{Message: err.Error(), Reason: ""}
 	}
 
 	return &DashboardData{

@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 )
@@ -50,19 +51,9 @@ func UpdateStack(name string, certPEM, keyPEM []byte) error {
 		stacks = *cfg
 	}
 
-	exists := false
-	for _, stack := range stacks.List {
-		if stack.Name == name {
-			exists = true
-			break
-		}
-	}
-
-	if exists {
-		stacks.List = slices.DeleteFunc(stacks.List, func(s Stack) bool {
-			return s.Name == name
-		})
-	}
+	stacks.List = slices.DeleteFunc(stacks.List, func(s Stack) bool {
+		return s.Name == name
+	})
 
 	stacks.List = append(stacks.List, Stack{
 		Name: name,
@@ -114,13 +105,9 @@ func RemoveStack(name string) error {
 		return &ConfigError{Message: "failed to read config", Reason: err.Error()}
 	}
 
-	index := -1
-	for i, stack := range stacks.List {
-		if stack.Name == name {
-			index = i
-			break
-		}
-	}
+	index := slices.IndexFunc(stacks.List, func(s Stack) bool {
+		return s.Name == name
+	})
 
 	if index == -1 {
 		return nil
@@ -154,17 +141,13 @@ func ListStacks() ([]string, error) {
 }
 
 func backup() error {
-	data, err := os.ReadFile(path())
+	p := path()
+	data, err := os.ReadFile(p)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(fmt.Sprintf("%s~", path()), data, 0600)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return os.WriteFile(p+"~", data, 0600)
 }
 
 func write(stacks *Stacks) error {
@@ -191,8 +174,7 @@ func read() (*Stacks, error) {
 }
 
 func path() string {
-	var dir string
-	dir = os.Getenv(ConfigLocationEnv)
+	dir := os.Getenv(ConfigLocationEnv)
 
 	if dir == "" {
 		var err error
@@ -200,10 +182,10 @@ func path() string {
 		if err != nil {
 			panic(&ConfigError{Message: err.Error(), Reason: ""})
 		}
-		dir = fmt.Sprintf("%s/.config", dir)
+		dir = filepath.Join(dir, ".config")
 	}
 
-	return fmt.Sprintf("%s/finch.json", dir)
+	return filepath.Join(dir, "finch.json")
 }
 
 func exist() bool {

@@ -15,8 +15,10 @@ import (
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
+const alloyReleasesLatestAPIURL = "https://api.github.com/repos/grafana/alloy/releases/latest"
+
 func (a *Agent) __updateServiceBinaryGetLatestTag() (string, error) {
-	url := "https://api.github.com/repos/grafana/alloy/releases/latest"
+	url := alloyReleasesLatestAPIURL
 	a.__helperPrintProgress(fmt.Sprintf("Running 'GET %s'", url))
 	resp, err := http.Get(url)
 	if err != nil {

@@ -5,7 +5,7 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package service
 
 import (
-	"fmt"
+	"path"
 
 	"github.com/tschaefer/finchctl/internal/config"
 	"github.com/tschaefer/finchctl/internal/version"
@@ -22,8 +22,8 @@ func (s *Service) deregisterService() error {
 		}
 	}
 
-	caCertPath := fmt.Sprintf("%s/traefik/etc/certs.d/%s.pem", s.libDir(), version.ResourceID())
-	out, err := s.target.Run(fmt.Sprintf("rm -f %s", caCertPath))
+	caCertPath := path.Join(s.libDir(), "traefik/etc/certs.d", version.ResourceID()+".pem")
+	out, err := s.target.Run("rm -f " + caCertPath)
 	if err != nil {
 		return &DeregisterServiceError{Message: err.Error(), Reason: string(out)}
 	}

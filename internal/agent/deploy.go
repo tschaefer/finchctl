@@ -13,10 +13,16 @@ import (
 	"net/http"
 	"os"
 	"os/user"
+	"path"
 	"path/filepath"
 	"time"
 
 	"github.com/tschaefer/finchctl/internal/target"
+)
+
+const (
+	alloyReleaseDownloadURL       = "https://github.com/grafana/alloy/releases/download/%s/%s.zip"
+	alloyReleaseLatestDownloadURL = "https://github.com/grafana/alloy/releases/latest/download/%s.zip"
 )
 
 func (a *Agent) __deployMakeDirHierarchy() error {
@@ -128,11 +134,11 @@ func (a *Agent) __deployCopyLaunchdServiceFile() error {
 func (a *Agent) __deployDownloadRelease(release string, version string, tmpdir string) (string, error) {
 	var url string
 	if version != "latest" {
-		url = fmt.Sprintf("https://github.com/grafana/alloy/releases/download/%s/%s.zip", version, release)
+		url = fmt.Sprintf(alloyReleaseDownloadURL, version, release)
 	} else {
-		url = fmt.Sprintf("https://github.com/grafana/alloy/releases/latest/download/%s.zip", release)
+		url = fmt.Sprintf(alloyReleaseLatestDownloadURL, release)
 	}
-	tmpfile := fmt.Sprintf("%s/%s-%s.zip", tmpdir, release, time.Now().Format("19800212015200"))
+	tmpfile := filepath.Join(tmpdir, release+"-"+time.Now().Format("19800212015200")+".zip")
 
 	a.__helperPrintProgress(fmt.Sprintf("Running 'GET %s'", url))
 	if a.dryRun {
@@ -178,7 +184,7 @@ func (a *Agent) __deployDownloadRelease(release string, version string, tmpdir s
 
 func (a *Agent) __deployUnzipRelease(release string, file string) (string, error) {
 	tmpdir := filepath.Dir(file)
-	tmpfile := fmt.Sprintf("%s/%s", tmpdir, release)
+	tmpfile := filepath.Join(tmpdir, release)
 
 	a.__helperPrintProgress(fmt.Sprintf("Running 'unzip %s'", file))
 
@@ -237,16 +243,16 @@ func (a *Agent) __deployUnzipRelease(release string, file string) (string, error
 }
 
 func (a *Agent) __deployInstallBinary(binary string, machine *MachineInfo) error {
-	path := "/usr/bin/alloy"
+	binPath := "/usr/bin/alloy"
 	if machine.Kernel == "darwin" {
-		path = "/usr/local/bin/alloy"
-		out, err := a.target.Run("sudo mkdir -p " + filepath.Dir(path))
+		binPath = "/usr/local/bin/alloy"
+		out, err := a.target.Run("sudo mkdir -p " + path.Dir(binPath))
 		if err != nil {
 			return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 		}
 	}
 
-	err := a.target.Copy(binary, path, "755", "0:0")
+	err := a.target.Copy(binary, binPath, "755", "0:0")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}

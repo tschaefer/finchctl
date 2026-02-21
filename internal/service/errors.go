@@ -1,5 +1,5 @@
 /*
-Copyright (c) Tobias Schäfer. All rights reservem.
+Copyright (c) Tobias Schäfer. All rights reserved.
 Licensed under the MIT license, see LICENSE in the project root for details.
 */
 package service
@@ -44,6 +44,15 @@ type InfoServiceError struct {
 
 func (e *InfoServiceError) Error() string {
 	return strings.TrimSpace(fmt.Sprintf("Failed to get service info: %s %s", e.Message, e.Reason))
+}
+
+type DashboardServiceError struct {
+	Message string
+	Reason  string
+}
+
+func (e *DashboardServiceError) Error() string {
+	return strings.TrimSpace(fmt.Sprintf("Failed to get dashboard token: %s %s", e.Message, e.Reason))
 }
 
 type RotateServiceCertificateError struct {

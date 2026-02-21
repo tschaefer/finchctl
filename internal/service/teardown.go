@@ -5,7 +5,7 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package service
 
 import (
-	"fmt"
+	"path"
 
 	"github.com/tschaefer/finchctl/internal/config"
 )
@@ -21,7 +21,7 @@ func (s *Service) teardownService() error {
 		}
 	}
 
-	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml down --volumes", s.libDir()))
+	out, err := s.target.Run("sudo docker compose --file " + path.Join(s.libDir(), "docker-compose.yaml") + " down --volumes")
 	if err != nil {
 		return &TeardownServiceError{Message: err.Error(), Reason: string(out)}
 	}
