@@ -1,6 +1,6 @@
 module github.com/tschaefer/finchctl
 
-go 1.24.5
+go 1.26.0
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.5.1
