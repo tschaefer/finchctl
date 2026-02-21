@@ -19,6 +19,11 @@ import (
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
+const (
+	alloyReleaseDownloadURL       = "https://github.com/grafana/alloy/releases/download/%s/%s.zip"
+	alloyReleaseLatestDownloadURL = "https://github.com/grafana/alloy/releases/latest/download/%s.zip"
+)
+
 func (a *Agent) __deployMakeDirHierarchy() error {
 	directories := []string{
 		"/var/lib/alloy/data",
@@ -128,9 +133,9 @@ func (a *Agent) __deployCopyLaunchdServiceFile() error {
 func (a *Agent) __deployDownloadRelease(release string, version string, tmpdir string) (string, error) {
 	var url string
 	if version != "latest" {
-		url = fmt.Sprintf("https://github.com/grafana/alloy/releases/download/%s/%s.zip", version, release)
+		url = fmt.Sprintf(alloyReleaseDownloadURL, version, release)
 	} else {
-		url = fmt.Sprintf("https://github.com/grafana/alloy/releases/latest/download/%s.zip", release)
+		url = fmt.Sprintf(alloyReleaseLatestDownloadURL, release)
 	}
 	tmpfile := filepath.Join(tmpdir, release+"-"+time.Now().Format("19800212015200")+".zip")
 

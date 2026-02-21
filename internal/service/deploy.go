@@ -22,6 +22,13 @@ import (
 	"github.com/tschaefer/finchctl/internal/version"
 )
 
+const (
+	defaultLetsEncryptEmail = "acme@example.com"
+	finchDatabase           = "sqlite://finch.db"
+	finchProfiler           = "http://pyroscope:4040"
+	finchVersion            = "1.10.0"
+)
+
 func (s *Service) __deployMakeDirHierarchy() error {
 	directories := []string{
 		"grafana/dashboards",
@@ -79,7 +86,7 @@ func (s *Service) __deployCopyTraefikConfig() error {
 
 	letsencrypt := s.config.LetsEncrypt.Email
 	if letsencrypt == "" {
-		letsencrypt = "acme@example.com"
+		letsencrypt = defaultLetsEncryptEmail
 	}
 	data := struct {
 		Email string
@@ -199,10 +206,10 @@ func (s *Service) __deployCopyFinchConfig() error {
 		Id:        hex.EncodeToString(hash[:])[0:16],
 		CreatedAt: time.Now().Format(time.RFC3339),
 		Hostname:  s.config.Hostname,
-		Database:  "sqlite://finch.db",
-		Profiler:  "http://pyroscope:4040",
+		Database:  finchDatabase,
+		Profiler:  finchProfiler,
 		Secret:    secret,
-		Version:   "1.7.0",
+		Version:   finchVersion,
 	}
 
 	return s.__helperCopyTemplate(path, "400", "0:0", data)
