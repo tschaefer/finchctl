@@ -5,7 +5,6 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package service
 
 import (
-	"fmt"
 	"io/fs"
 	"os"
 	"strings"
@@ -33,7 +32,7 @@ func (s *Service) __dockerInstallService() error {
 	}
 	dir := strings.TrimSpace(string(raw))
 	defer func() {
-		_, _ = s.target.Run(fmt.Sprintf("rm -rf %s", dir))
+		_, _ = s.target.Run("rm -rf " + dir)
 	}()
 
 	out, err := s.target.Run("curl -fsSL https://get.docker.com -o " + dir + "/get-docker.sh")

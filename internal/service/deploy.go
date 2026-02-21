@@ -59,7 +59,8 @@ func (s *Service) __deploySetDirHierarchyPermission() error {
 	}
 
 	for path, owner := range ownership {
-		out, err := s.target.Run(fmt.Sprintf("sudo chown %s %s", owner, filepath.Join(s.libDir(), path)))
+		cmd := fmt.Sprintf("sudo chown %s %s", owner, filepath.Join(s.libDir(), path))
+		out, err := s.target.Run(cmd)
 		if err != nil {
 			return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 		}
