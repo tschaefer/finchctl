@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"path/filepath"
+	"path"
 	"text/template"
 	"time"
 
@@ -39,7 +39,7 @@ func (s *Service) __deployMakeDirHierarchy() error {
 		"pyroscope/data",
 	}
 	for _, dir := range directories {
-		out, err := s.target.Run("sudo mkdir -p " + filepath.Join(s.libDir(), dir))
+		out, err := s.target.Run("sudo mkdir -p " + path.Join(s.libDir(), dir))
 		if err != nil {
 			return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 		}
@@ -65,8 +65,8 @@ func (s *Service) __deploySetDirHierarchyPermission() error {
 		"pyroscope/data":               "10001:10001",
 	}
 
-	for path, owner := range ownership {
-		cmd := fmt.Sprintf("sudo chown %s %s", owner, filepath.Join(s.libDir(), path))
+	for dir, owner := range ownership {
+		cmd := fmt.Sprintf("sudo chown %s %s", owner, path.Join(s.libDir(), dir))
 		out, err := s.target.Run(cmd)
 		if err != nil {
 			return &DeployServiceError{Message: err.Error(), Reason: string(out)}
@@ -77,12 +77,12 @@ func (s *Service) __deploySetDirHierarchyPermission() error {
 }
 
 func (s *Service) __deployCopyLokiConfig() error {
-	path := filepath.Join(s.libDir(), "loki/etc/loki.yaml")
+	path := path.Join(s.libDir(), "loki/etc/loki.yaml")
 	return s.__helperCopyConfig(path, "400", "10001:10001")
 }
 
 func (s *Service) __deployCopyTraefikConfig() error {
-	path := filepath.Join(s.libDir(), "traefik/etc/traefik.yaml")
+	path := path.Join(s.libDir(), "traefik/etc/traefik.yaml")
 
 	letsencrypt := s.config.LetsEncrypt.Email
 	if letsencrypt == "" {
@@ -98,7 +98,7 @@ func (s *Service) __deployCopyTraefikConfig() error {
 }
 
 func (s *Service) __deployCopyTraefikHttpConfig() error {
-	path := filepath.Join(s.libDir(), "traefik/etc/conf.d/http.yaml")
+	path := path.Join(s.libDir(), "traefik/etc/conf.d/http.yaml")
 
 	data := struct {
 		HostRule string
@@ -114,7 +114,7 @@ func (s *Service) __deployCopyTraefikHttpConfig() error {
 
 func (s *Service) __deployCopyTraefikHttpTlsConfig() error {
 	if s.config.LetsEncrypt.Enabled {
-		path := filepath.Join(s.libDir(), "traefik/etc/conf.d/letsencrypt.yaml")
+		path := path.Join(s.libDir(), "traefik/etc/conf.d/letsencrypt.yaml")
 
 		data := struct {
 			Host string
@@ -133,7 +133,7 @@ func (s *Service) __deployCopyTraefikHttpTlsConfig() error {
 			"key":  s.config.CustomTLS.KeyFilePath,
 		}
 		for k, v := range assets {
-			pem := filepath.Join(s.libDir(), "traefik/etc/certs.d", k+".pem")
+			pem := path.Join(s.libDir(), "traefik/etc/certs.d", k+".pem")
 			if err := s.target.Copy(v, pem, "400", "0:0"); err != nil {
 				return &DeployServiceError{Message: err.Error(), Reason: ""}
 			}
@@ -154,7 +154,7 @@ func (s *Service) __deployGenerateMTLSCertificates() error {
 		return &DeployServiceError{Message: "failed to generate client certificate", Reason: err.Error()}
 	}
 
-	caCertPath := filepath.Join(s.libDir(), "traefik/etc/certs.d", version.ResourceID()+".pem")
+	caCertPath := path.Join(s.libDir(), "traefik/etc/certs.d", version.ResourceID()+".pem")
 	f, err := os.CreateTemp("", "ca.pem")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
@@ -181,7 +181,7 @@ func (s *Service) __deployGenerateMTLSCertificates() error {
 }
 
 func (s *Service) __deployCopyAlloyConfig() error {
-	path := filepath.Join(s.libDir(), "alloy/etc/alloy.config")
+	path := path.Join(s.libDir(), "alloy/etc/alloy.config")
 
 	data := struct {
 		Hostname string
@@ -193,7 +193,7 @@ func (s *Service) __deployCopyAlloyConfig() error {
 }
 
 func (s *Service) __deployCopyFinchConfig() error {
-	path := filepath.Join(s.libDir(), "finch.json")
+	path := path.Join(s.libDir(), "finch.json")
 
 	key := make([]byte, 32)
 	if _, err := rand.Read(key); err != nil {
@@ -216,7 +216,7 @@ func (s *Service) __deployCopyFinchConfig() error {
 }
 
 func (s *Service) __deployCopyGrafanaDashboards() error {
-	dest := filepath.Join(s.libDir(), "grafana/dashboards")
+	dest := path.Join(s.libDir(), "grafana/dashboards")
 
 	dashboards := []string{
 		"grafana-dashboard-logs-docker.json",
@@ -227,7 +227,7 @@ func (s *Service) __deployCopyGrafanaDashboards() error {
 	}
 
 	for _, dashboard := range dashboards {
-		path := filepath.Join(dest, dashboard)
+		path := path.Join(dest, dashboard)
 		if err := s.__helperCopyConfig(path, "400", "472:472"); err != nil {
 			return err
 		}
@@ -237,12 +237,12 @@ func (s *Service) __deployCopyGrafanaDashboards() error {
 }
 
 func (s *Service) __deployCopyMimirConfig() error {
-	path := filepath.Join(s.libDir(), "mimir/etc/mimir.yaml")
+	path := path.Join(s.libDir(), "mimir/etc/mimir.yaml")
 	return s.__helperCopyConfig(path, "400", "10001:10001")
 }
 
-func (s *Service) __helperCopyConfig(path, mode, owner string) error {
-	fileName := filepath.Base(path)
+func (s *Service) __helperCopyConfig(filePath, mode, owner string) error {
+	fileName := path.Base(filePath)
 
 	content, err := fs.ReadFile(Assets, fileName)
 	if err != nil {
@@ -260,15 +260,15 @@ func (s *Service) __helperCopyConfig(path, mode, owner string) error {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := s.target.Copy(f.Name(), path, mode, owner); err != nil {
+	if err := s.target.Copy(f.Name(), filePath, mode, owner); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
 	return nil
 }
 
-func (s *Service) __helperCopyTemplate(path, mode, owner string, data any) error {
-	fileName := filepath.Base(path)
+func (s *Service) __helperCopyTemplate(filePath, mode, owner string, data any) error {
+	fileName := path.Base(filePath)
 
 	tmpl, err := template.New(fileName+".tmpl").ParseFS(Assets, fileName+".tmpl")
 	if err != nil {
@@ -292,7 +292,7 @@ func (s *Service) __helperCopyTemplate(path, mode, owner string, data any) error
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := s.target.Copy(f.Name(), path, mode, owner); err != nil {
+	if err := s.target.Copy(f.Name(), filePath, mode, owner); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
@@ -300,7 +300,7 @@ func (s *Service) __helperCopyTemplate(path, mode, owner string, data any) error
 }
 
 func (s *Service) __deployCopyComposeFile() error {
-	path := filepath.Join(s.libDir(), "docker-compose.yaml")
+	filePath := path.Join(s.libDir(), "docker-compose.yaml")
 
 	data := struct {
 		RootUrl string
@@ -308,11 +308,11 @@ func (s *Service) __deployCopyComposeFile() error {
 		RootUrl: fmt.Sprintf("https://%s", s.config.Hostname),
 	}
 
-	return s.__helperCopyTemplate(path, "400", "0:0", data)
+	return s.__helperCopyTemplate(filePath, "400", "0:0", data)
 }
 
 func (s *Service) __deployComposeUp() error {
-	out, err := s.target.Run("sudo docker compose --file " + filepath.Join(s.libDir(), "docker-compose.yaml") + " up --detach")
+	out, err := s.target.Run("sudo docker compose --file " + path.Join(s.libDir(), "docker-compose.yaml") + " up --detach")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 	}

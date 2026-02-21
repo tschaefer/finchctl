@@ -6,20 +6,20 @@ package service
 
 import (
 	"encoding/json"
-	"path/filepath"
+	"path"
 
 	"github.com/tschaefer/finchctl/internal/config"
 )
 
 func (s *Service) __updateSetTargetConfiguration() error {
-	cfgPath := filepath.Join(s.libDir(), "finch.json")
+	cfgPath := path.Join(s.libDir(), "finch.json")
 	out, err := s.target.Run("sudo cat " + cfgPath)
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
 	letsencrypt := false
-	yaml := filepath.Join(s.libDir(), "traefik/etc/conf.d/letsencrypt.yaml")
+	yaml := path.Join(s.libDir(), "traefik/etc/conf.d/letsencrypt.yaml")
 	if _, err = s.target.Run("test -e " + yaml); err == nil {
 		letsencrypt = true
 	}
@@ -46,7 +46,7 @@ func (s *Service) __updateRecomposeDockerServices() error {
 		return convertError(err, &UpdateServiceError{})
 	}
 
-	out, err := s.target.Run("sudo docker compose --file " + filepath.Join(s.libDir(), "docker-compose.yaml") + " pull --policy missing")
+	out, err := s.target.Run("sudo docker compose --file " + path.Join(s.libDir(), "docker-compose.yaml") + " pull --policy missing")
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
 	}

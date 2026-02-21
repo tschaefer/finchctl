@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"os/user"
+	"path"
 	"path/filepath"
 	"time"
 
@@ -242,16 +243,16 @@ func (a *Agent) __deployUnzipRelease(release string, file string) (string, error
 }
 
 func (a *Agent) __deployInstallBinary(binary string, machine *MachineInfo) error {
-	path := "/usr/bin/alloy"
+	binPath := "/usr/bin/alloy"
 	if machine.Kernel == "darwin" {
-		path = "/usr/local/bin/alloy"
-		out, err := a.target.Run("sudo mkdir -p " + filepath.Dir(path))
+		binPath = "/usr/local/bin/alloy"
+		out, err := a.target.Run("sudo mkdir -p " + path.Dir(binPath))
 		if err != nil {
 			return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 		}
 	}
 
-	err := a.target.Copy(binary, path, "755", "0:0")
+	err := a.target.Copy(binary, binPath, "755", "0:0")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
