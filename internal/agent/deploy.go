@@ -132,7 +132,7 @@ func (a *Agent) __deployDownloadRelease(release string, version string, tmpdir s
 	} else {
 		url = fmt.Sprintf("https://github.com/grafana/alloy/releases/latest/download/%s.zip", release)
 	}
-	tmpfile := fmt.Sprintf("%s/%s-%s.zip", tmpdir, release, time.Now().Format("19800212015200"))
+	tmpfile := filepath.Join(tmpdir, release+"-"+time.Now().Format("19800212015200")+".zip")
 
 	a.__helperPrintProgress(fmt.Sprintf("Running 'GET %s'", url))
 	if a.dryRun {
@@ -178,7 +178,7 @@ func (a *Agent) __deployDownloadRelease(release string, version string, tmpdir s
 
 func (a *Agent) __deployUnzipRelease(release string, file string) (string, error) {
 	tmpdir := filepath.Dir(file)
-	tmpfile := fmt.Sprintf("%s/%s", tmpdir, release)
+	tmpfile := filepath.Join(tmpdir, release)
 
 	a.__helperPrintProgress(fmt.Sprintf("Running 'unzip %s'", file))
 

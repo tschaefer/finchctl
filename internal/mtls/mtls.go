@@ -16,10 +16,7 @@ import (
 	"time"
 )
 
-const (
-	CertValidityDays        = 90 * 24 * time.Hour
-	CertExpirationThreshold = 3 * 24 * time.Hour
-)
+const CertValidityDays = 90 * 24 * time.Hour
 
 func GenerateCA(hostname string) ([]byte, []byte, error) {
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)

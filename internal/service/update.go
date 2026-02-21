@@ -6,20 +6,21 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
+	"path/filepath"
 
 	"github.com/tschaefer/finchctl/internal/config"
 )
 
 func (s *Service) __updateSetTargetConfiguration() error {
-	out, err := s.target.Run(fmt.Sprintf("sudo cat %s/finch.json", s.libDir()))
+	cfgPath := filepath.Join(s.libDir(), "finch.json")
+	out, err := s.target.Run("sudo cat " + cfgPath)
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
 	letsencrypt := false
-	yaml := fmt.Sprintf("%s/traefik/etc/conf.d/letsencrypt.yaml", s.libDir())
-	if _, err = s.target.Run(fmt.Sprintf("test -e %s", yaml)); err == nil {
+	yaml := filepath.Join(s.libDir(), "traefik/etc/conf.d/letsencrypt.yaml")
+	if _, err = s.target.Run("test -e " + yaml); err == nil {
 		letsencrypt = true
 	}
 
@@ -45,7 +46,7 @@ func (s *Service) __updateRecomposeDockerServices() error {
 		return convertError(err, &UpdateServiceError{})
 	}
 
-	out, err := s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml pull --policy missing", s.libDir()))
+	out, err := s.target.Run("sudo docker compose --file " + filepath.Join(s.libDir(), "docker-compose.yaml") + " pull --policy missing")
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
 	}

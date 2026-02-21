@@ -8,7 +8,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
+	"path/filepath"
 
 	"github.com/tschaefer/finchctl/internal/config"
 )
@@ -24,8 +24,8 @@ func (s *Service) rotateServiceSecret() error {
 		}
 	}
 
-	cfgPath := fmt.Sprintf("%s/finch.json", s.libDir())
-	out, err := s.target.Run(fmt.Sprintf("sudo cat %s", cfgPath))
+	cfgPath := filepath.Join(s.libDir(), "finch.json")
+	out, err := s.target.Run("sudo cat " + cfgPath)
 	if err != nil {
 		return &RotateServiceSecretError{Message: err.Error(), Reason: string(out)}
 	}
@@ -50,7 +50,7 @@ func (s *Service) rotateServiceSecret() error {
 		return convertError(err, &RotateServiceSecretError{})
 	}
 
-	out, err = s.target.Run(fmt.Sprintf("sudo docker compose --file %s/docker-compose.yaml restart finch", s.libDir()))
+	out, err = s.target.Run("sudo docker compose --file " + filepath.Join(s.libDir(), "docker-compose.yaml") + " restart finch")
 	if err != nil {
 		return &RotateServiceSecretError{Message: err.Error(), Reason: string(out)}
 	}

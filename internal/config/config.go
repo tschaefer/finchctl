@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 )
@@ -200,10 +201,10 @@ func path() string {
 		if err != nil {
 			panic(&ConfigError{Message: err.Error(), Reason: ""})
 		}
-		dir = fmt.Sprintf("%s/.config", dir)
+		dir = filepath.Join(dir, ".config")
 	}
 
-	return fmt.Sprintf("%s/finch.json", dir)
+	return filepath.Join(dir, "finch.json")
 }
 
 func exist() bool {
