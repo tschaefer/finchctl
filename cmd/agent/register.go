@@ -7,6 +7,7 @@ package agent
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -76,7 +77,12 @@ func runRegisterCmd(cmd *cobra.Command, args []string) {
 	serviceName := args[0]
 	data := parseFlags(formatType)
 
-	a, err := agent.New("", "localhost", formatType, false)
+	timeout, _ := cmd.Flags().GetUint("run.cmd-timeout")
+	a, err := agent.New(cmd.Context(), agent.Options{
+		TargetURL:  "localhost",
+		Format:     formatType,
+		CmdTimeout: time.Duration(timeout) * time.Second,
+	})
 	cobra.CheckErr(err)
 
 	config, err := a.Register(serviceName, data)

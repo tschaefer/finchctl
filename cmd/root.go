@@ -5,7 +5,10 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package cmd
 
 import (
+	"context"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/agent"
@@ -34,7 +37,10 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
-	err := rootCmd.Execute()
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	err := rootCmd.ExecuteContext(ctx)
 	if err != nil {
 		os.Exit(1)
 	}
@@ -50,6 +56,7 @@ func init() {
 	}
 
 	rootCmd.PersistentFlags().Bool("tls.skip-verify", false, "Skip TLS certificate verification (not recommended)")
+	rootCmd.PersistentFlags().Uint("run.cmd-timeout", 300, "timeout in seconds for SSH commands")
 
 	rootCmd.AddCommand(agent.Cmd)
 	rootCmd.AddCommand(service.Cmd)

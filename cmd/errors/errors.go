@@ -24,7 +24,11 @@ func CheckErr(msg any, format target.Format) {
 			"timestamp": time.Now().Format(time.RFC3339),
 			"error":     fmt.Sprintf("%v", msg),
 		}
-		jsonData, _ := json.Marshal(data)
+		jsonData, err := json.Marshal(data)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to marshal error message: %v\n", err)
+			os.Exit(1)
+		}
 		fmt.Println(string(jsonData))
 	default:
 		fmt.Println(msg)

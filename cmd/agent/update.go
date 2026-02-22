@@ -6,6 +6,7 @@ package agent
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
@@ -53,7 +54,14 @@ func runUpdateCmd(cmd *cobra.Command, args []string) {
 
 	targetUrl := args[0]
 
-	a, err := agent.New(config, targetUrl, formatType, dryRun)
+	timeout, _ := cmd.Flags().GetUint("run.cmd-timeout")
+	a, err := agent.New(cmd.Context(), agent.Options{
+		Config:     config,
+		TargetURL:  targetUrl,
+		Format:     formatType,
+		DryRun:     dryRun,
+		CmdTimeout: time.Duration(timeout) * time.Second,
+	})
 	errors.CheckErr(err, formatType)
 
 	err = a.Update(skipConfig, skipBinaries, alloyVersion)

@@ -25,7 +25,7 @@ func (s *Service) rotateServiceSecret() error {
 	}
 
 	cfgPath := path.Join(s.libDir(), "finch.json")
-	out, err := s.target.Run("sudo cat " + cfgPath)
+	out, err := s.target.Run(s.ctx, "sudo cat "+cfgPath)
 	if err != nil {
 		return &RotateServiceSecretError{Message: err.Error(), Reason: string(out)}
 	}
@@ -50,7 +50,7 @@ func (s *Service) rotateServiceSecret() error {
 		return convertError(err, &RotateServiceSecretError{})
 	}
 
-	out, err = s.target.Run("sudo docker compose --file " + path.Join(s.libDir(), "docker-compose.yaml") + " restart finch")
+	out, err = s.target.Run(s.ctx, "sudo docker compose --file "+path.Join(s.libDir(), "docker-compose.yaml")+" restart finch")
 	if err != nil {
 		return &RotateServiceSecretError{Message: err.Error(), Reason: string(out)}
 	}

@@ -5,10 +5,12 @@ Licensed under the MIT License, see LICENSE file in the project root for details
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tschaefer/finchctl/internal/target"
@@ -20,7 +22,12 @@ type track struct {
 }
 
 func Test_Deploy(t *testing.T) {
-	s, err := New(nil, "localhost", target.FormatDocumentation, true)
+	s, err := New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatDocumentation,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create service")
 
 	record := capture(func() {
@@ -37,7 +44,12 @@ func Test_Deploy(t *testing.T) {
 	wanted = "Running 'timeout 180 bash -c 'until curl -fs -o /dev/null -w \"%{http_code}\" http://localhost | grep -qE \"^[234][0-9]{2}$\"; do sleep 2; done'' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
-	s, err = New(nil, "localhost", target.FormatJSON, true)
+	s, err = New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatJSON,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create service")
 
 	record = capture(func() {
@@ -56,7 +68,12 @@ func Test_Deploy(t *testing.T) {
 }
 
 func Test_Teardown(t *testing.T) {
-	s, err := New(nil, "localhost", target.FormatDocumentation, true)
+	s, err := New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatDocumentation,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create service")
 
 	record := capture(func() {
@@ -73,7 +90,12 @@ func Test_Teardown(t *testing.T) {
 	wanted = "Running 'sudo rm -rf /var/lib/finch' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
-	s, err = New(nil, "localhost", target.FormatJSON, true)
+	s, err = New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatJSON,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create service")
 
 	record = capture(func() {
@@ -92,7 +114,12 @@ func Test_Teardown(t *testing.T) {
 }
 
 func Test_Update(t *testing.T) {
-	s, err := New(nil, "localhost", target.FormatDocumentation, true)
+	s, err := New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatDocumentation,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create service")
 
 	record := capture(func() {
@@ -109,7 +136,12 @@ func Test_Update(t *testing.T) {
 	wanted = "Running 'sudo docker image prune --force' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
-	s, err = New(nil, "localhost", target.FormatJSON, true)
+	s, err = New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatJSON,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "update service")
 
 	record = capture(func() {
@@ -128,7 +160,12 @@ func Test_Update(t *testing.T) {
 }
 
 func Test_RotateSecret(t *testing.T) {
-	s, err := New(nil, "localhost", target.FormatDocumentation, true)
+	s, err := New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatDocumentation,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create service")
 
 	record := capture(func() {
@@ -145,7 +182,12 @@ func Test_RotateSecret(t *testing.T) {
 	wanted = "Running 'sudo docker compose --file .+/docker-compose.yaml restart finch' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
-	s, err = New(nil, "localhost", target.FormatJSON, true)
+	s, err = New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatJSON,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create service")
 
 	record = capture(func() {
@@ -163,7 +205,12 @@ func Test_RotateSecret(t *testing.T) {
 }
 
 func Test_RotateCertificate(t *testing.T) {
-	s, err := New(nil, "localhost", target.FormatDocumentation, true)
+	s, err := New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatDocumentation,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create service")
 
 	record := capture(func() {
@@ -180,7 +227,12 @@ func Test_RotateCertificate(t *testing.T) {
 	wanted = "Running 'rm -f .+/traefik/etc/certs.d/ca.pem' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
-	s, err = New(nil, "localhost", target.FormatJSON, true)
+	s, err = New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatJSON,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create service")
 
 	record = capture(func() {
@@ -199,7 +251,12 @@ func Test_RotateCertificate(t *testing.T) {
 }
 
 func Test_Register(t *testing.T) {
-	s, err := New(nil, "localhost", target.FormatDocumentation, true)
+	s, err := New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatDocumentation,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create service")
 
 	record := capture(func() {
@@ -216,7 +273,12 @@ func Test_Register(t *testing.T) {
 	wanted = `Copying from '.+' to '.+/traefik/etc/certs.d/rid:finchctl:.+\.pem' as .+@localhost`
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
-	s, err = New(nil, "localhost", target.FormatJSON, true)
+	s, err = New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatJSON,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create service")
 
 	record = capture(func() {
@@ -235,7 +297,12 @@ func Test_Register(t *testing.T) {
 }
 
 func Test_Deregister(t *testing.T) {
-	s, err := New(nil, "localhost", target.FormatDocumentation, true)
+	s, err := New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatDocumentation,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create service")
 
 	record := capture(func() {
@@ -252,7 +319,12 @@ func Test_Deregister(t *testing.T) {
 	wanted = `Running 'rm -f .+/traefik/etc/certs.d/rid:finchctl:.+\.pem' as .+@localhost`
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
-	s, err = New(nil, "localhost", target.FormatJSON, true)
+	s, err = New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatJSON,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create service")
 
 	record = capture(func() {

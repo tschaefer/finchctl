@@ -23,7 +23,7 @@ func (s *Service) deregisterService() error {
 	}
 
 	caCertPath := path.Join(s.libDir(), "traefik/etc/certs.d", version.ResourceID()+".pem")
-	out, err := s.target.Run("rm -f " + caCertPath)
+	out, err := s.target.Run(s.ctx, "rm -f "+caCertPath)
 	if err != nil {
 		return &DeregisterServiceError{Message: err.Error(), Reason: string(out)}
 	}

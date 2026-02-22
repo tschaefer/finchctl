@@ -5,10 +5,12 @@ Licensed under the MIT License, see LICENSE file in the project root for details
 package agent
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tschaefer/finchctl/internal/target"
@@ -20,7 +22,12 @@ type track struct {
 }
 
 func Test_Deploy(t *testing.T) {
-	a, err := New("", "localhost", target.FormatDocumentation, true)
+	a, err := New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatDocumentation,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create agent")
 
 	record := capture(func() {
@@ -37,7 +44,12 @@ func Test_Deploy(t *testing.T) {
 	wanted = "Copying from '/tmp/.+ to '/usr/bin/alloy' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
-	a, err = New("", "localhost", target.FormatJSON, true)
+	a, err = New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatJSON,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create agent")
 
 	record = capture(func() {
@@ -55,7 +67,12 @@ func Test_Deploy(t *testing.T) {
 }
 
 func Test_Teardown(t *testing.T) {
-	a, err := New("", "localhost", target.FormatDocumentation, true)
+	a, err := New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatDocumentation,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create agent")
 
 	record := capture(func() {
@@ -72,7 +89,12 @@ func Test_Teardown(t *testing.T) {
 	wanted = "Running 'sudo rm -f /usr/bin/alloy' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
-	a, err = New("", "localhost", target.FormatJSON, true)
+	a, err = New(context.Background(), Options{
+		TargetURL:  "localhost",
+		Format:     target.FormatJSON,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create agent")
 
 	record = capture(func() {
@@ -90,7 +112,13 @@ func Test_Teardown(t *testing.T) {
 }
 
 func Test_Update(t *testing.T) {
-	a, err := New("finch-agent.conf", "localhost", target.FormatDocumentation, true)
+	a, err := New(context.Background(), Options{
+		Config:     "finch-agent.conf",
+		TargetURL:  "localhost",
+		Format:     target.FormatDocumentation,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create agent")
 
 	record := capture(func() {
@@ -107,7 +135,13 @@ func Test_Update(t *testing.T) {
 	wanted = "Skipping Alloy update check for version 'latest' due to dry-run mode"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
-	a, err = New("finch-agent.conf", "localhost", target.FormatJSON, true)
+	a, err = New(context.Background(), Options{
+		Config:     "finch-agent.conf",
+		TargetURL:  "localhost",
+		Format:     target.FormatJSON,
+		DryRun:     true,
+		CmdTimeout: 300 * time.Second,
+	})
 	assert.NoError(t, err, "create agent")
 
 	record = capture(func() {

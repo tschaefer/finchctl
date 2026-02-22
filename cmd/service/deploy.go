@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
@@ -48,7 +49,14 @@ func runDeployCmd(cmd *cobra.Command, args []string) {
 
 	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
 
-	s, err := service.New(config, targetUrl, formatType, dryRun)
+	timeout, _ := cmd.Flags().GetUint("run.cmd-timeout")
+	s, err := service.New(cmd.Context(), service.Options{
+		Config:     config,
+		TargetURL:  targetUrl,
+		Format:     formatType,
+		DryRun:     dryRun,
+		CmdTimeout: time.Duration(timeout) * time.Second,
+	})
 	errors.CheckErr(err, formatType)
 
 	err = s.Deploy()

@@ -5,6 +5,8 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package agent
 
 import (
+	"time"
+
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
 	"github.com/tschaefer/finchctl/cmd/errors"
@@ -35,7 +37,13 @@ func runTeardownCmd(cmd *cobra.Command, args []string) {
 
 	targetUrl := args[0]
 
-	a, err := agent.New("", targetUrl, formatType, dryRun)
+	timeout, _ := cmd.Flags().GetUint("run.cmd-timeout")
+	a, err := agent.New(cmd.Context(), agent.Options{
+		TargetURL:  targetUrl,
+		Format:     formatType,
+		DryRun:     dryRun,
+		CmdTimeout: time.Duration(timeout) * time.Second,
+	})
 	errors.CheckErr(err, formatType)
 
 	err = a.Teardown()
