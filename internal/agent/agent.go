@@ -5,27 +5,46 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package agent
 
 import (
+	"context"
+	"time"
+
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
 type Agent struct {
-	target target.Target
-	config string
-	format target.Format
-	dryRun bool
+	ctx        context.Context
+	target     target.Target
+	config     string
+	format     target.Format
+	dryRun     bool
+	cmdTimeout time.Duration
 }
 
-func New(config, targetUrl string, format target.Format, dryRun bool) (*Agent, error) {
-	target, err := target.NewTarget(targetUrl, format, dryRun)
+type Options struct {
+	Config     string
+	TargetURL  string
+	Format     target.Format
+	DryRun     bool
+	CmdTimeout time.Duration
+}
+
+func New(ctx context.Context, opts Options) (*Agent, error) {
+	t, err := target.New(opts.TargetURL, target.Options{
+		Format:     opts.Format,
+		DryRun:     opts.DryRun,
+		CmdTimeout: opts.CmdTimeout,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	return &Agent{
-		target: target,
-		config: config,
-		format: format,
-		dryRun: dryRun,
+		ctx:        ctx,
+		target:     t,
+		config:     opts.Config,
+		format:     opts.Format,
+		dryRun:     opts.DryRun,
+		cmdTimeout: opts.CmdTimeout,
 	}, nil
 }
 

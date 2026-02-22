@@ -13,14 +13,14 @@ import (
 
 func (s *Service) __updateSetTargetConfiguration() error {
 	cfgPath := path.Join(s.libDir(), "finch.json")
-	out, err := s.target.Run("sudo cat " + cfgPath)
+	out, err := s.target.Run(s.ctx, "sudo cat "+cfgPath)
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
 	letsencrypt := false
 	yaml := path.Join(s.libDir(), "traefik/etc/conf.d/letsencrypt.yaml")
-	if _, err = s.target.Run("test -e " + yaml); err == nil {
+	if _, err = s.target.Run(s.ctx, "test -e "+yaml); err == nil {
 		letsencrypt = true
 	}
 
@@ -46,7 +46,7 @@ func (s *Service) __updateRecomposeDockerServices() error {
 		return convertError(err, &UpdateServiceError{})
 	}
 
-	out, err := s.target.Run("sudo docker compose --file " + path.Join(s.libDir(), "docker-compose.yaml") + " pull --policy missing")
+	out, err := s.target.Run(s.ctx, "sudo docker compose --file "+path.Join(s.libDir(), "docker-compose.yaml")+" pull --policy missing")
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
 	}
@@ -60,7 +60,7 @@ func (s *Service) __updateRecomposeDockerServices() error {
 		return convertError(err, &UpdateServiceError{})
 	}
 
-	out, err = s.target.Run("sudo docker image prune --force")
+	out, err = s.target.Run(s.ctx, "sudo docker image prune --force")
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
 	}

@@ -5,12 +5,14 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package agent
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/tschaefer/finchctl/internal/target"
 )
@@ -20,7 +22,16 @@ const alloyReleasesLatestAPIURL = "https://api.github.com/repos/grafana/alloy/re
 func (a *Agent) __updateServiceBinaryGetLatestTag() (string, error) {
 	url := alloyReleasesLatestAPIURL
 	a.__helperPrintProgress(fmt.Sprintf("Running 'GET %s'", url))
-	resp, err := http.Get(url)
+
+	reqCtx, cancel := context.WithTimeout(a.ctx, 15*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(reqCtx, "GET", url, nil)
+	if err != nil {
+		return "", &UpdateAgentError{Message: err.Error(), Reason: ""}
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", &UpdateAgentError{Message: err.Error(), Reason: ""}
 	}
@@ -69,7 +80,7 @@ func (a *Agent) __updateServiceBinaryIsNeeded(version string, machine *MachineIn
 		path = "/usr/local/bin/alloy"
 	}
 
-	out, err := a.target.Run(path + " --version | grep -o -E 'v[0-9\\.]+'")
+	out, err := a.target.Run(a.ctx, path+" --version | grep -o -E 'v[0-9\\.]+'")
 	if err != nil {
 		return false, &UpdateAgentError{Message: err.Error(), Reason: string(out)}
 	}
@@ -129,17 +140,17 @@ func (a *Agent) updateAgent(machine *MachineInfo, skipConfig bool, skipBinaries 
 
 	switch machine.Kernel {
 	case "linux":
-		out, err := a.target.Run("sudo systemctl restart alloy.service")
+		out, err := a.target.Run(a.ctx, "sudo systemctl restart alloy.service")
 		if err != nil {
 			return &UpdateAgentError{Message: err.Error(), Reason: string(out)}
 		}
 	case "freebsd":
-		out, err := a.target.Run("sudo service alloy restart")
+		out, err := a.target.Run(a.ctx, "sudo service alloy restart")
 		if err != nil {
 			return &UpdateAgentError{Message: err.Error(), Reason: string(out)}
 		}
 	case "darwin":
-		out, err := a.target.Run("sudo launchctl kickstart -k system/com.github.tschaefer.finch.agent")
+		out, err := a.target.Run(a.ctx, "sudo launchctl kickstart -k system/com.github.tschaefer.finch.agent")
 		if err != nil {
 			return &UpdateAgentError{Message: err.Error(), Reason: string(out)}
 		}

@@ -6,6 +6,7 @@ package agent
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -66,7 +67,12 @@ func runEditCmd(cmd *cobra.Command, args []string) {
 	serviceName := args[0]
 	data := editParseFlags(formatType)
 
-	a, err := agent.New("", "localhost", formatType, false)
+	timeout, _ := cmd.Flags().GetUint("run.cmd-timeout")
+	a, err := agent.New(cmd.Context(), agent.Options{
+		TargetURL:  "localhost",
+		Format:     formatType,
+		CmdTimeout: time.Duration(timeout) * time.Second,
+	})
 	cobra.CheckErr(err)
 
 	err = a.Edit(serviceName, data)

@@ -4,7 +4,9 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 */
 package service
 
-import "github.com/tschaefer/finchctl/internal/config"
+import (
+	"github.com/tschaefer/finchctl/internal/config"
+)
 
 func (s *Service) registerService() error {
 	if err := s.__updateSetTargetConfiguration(); err != nil {

@@ -5,42 +5,46 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package service
 
 import (
+	"context"
 	"io/fs"
 	"os"
 	"strings"
+	"time"
 )
 
 func (s *Service) __dockerIsAvailable() bool {
-	_, err := s.target.Run("sudo docker -v")
+	_, err := s.target.Run(s.ctx, "sudo docker -v")
 	return err == nil
 }
 
 func (s *Service) __dockerIsRunning() bool {
-	_, err := s.target.Run("sudo docker version")
+	_, err := s.target.Run(s.ctx, "sudo docker version")
 	return err == nil
 }
 
 func (s *Service) __dockerComposeIsAvailable() bool {
-	_, err := s.target.Run("sudo docker compose version")
+	_, err := s.target.Run(s.ctx, "sudo docker compose version")
 	return err == nil
 }
 
 func (s *Service) __dockerInstallService() error {
-	raw, err := s.target.Run("mktemp -p /tmp -d finch-XXXXXX")
+	raw, err := s.target.Run(s.ctx, "mktemp -p /tmp -d finch-XXXXXX")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 	dir := strings.TrimSpace(string(raw))
 	defer func() {
-		_, _ = s.target.Run("rm -rf " + dir)
+		cleanCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		_, _ = s.target.Run(cleanCtx, "rm -rf "+dir)
 	}()
 
-	out, err := s.target.Run("curl -fsSL https://get.docker.com -o " + dir + "/get-docker.sh")
+	out, err := s.target.Run(s.ctx, "curl -fsSL https://get.docker.com -o "+dir+"/get-docker.sh")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
-	out, err = s.target.Run("sudo sh " + dir + "/get-docker.sh")
+	out, err = s.target.Run(s.ctx, "sudo sh "+dir+"/get-docker.sh")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 	}
@@ -67,11 +71,11 @@ func (s *Service) __dockerCopyConfig() error {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := s.target.Copy(f.Name(), dest, "400", "0:0"); err != nil {
+	if err := s.target.Copy(s.ctx, f.Name(), dest, "400", "0:0"); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if out, err := s.target.Run("sudo systemctl restart docker"); err != nil {
+	if out, err := s.target.Run(s.ctx, "sudo systemctl restart docker"); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 	}
 

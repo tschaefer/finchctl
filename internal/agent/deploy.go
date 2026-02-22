@@ -31,7 +31,7 @@ func (a *Agent) __deployMakeDirHierarchy() error {
 		"/etc/alloy",
 	}
 	for _, dir := range directories {
-		out, err := a.target.Run("sudo mkdir -p " + dir)
+		out, err := a.target.Run(a.ctx, "sudo mkdir -p "+dir)
 		if err != nil {
 			return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 		}
@@ -41,7 +41,7 @@ func (a *Agent) __deployMakeDirHierarchy() error {
 }
 
 func (a *Agent) __deployCopyConfigFile() error {
-	if err := a.target.Copy(a.config, "/etc/alloy/alloy.config", "400", "0:0"); err != nil {
+	if err := a.target.Copy(a.ctx, a.config, "/etc/alloy/alloy.config", "400", "0:0"); err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 
@@ -67,7 +67,7 @@ func (a *Agent) __deployCopySystemdServiceUnit() error {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := a.target.Copy(f.Name(), dest, "444", "0:0"); err != nil {
+	if err := a.target.Copy(a.ctx, f.Name(), dest, "444", "0:0"); err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 
@@ -93,11 +93,11 @@ func (a *Agent) __deployCopyRcServiceFile() error {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := a.target.Copy(f.Name(), dest, "444", "0:0"); err != nil {
+	if err := a.target.Copy(a.ctx, f.Name(), dest, "444", "0:0"); err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 
-	out, err := a.target.Run("sudo chmod +x " + dest)
+	out, err := a.target.Run(a.ctx, "sudo chmod +x "+dest)
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
@@ -124,7 +124,7 @@ func (a *Agent) __deployCopyLaunchdServiceFile() error {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := a.target.Copy(f.Name(), dest, "444", "0:0"); err != nil {
+	if err := a.target.Copy(a.ctx, f.Name(), dest, "444", "0:0"); err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 
@@ -153,10 +153,10 @@ func (a *Agent) __deployDownloadRelease(release string, version string, tmpdir s
 		_ = out.Close()
 	}()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	opCtx, cancel := context.WithTimeout(a.ctx, 300*time.Second)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(opCtx, "GET", url, nil)
 	if err != nil {
 		return "", &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
@@ -246,13 +246,13 @@ func (a *Agent) __deployInstallBinary(binary string, machine *MachineInfo) error
 	binPath := "/usr/bin/alloy"
 	if machine.Kernel == "darwin" {
 		binPath = "/usr/local/bin/alloy"
-		out, err := a.target.Run("sudo mkdir -p " + path.Dir(binPath))
+		out, err := a.target.Run(a.ctx, "sudo mkdir -p "+path.Dir(binPath))
 		if err != nil {
 			return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 		}
 	}
 
-	err := a.target.Copy(binary, binPath, "755", "0:0")
+	err := a.target.Copy(a.ctx, binary, binPath, "755", "0:0")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
@@ -261,7 +261,7 @@ func (a *Agent) __deployInstallBinary(binary string, machine *MachineInfo) error
 }
 
 func (a *Agent) __deployEnableSystemdService() error {
-	out, err := a.target.Run("sudo systemctl enable --now alloy")
+	out, err := a.target.Run(a.ctx, "sudo systemctl enable --now alloy")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
@@ -269,12 +269,12 @@ func (a *Agent) __deployEnableSystemdService() error {
 }
 
 func (a *Agent) __deployEnableRcService() error {
-	out, err := a.target.Run("sudo sysrc alloy_enable=YES")
+	out, err := a.target.Run(a.ctx, "sudo sysrc alloy_enable=YES")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
 
-	out, err = a.target.Run("sudo service alloy start")
+	out, err = a.target.Run(a.ctx, "sudo service alloy start")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
@@ -283,12 +283,12 @@ func (a *Agent) __deployEnableRcService() error {
 }
 
 func (a *Agent) __deployEnableLaunchdService() error {
-	out, err := a.target.Run("sudo launchctl bootstrap system /Library/LaunchDaemons/com.github.tschaefer.finch.agent.plist")
+	out, err := a.target.Run(a.ctx, "sudo launchctl bootstrap system /Library/LaunchDaemons/com.github.tschaefer.finch.agent.plist")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
 
-	out, err = a.target.Run("sudo launchctl kickstart -k system/com.github.tschaefer.finch.agent")
+	out, err = a.target.Run(a.ctx, "sudo launchctl kickstart -k system/com.github.tschaefer.finch.agent")
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}

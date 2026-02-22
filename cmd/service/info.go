@@ -7,6 +7,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
@@ -37,7 +38,13 @@ func runInfoCmd(cmd *cobra.Command, args []string) {
 	config := &service.ServiceConfig{
 		Hostname: serviceName,
 	}
-	s, err := service.New(config, "localhost", formatType, false)
+	timeout, _ := cmd.Flags().GetUint("run.cmd-timeout")
+	s, err := service.New(cmd.Context(), service.Options{
+		Config:     config,
+		TargetURL:  "localhost",
+		Format:     formatType,
+		CmdTimeout: time.Duration(timeout) * time.Second,
+	})
 	errors.CheckErr(err, formatType)
 
 	info, err := s.Info()

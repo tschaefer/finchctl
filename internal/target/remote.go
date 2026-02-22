@@ -19,43 +19,46 @@ import (
 )
 
 type remote struct {
-	Host   string
-	Port   uint
-	User   string
-	auth   goph.Auth
-	client *goph.Client
-	format Format
-	dryRun bool
+	Host       string
+	Port       uint
+	User       string
+	auth       goph.Auth
+	client     *goph.Client
+	format     Format
+	dryRun     bool
+	cmdTimeout time.Duration
 }
 
-func (s *remote) Run(cmd string) ([]byte, error) {
+func (s *remote) Run(ctx context.Context, cmd string) ([]byte, error) {
 	PrintProgress(fmt.Sprintf("Running '%s' as %s@%s", cmd, s.User, s.Host), s.format)
 	if s.dryRun {
 		return nil, nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, s.cmdTimeout)
 	defer cancel()
 
 	return s.client.RunContext(ctx, cmd)
 }
 
-func (s *remote) Copy(src, dest, mode, owner string) error {
+func (s *remote) Copy(ctx context.Context, src, dest, mode, owner string) error {
 	PrintProgress(fmt.Sprintf("Copying from '%s' to '%s' as %s@%s", src, dest, s.User, s.Host), s.format)
 	if s.dryRun {
 		return nil
 	}
 
-	raw, err := s.Run("mktemp -p /tmp -d finch-XXXXXX")
+	raw, err := s.Run(ctx, "mktemp -p /tmp -d finch-XXXXXX")
 	if err != nil {
 		return err
 	}
 	tmpdest := strings.TrimSpace(string(raw))
 	defer func() {
-		_, _ = s.Run("rm -rf " + tmpdest)
+		cleanCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		_, _ = s.Run(cleanCtx, "rm -rf "+tmpdest)
 	}()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	uploadCtx, cancel := context.WithTimeout(ctx, s.cmdTimeout)
 	defer cancel()
 
 	done := make(chan error, 1)
@@ -68,25 +71,25 @@ func (s *remote) Copy(src, dest, mode, owner string) error {
 		if err != nil {
 			return err
 		}
-	case <-ctx.Done():
+	case <-uploadCtx.Done():
 		_ = s.client.Close()
-		return fmt.Errorf("upload timed out after 300s")
+		return fmt.Errorf("upload timed out after %s", s.cmdTimeout)
 	}
 
-	_, err = s.Run(fmt.Sprintf("sudo mv -f %s %s", tmpdest+"/file", dest))
+	_, err = s.Run(ctx, fmt.Sprintf("sudo mv -f %s %s", tmpdest+"/file", dest))
 	if err != nil {
 		return err
 	}
 
 	if mode != "" {
-		_, err = s.Run(fmt.Sprintf("sudo chmod %s %s", mode, dest))
+		_, err = s.Run(ctx, fmt.Sprintf("sudo chmod %s %s", mode, dest))
 		if err != nil {
 			return err
 		}
 	}
 
 	if owner != "" {
-		_, err = s.Run(fmt.Sprintf("sudo chown %s %s", owner, dest))
+		_, err = s.Run(ctx, fmt.Sprintf("sudo chown %s %s", owner, dest))
 		if err != nil {
 			return err
 		}
@@ -95,7 +98,7 @@ func (s *remote) Copy(src, dest, mode, owner string) error {
 	return nil
 }
 
-func NewRemote(host *url.URL, format Format, dryRun bool) (Target, error) {
+func newRemote(host *url.URL, opts Options) (Target, error) {
 	auth, err := authorize()
 	if err != nil {
 		return nil, fmt.Errorf("failed to authorize: %w", err)
@@ -127,13 +130,14 @@ func NewRemote(host *url.URL, format Format, dryRun bool) (Target, error) {
 	}
 
 	return &remote{
-		Host:   host.Hostname(),
-		Port:   port,
-		User:   host.User.Username(),
-		auth:   auth,
-		client: client,
-		format: format,
-		dryRun: dryRun,
+		Host:       host.Hostname(),
+		Port:       port,
+		User:       host.User.Username(),
+		auth:       auth,
+		client:     client,
+		format:     opts.Format,
+		dryRun:     opts.DryRun,
+		cmdTimeout: opts.CmdTimeout,
 	}, nil
 }
 

@@ -5,9 +5,11 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package target
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"os"
 	"os/user"
 	"slices"
 	"strings"
@@ -24,11 +26,17 @@ const (
 )
 
 type Target interface {
-	Run(command string) ([]byte, error)
-	Copy(src, dest, mode, owner string) error
+	Run(ctx context.Context, command string) ([]byte, error)
+	Copy(ctx context.Context, src, dest, mode, owner string) error
 }
 
-func NewTarget(hostUrl string, format Format, dryRun bool) (Target, error) {
+type Options struct {
+	Format     Format
+	DryRun     bool
+	CmdTimeout time.Duration
+}
+
+func New(hostUrl string, opts Options) (Target, error) {
 	host, err := parseHostUrl(hostUrl)
 	if err != nil {
 		return nil, err
@@ -41,10 +49,10 @@ func NewTarget(hostUrl string, format Format, dryRun bool) (Target, error) {
 		"::1",
 	}
 	if slices.Contains(local, host.Hostname()) {
-		return NewLocal(host, format, dryRun)
+		return newLocal(host, opts)
 	}
 
-	return NewRemote(host, format, dryRun)
+	return newRemote(host, opts)
 }
 
 func parseHostUrl(hostUrl string) (host *url.URL, err error) {
@@ -84,7 +92,11 @@ func PrintProgress(message string, format Format) {
 			"timestamp": time.Now().Format(time.RFC3339),
 			"message":   message,
 		}
-		jsonData, _ := json.Marshal(data)
+		jsonData, err := json.Marshal(data)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error marshaling JSON: %v\n", err)
+			return
+		}
 		fmt.Println(string(jsonData))
 	case FormatQuiet:
 		// Do nothing

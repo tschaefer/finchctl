@@ -46,7 +46,7 @@ func (a *Agent) __machineGetFreebsdArch(machine string) (string, error) {
 }
 
 func (a *Agent) machineInfo() (*MachineInfo, error) {
-	out, err := a.target.Run("uname -sm")
+	out, err := a.target.Run(a.ctx, "uname -sm")
 	if err != nil {
 		return nil, &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
@@ -72,7 +72,7 @@ func (a *Agent) machineInfo() (*MachineInfo, error) {
 		if err != nil {
 			return nil, err
 		}
-		_, err = a.target.Run("test -d /run/systemd/system")
+		_, err = a.target.Run(a.ctx, "test -d /run/systemd/system")
 		if err != nil {
 			return nil, fmt.Errorf("unsupported target init system: %w", err)
 		}
