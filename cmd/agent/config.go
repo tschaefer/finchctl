@@ -6,6 +6,7 @@ package agent
 
 import (
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
@@ -33,12 +34,18 @@ func runConfigCmd(cmd *cobra.Command, args []string) {
 	formatType, err := format.GetRunFormat("quiet")
 	cobra.CheckErr(err)
 
+	timeout, _ := cmd.Flags().GetUint("run.cmd-timeout")
+
 	rid, _ := cmd.Flags().GetString("agent.rid")
 	if rid == "" {
 		errors.CheckErr("agent resource identifier is required", formatType)
 	}
 
-	agent, err := agent.New("", "local", formatType, false)
+	agent, err := agent.New(cmd.Context(), agent.Options{
+		TargetURL:  "local",
+		Format:     formatType,
+		CmdTimeout: time.Duration(timeout) * time.Second,
+	})
 	errors.CheckErr(err, formatType)
 
 	config, err := agent.Config(serviceName, rid)

@@ -39,7 +39,7 @@ func (s *Service) __deployMakeDirHierarchy() error {
 		"pyroscope/data",
 	}
 	for _, dir := range directories {
-		out, err := s.target.Run("sudo mkdir -p " + path.Join(s.libDir(), dir))
+		out, err := s.target.Run(s.ctx, "sudo mkdir -p "+path.Join(s.libDir(), dir))
 		if err != nil {
 			return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 		}
@@ -67,7 +67,7 @@ func (s *Service) __deploySetDirHierarchyPermission() error {
 
 	for dir, owner := range ownership {
 		cmd := fmt.Sprintf("sudo chown %s %s", owner, path.Join(s.libDir(), dir))
-		out, err := s.target.Run(cmd)
+		out, err := s.target.Run(s.ctx, cmd)
 		if err != nil {
 			return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 		}
@@ -134,7 +134,7 @@ func (s *Service) __deployCopyTraefikHttpTlsConfig() error {
 		}
 		for k, v := range assets {
 			pem := path.Join(s.libDir(), "traefik/etc/certs.d", k+".pem")
-			if err := s.target.Copy(v, pem, "400", "0:0"); err != nil {
+			if err := s.target.Copy(s.ctx, v, pem, "400", "0:0"); err != nil {
 				return &DeployServiceError{Message: err.Error(), Reason: ""}
 			}
 		}
@@ -165,7 +165,7 @@ func (s *Service) __deployGenerateMTLSCertificates() error {
 	if _, err := f.Write(caCertPEM); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
-	if err := s.target.Copy(f.Name(), caCertPath, "400", "0:0"); err != nil {
+	if err := s.target.Copy(s.ctx, f.Name(), caCertPath, "400", "0:0"); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
@@ -260,7 +260,7 @@ func (s *Service) __helperCopyConfig(filePath, mode, owner string) error {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := s.target.Copy(f.Name(), filePath, mode, owner); err != nil {
+	if err := s.target.Copy(s.ctx, f.Name(), filePath, mode, owner); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
@@ -292,7 +292,7 @@ func (s *Service) __helperCopyTemplate(filePath, mode, owner string, data any) e
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := s.target.Copy(f.Name(), filePath, mode, owner); err != nil {
+	if err := s.target.Copy(s.ctx, f.Name(), filePath, mode, owner); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
@@ -312,7 +312,7 @@ func (s *Service) __deployCopyComposeFile() error {
 }
 
 func (s *Service) __deployComposeUp() error {
-	out, err := s.target.Run("sudo docker compose --file " + path.Join(s.libDir(), "docker-compose.yaml") + " up --detach")
+	out, err := s.target.Run(s.ctx, "sudo docker compose --file "+path.Join(s.libDir(), "docker-compose.yaml")+" up --detach")
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 	}
@@ -323,7 +323,7 @@ func (s *Service) __deployComposeUp() error {
 func (s *Service) __deployComposeReady() error {
 	cmd := `timeout 180 bash -c 'until curl -fs -o /dev/null -w "%{http_code}" http://localhost | grep -qE "^[234][0-9]{2}$"; do sleep 2; done'`
 
-	out, err := s.target.Run(cmd)
+	out, err := s.target.Run(s.ctx, cmd)
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 	}

@@ -19,7 +19,7 @@ type DashboardData struct {
 }
 
 func (s *Service) dashboardService(sessionTimeout int32, role string, scope []string) (*DashboardData, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(s.ctx, 15*time.Second)
 	defer cancel()
 
 	ctx, client, err := grpc.NewClient(ctx, s.config.Hostname, api.NewDashboardServiceClient)

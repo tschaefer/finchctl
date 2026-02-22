@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
@@ -44,7 +45,14 @@ func runTeardownCmd(cmd *cobra.Command, args []string) {
 	cfg, err := teardownConfig(cmd, args, formatType)
 	errors.CheckErr(err, formatType)
 
-	s, err := service.New(cfg, targetUrl, formatType, dryRun)
+	timeout, _ := cmd.Flags().GetUint("run.cmd-timeout")
+	s, err := service.New(cmd.Context(), service.Options{
+		Config:     cfg,
+		TargetURL:  targetUrl,
+		Format:     formatType,
+		DryRun:     dryRun,
+		CmdTimeout: time.Duration(timeout) * time.Second,
+	})
 	errors.CheckErr(err, formatType)
 
 	err = s.Teardown()

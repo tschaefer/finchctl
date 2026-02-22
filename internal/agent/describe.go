@@ -48,7 +48,7 @@ type DescribeData struct {
 }
 
 func (a *Agent) describeAgent(service, rid string) (*DescribeData, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(a.ctx, 15*time.Second)
 	defer cancel()
 
 	ctx, client, err := grpc.NewClient(ctx, service, api.NewAgentServiceClient)

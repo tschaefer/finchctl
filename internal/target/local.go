@@ -13,31 +13,32 @@ import (
 )
 
 type local struct {
-	Host   string
-	User   string
-	format Format
-	dryRun bool
+	Host       string
+	User       string
+	format     Format
+	dryRun     bool
+	cmdTimeout time.Duration
 }
 
-func (l *local) Run(cmd string) ([]byte, error) {
+func (l *local) Run(ctx context.Context, cmd string) ([]byte, error) {
 	PrintProgress(fmt.Sprintf("Running '%s' as %s@%s", cmd, l.User, l.Host), l.format)
 	if l.dryRun {
 		return nil, nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, l.cmdTimeout)
 	defer cancel()
 
 	return exec.CommandContext(ctx, "sh", "-c", cmd).CombinedOutput()
 }
 
-func (l *local) Copy(src, dest, mode, owner string) error {
+func (l *local) Copy(ctx context.Context, src, dest, mode, owner string) error {
 	PrintProgress(fmt.Sprintf("Copying from '%s' to '%s' as %s@%s", src, dest, l.User, l.Host), l.format)
 	if l.dryRun {
 		return nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, l.cmdTimeout)
 	defer cancel()
 
 	c := exec.CommandContext(ctx, "sudo", "cp", "-f", src, dest)
@@ -68,11 +69,12 @@ func (l *local) Copy(src, dest, mode, owner string) error {
 	return nil
 }
 
-func NewLocal(host *url.URL, format Format, dryRun bool) (Target, error) {
+func newLocal(host *url.URL, opts Options) (Target, error) {
 	return &local{
-		Host:   host.Hostname(),
-		User:   host.User.Username(),
-		format: format,
-		dryRun: dryRun,
+		Host:       host.Hostname(),
+		User:       host.User.Username(),
+		format:     opts.Format,
+		dryRun:     opts.DryRun,
+		cmdTimeout: opts.CmdTimeout,
 	}, nil
 }

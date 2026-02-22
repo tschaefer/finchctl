@@ -5,21 +5,21 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package service
 
 func (s *Service) __requirementsHasSudo() error {
-	if _, err := s.target.Run("command -v sudo"); err != nil {
+	if _, err := s.target.Run(s.ctx, "command -v sudo"); err != nil {
 		return &DeployServiceError{Message: "sudo is not installed", Reason: err.Error()}
 	}
 	return nil
 }
 
 func (s *Service) __requirementsHasCurl() error {
-	if _, err := s.target.Run("command -v curl"); err != nil {
+	if _, err := s.target.Run(s.ctx, "command -v curl"); err != nil {
 		return &DeployServiceError{Message: "curl is not installed", Reason: err.Error()}
 	}
 	return nil
 }
 
 func (s *Service) __requirementsHasSudoPermission() error {
-	if _, err := s.target.Run("sudo -n true"); err != nil {
+	if _, err := s.target.Run(s.ctx, "sudo -n true"); err != nil {
 		return &DeployServiceError{Message: "user has no sudo permission", Reason: err.Error()}
 	}
 	return nil
