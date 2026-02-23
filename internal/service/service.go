@@ -5,7 +5,9 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package service
 
 import (
+	"context"
 	"os"
+	"time"
 
 	"github.com/tschaefer/finchctl/internal/target"
 )
@@ -15,10 +17,12 @@ const (
 )
 
 type Service struct {
-	config *ServiceConfig
-	target target.Target
-	format target.Format
-	dryRun bool
+	ctx        context.Context
+	config     *ServiceConfig
+	target     target.Target
+	format     target.Format
+	dryRun     bool
+	cmdTimeout time.Duration
 }
 
 type ServiceConfig struct {
@@ -44,21 +48,36 @@ type FinchConfig struct {
 	Version   string `json:"version"`
 }
 
-func New(config *ServiceConfig, targetUrl string, format target.Format, dryRun bool) (*Service, error) {
-	target, err := target.NewTarget(targetUrl, format, dryRun)
+type Options struct {
+	Config     *ServiceConfig
+	TargetURL  string
+	Format     target.Format
+	DryRun     bool
+	CmdTimeout time.Duration
+}
+
+func New(ctx context.Context, opts Options) (*Service, error) {
+	t, err := target.New(opts.TargetURL, target.Options{
+		Format:     opts.Format,
+		DryRun:     opts.DryRun,
+		CmdTimeout: opts.CmdTimeout,
+	})
 	if err != nil {
 		return nil, err
 	}
 
+	config := opts.Config
 	if config == nil {
 		config = &ServiceConfig{}
 	}
 
 	return &Service{
-		config: config,
-		target: target,
-		format: format,
-		dryRun: dryRun,
+		ctx:        ctx,
+		config:     config,
+		target:     t,
+		format:     opts.Format,
+		dryRun:     opts.DryRun,
+		cmdTimeout: opts.CmdTimeout,
 	}, nil
 }
 

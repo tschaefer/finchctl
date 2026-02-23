@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
@@ -36,7 +37,12 @@ func runListCmd(cmd *cobra.Command, args []string) {
 	formatType, err := format.GetRunFormat("quiet")
 	cobra.CheckErr(err)
 
-	a, err := agent.New("", "localhost", formatType, false)
+	timeout, _ := cmd.Flags().GetUint("run.cmd-timeout")
+	a, err := agent.New(cmd.Context(), agent.Options{
+		TargetURL:  "localhost",
+		Format:     formatType,
+		CmdTimeout: time.Duration(timeout) * time.Second,
+	})
 	errors.CheckErr(err, formatType)
 
 	list, err := a.List(serviceName)

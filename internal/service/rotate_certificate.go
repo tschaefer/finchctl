@@ -26,7 +26,7 @@ func (s *Service) rotateCertificate() error {
 	}
 
 	obsoleteCACertPath := path.Join(s.libDir(), "traefik/etc/certs.d/ca.pem")
-	out, err := s.target.Run("rm -f " + obsoleteCACertPath)
+	out, err := s.target.Run(s.ctx, "rm -f "+obsoleteCACertPath)
 	if err != nil {
 		return &RotateServiceCertificateError{Message: err.Error(), Reason: string(out)}
 	}

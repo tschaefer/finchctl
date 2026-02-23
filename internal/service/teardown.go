@@ -21,12 +21,12 @@ func (s *Service) teardownService() error {
 		}
 	}
 
-	out, err := s.target.Run("sudo docker compose --file " + path.Join(s.libDir(), "docker-compose.yaml") + " down --volumes")
+	out, err := s.target.Run(s.ctx, "sudo docker compose --file "+path.Join(s.libDir(), "docker-compose.yaml")+" down --volumes")
 	if err != nil {
 		return &TeardownServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
-	out, err = s.target.Run("sudo rm -rf " + s.libDir())
+	out, err = s.target.Run(s.ctx, "sudo rm -rf "+s.libDir())
 	if err != nil {
 		return &TeardownServiceError{Message: err.Error(), Reason: string(out)}
 	}

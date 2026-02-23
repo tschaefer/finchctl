@@ -13,7 +13,7 @@ import (
 )
 
 func (a *Agent) configAgent(service, rid string) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(a.ctx, 15*time.Second)
 	defer cancel()
 
 	ctx, client, err := grpc.NewClient(ctx, service, api.NewAgentServiceClient)

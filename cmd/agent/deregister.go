@@ -5,6 +5,8 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package agent
 
 import (
+	"time"
+
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
 	"github.com/tschaefer/finchctl/cmd/errors"
@@ -30,12 +32,18 @@ func runDeregisterCmd(cmd *cobra.Command, args []string) {
 	formatType, err := format.GetRunFormat("quiet")
 	cobra.CheckErr(err)
 
+	timeout, _ := cmd.Flags().GetUint("run.cmd-timeout")
+
 	rid, _ := cmd.Flags().GetString("agent.rid")
 	if rid == "" {
 		errors.CheckErr("agent resource identifier is required", formatType)
 	}
 
-	agent, err := agent.New("", "local", formatType, false)
+	agent, err := agent.New(cmd.Context(), agent.Options{
+		TargetURL:  "local",
+		Format:     formatType,
+		CmdTimeout: time.Duration(timeout) * time.Second,
+	})
 	errors.CheckErr(err, formatType)
 
 	err = agent.Deregister(serviceName, rid)
