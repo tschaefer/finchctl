@@ -1,4 +1,9 @@
 ---
+limits:
+  compactor_blocks_retention_period: 72h
+  ingestion_rate: 0
+  ingestion_burst_size: 0
+
 multitenancy_enabled: false
 
 activity_tracker:

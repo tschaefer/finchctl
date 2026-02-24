@@ -4,6 +4,7 @@ auth_enabled: false
 limits_config:
   allow_structured_metadata: true
   volume_enabled: true
+  retention_period: 72h
 
 server:
   http_listen_port: 3100
@@ -32,3 +33,8 @@ storage_config:
     cache_location: /var/lib/loki/index_cache
   filesystem:
     directory: /var/lib/loki/chunks
+
+compactor:
+  working_directory: /var/lib/loki/compactor
+  retention_enabled: true
+  delete_request_store: filesystem

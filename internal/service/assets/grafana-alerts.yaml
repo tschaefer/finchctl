@@ -1,0 +1,212 @@
+---
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: Finch
+    folder: Finch
+    interval: 1m
+    rules:
+      - uid: finch-alert-traefik-down
+        title: Traefik Down
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: finch-mimir
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: probe_success{job="integrations/blackbox/traefik"}
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              type: classic_conditions
+              refId: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [1]
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Traefik is down — remote agents cannot deliver metrics, logs or profiles
+
+      - uid: finch-alert-finch-down
+        title: Finch Down
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: finch-mimir
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: probe_success{job="integrations/blackbox/finch"}
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              type: classic_conditions
+              refId: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [1]
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Finch is down — agents cannot authenticate and data delivery will fail
+
+      - uid: finch-alert-mimir-down
+        title: Mimir Down
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: finch-mimir
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: probe_success{job="integrations/blackbox/mimir"}
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              type: classic_conditions
+              refId: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [1]
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Mimir is down — metrics storage and querying unavailable
+
+      - uid: finch-alert-loki-down
+        title: Loki Down
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: finch-mimir
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: probe_success{job="integrations/blackbox/loki"}
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              type: classic_conditions
+              refId: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [1]
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Loki is down — log storage and querying unavailable
+
+      - uid: finch-alert-pyroscope-down
+        title: Pyroscope Down
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: finch-mimir
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: probe_success{job="integrations/blackbox/pyroscope"}
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              type: classic_conditions
+              refId: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [1]
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Pyroscope is down — profiling storage and querying unavailable
