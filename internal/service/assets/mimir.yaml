@@ -1,8 +1,8 @@
 ---
 limits:
   compactor_blocks_retention_period: 72h
-  ingestion_rate: 0
-  ingestion_burst_size: 0
+  ingestion_rate: 100000
+  ingestion_burst_size: 1000000
 
 multitenancy_enabled: false
 
