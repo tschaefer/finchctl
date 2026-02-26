@@ -14,11 +14,13 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"strings"
 	"text/template"
 	"time"
 
 	"github.com/tschaefer/finchctl/internal/config"
 	"github.com/tschaefer/finchctl/internal/mtls"
+	"github.com/tschaefer/finchctl/internal/target"
 	"github.com/tschaefer/finchctl/internal/version"
 )
 
@@ -32,10 +34,15 @@ const (
 func (s *Service) __deployMakeDirHierarchy() error {
 	directories := []string{
 		"grafana/dashboards",
-		"loki/{data,etc}",
-		"alloy/{data,etc}",
-		"traefik/etc/{certs.d,conf.d}",
-		"mimir/{data,etc}",
+		"grafana/alerting",
+		"loki/data",
+		"loki/etc",
+		"alloy/data",
+		"alloy/etc",
+		"traefik/etc/certs.d",
+		"traefik/etc/conf.d",
+		"mimir/data",
+		"mimir/etc",
 		"pyroscope/data",
 	}
 	for _, dir := range directories {
@@ -50,19 +57,24 @@ func (s *Service) __deployMakeDirHierarchy() error {
 
 func (s *Service) __deploySetDirHierarchyPermission() error {
 	ownership := map[string]string{
-		"grafana":                      "472:472",
-		"grafana/dashboards":           "472:472",
-		"loki":                         "10001:10001",
-		"loki/{data,etc}":              "10001:10001",
-		"alloy":                        "0:0",
-		"alloy/{data,etc}":             "0:0",
-		"traefik":                      "0:0",
-		"traefik/etc":                  "0:0",
-		"traefik/etc/{certs.d,conf.d}": "0:0",
-		"mimir":                        "10001:10001",
-		"mimir/{data,etc}":             "10001:10001",
-		"pyroscope":                    "10001:10001",
-		"pyroscope/data":               "10001:10001",
+		"grafana":             "472:472",
+		"grafana/dashboards":  "472:472",
+		"grafana/alerting":    "472:472",
+		"loki":                "10001:10001",
+		"loki/data":           "10001:10001",
+		"loki/etc":            "10001:10001",
+		"alloy":               "0:0",
+		"alloy/data":          "0:0",
+		"alloy/etc":           "0:0",
+		"traefik":             "0:0",
+		"traefik/etc":         "0:0",
+		"traefik/etc/certs.d": "0:0",
+		"traefik/etc/conf.d":  "0:0",
+		"mimir":               "10001:10001",
+		"mimir/data":          "10001:10001",
+		"mimir/etc":           "10001:10001",
+		"pyroscope":           "10001:10001",
+		"pyroscope/data":      "10001:10001",
 	}
 
 	for dir, owner := range ownership {
@@ -236,6 +248,11 @@ func (s *Service) __deployCopyGrafanaDashboards() error {
 	return nil
 }
 
+func (s *Service) __deployCopyGrafanaAlerts() error {
+	path := path.Join(s.libDir(), "grafana/alerting/grafana-alerts.yaml")
+	return s.__helperCopyConfig(path, "400", "472:472")
+}
+
 func (s *Service) __deployCopyMimirConfig() error {
 	path := path.Join(s.libDir(), "mimir/etc/mimir.yaml")
 	return s.__helperCopyConfig(path, "400", "10001:10001")
@@ -299,13 +316,68 @@ func (s *Service) __helperCopyTemplate(filePath, mode, owner string, data any) e
 	return nil
 }
 
+func (s *Service) __configHash(data ...[]byte) string {
+	h := sha256.New()
+	for _, d := range data {
+		h.Write(d)
+	}
+	return hex.EncodeToString(h.Sum(nil))[:16]
+}
+
 func (s *Service) __deployCopyComposeFile() error {
 	filePath := path.Join(s.libDir(), "docker-compose.yaml")
 
+	alloyTmplBytes, err := fs.ReadFile(Assets, "alloy.config.tmpl")
+	if err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
+	alloyTmpl, err := template.New("alloy").Parse(string(alloyTmplBytes))
+	if err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
+	var alloyRendered bytes.Buffer
+	if err = alloyTmpl.Execute(&alloyRendered, struct{ Hostname string }{s.config.Hostname}); err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
+
+	lokiBytes, err := fs.ReadFile(Assets, "loki.yaml")
+	if err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
+	mimirBytes, err := fs.ReadFile(Assets, "mimir.yaml")
+	if err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
+
+	grafanaAssets := []string{
+		"grafana-alerts.yaml",
+		"grafana-dashboard-logs-docker.json",
+		"grafana-dashboard-logs-journal.json",
+		"grafana-dashboard-logs-file.json",
+		"grafana-dashboard-metrics.json",
+		"grafana-dashboard-profiles-finch.json",
+	}
+	var grafanaChunks [][]byte
+	for _, name := range grafanaAssets {
+		b, err := fs.ReadFile(Assets, name)
+		if err != nil {
+			return &DeployServiceError{Message: err.Error(), Reason: ""}
+		}
+		grafanaChunks = append(grafanaChunks, b)
+	}
+
 	data := struct {
-		RootUrl string
+		RootUrl           string
+		AlloyConfigHash   string
+		GrafanaConfigHash string
+		LokiConfigHash    string
+		MimirConfigHash   string
 	}{
-		RootUrl: fmt.Sprintf("https://%s", s.config.Hostname),
+		RootUrl:           fmt.Sprintf("https://%s", s.config.Hostname),
+		AlloyConfigHash:   s.__configHash(alloyRendered.Bytes()),
+		GrafanaConfigHash: s.__configHash(grafanaChunks...),
+		LokiConfigHash:    s.__configHash(lokiBytes),
+		MimirConfigHash:   s.__configHash(mimirBytes),
 	}
 
 	return s.__helperCopyTemplate(filePath, "400", "0:0", data)
@@ -321,14 +393,97 @@ func (s *Service) __deployComposeUp() error {
 }
 
 func (s *Service) __deployComposeReady() error {
-	cmd := `timeout 180 bash -c 'until curl -fs -o /dev/null -w "%{http_code}" http://localhost | grep -qE "^[234][0-9]{2}$"; do sleep 2; done'`
-
-	out, err := s.target.Run(s.ctx, cmd)
-	if err != nil {
-		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
+	if s.dryRun {
+		target.PrintProgress("Skipping readiness check due to dry-run mode", s.format)
+		return nil
 	}
 
-	return nil
+	containers := []string{
+		"hc-traefik",
+		"hc-finch",
+		"hc-grafana",
+		"hc-loki",
+		"hc-mimir",
+		"hc-pyroscope",
+	}
+
+	const (
+		maxWait        = 180 * time.Second
+		interval       = 2 * time.Second
+		unhealthyLimit = 5
+	)
+
+	unhealthyCount := make(map[string]int)
+	deadline := time.Now().Add(maxWait)
+	for time.Now().Before(deadline) {
+		allHealthy := true
+		var failed []string
+
+		for _, c := range containers {
+			cmd := fmt.Sprintf("sudo docker inspect --format '{{.State.Health.Status}}' %s", c)
+			out, err := s.target.Run(s.ctx, cmd)
+			status := strings.TrimSpace(string(out))
+			switch {
+			case err == nil && status == "healthy":
+				unhealthyCount[c] = 0
+			case err != nil || status == "unhealthy":
+				unhealthyCount[c]++
+				allHealthy = false
+				if unhealthyCount[c] >= unhealthyLimit {
+					failed = append(failed, c)
+				}
+			default:
+				allHealthy = false
+			}
+		}
+
+		if len(failed) > 0 {
+			var services []string
+			for _, c := range failed {
+				services = append(services, strings.TrimPrefix(c, "hc-"))
+			}
+			logParts := s.__deployCollectHealthLogs(services)
+
+			return &DeployServiceError{
+				Message: fmt.Sprintf("readiness check failed for: %s", strings.Join(failed, ", ")),
+				Reason:  strings.Join(*logParts, "\n"),
+			}
+		}
+
+		if allHealthy {
+			return nil
+		}
+
+		time.Sleep(interval)
+	}
+
+	var timedOut []string
+	for _, c := range containers {
+		cmd := fmt.Sprintf("sudo docker inspect --format '{{.State.Health.Status}}' %s", c)
+		out, err := s.target.Run(s.ctx, cmd)
+		status := strings.TrimSpace(string(out))
+		if err != nil || status != "healthy" {
+			timedOut = append(timedOut, strings.TrimPrefix(c, "hc-"))
+		}
+	}
+
+	logParts := s.__deployCollectHealthLogs(timedOut)
+
+	return &DeployServiceError{
+		Message: fmt.Sprintf("readiness check failed for: %s", strings.Join(containers, ", ")),
+		Reason:  strings.Join(*logParts, "\n"),
+	}
+}
+
+func (s *Service) __deployCollectHealthLogs(containers []string) *[]string {
+	var logParts []string
+	for _, c := range containers {
+		cmd := fmt.Sprintf("sudo docker logs --tail 50 %s 2>&1", c)
+		out, _ := s.target.Run(s.ctx, cmd)
+		logParts = append(logParts, strings.TrimSpace(string(out)))
+	}
+
+	return &logParts
 }
 
 func (s *Service) deployService() error {
@@ -365,6 +520,10 @@ func (s *Service) deployService() error {
 	}
 
 	if err := s.__deployCopyGrafanaDashboards(); err != nil {
+		return err
+	}
+
+	if err := s.__deployCopyGrafanaAlerts(); err != nil {
 		return err
 	}
 

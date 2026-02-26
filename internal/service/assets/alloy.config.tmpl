@@ -58,3 +58,42 @@ prometheus.scrape "node" {
   scrape_interval = "15s"
 }
 
+prometheus.exporter.blackbox "services" {
+  config = `{
+    modules: {
+      tcp:      { prober: tcp },
+      http_2xx: { prober: http }
+    }
+  }`
+  target {
+    name    = "traefik"
+    address = "traefik:443"
+    module  = "tcp"
+  }
+  target {
+    name    = "finch"
+    address = "http://finch:3003/healthz"
+    module  = "http_2xx"
+  }
+  target {
+    name    = "mimir"
+    address = "http://mimir:8080/ready"
+    module  = "http_2xx"
+  }
+  target {
+    name    = "loki"
+    address = "http://loki:3100/ready"
+    module  = "http_2xx"
+  }
+  target {
+    name    = "pyroscope"
+    address = "http://pyroscope:4040/ready"
+    module  = "http_2xx"
+  }
+}
+
+prometheus.scrape "services" {
+  targets         = prometheus.exporter.blackbox.services.targets
+  forward_to      = [prometheus.remote_write.default.receiver]
+  scrape_interval = "15s"
+}

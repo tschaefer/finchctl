@@ -36,12 +36,12 @@ func Test_Deploy(t *testing.T) {
 	assert.NoError(t, err, "deploy service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 43, "number of log lines")
+	assert.Len(t, tracks, 54, "number of log lines")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
-	wanted = "Running 'timeout 180 bash -c 'until curl -fs -o /dev/null -w \"%{http_code}\" http://localhost | grep -qE \"^[234][0-9]{2}$\"; do sleep 2; done'' as .+@localhost"
+	wanted = "Skipping readiness check due to dry-run mode"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
 	s, err = New(context.Background(), Options{
@@ -128,7 +128,7 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "update service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 39, "number of log lines")
+	assert.Len(t, tracks, 50, "number of log lines")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
