@@ -41,15 +41,15 @@ func (s *remote) Run(ctx context.Context, cmd string) ([]byte, error) {
 	return s.client.RunContext(ctx, cmd)
 }
 
-func (s *remote) Copy(ctx context.Context, src, dest, mode, owner string) error {
+func (s *remote) Copy(ctx context.Context, src, dest, mode, owner string) ([]byte, error) {
 	PrintProgress(fmt.Sprintf("Copying from '%s' to '%s' as %s@%s", src, dest, s.User, s.Host), s.format)
 	if s.dryRun {
-		return nil
+		return nil, nil
 	}
 
 	raw, err := s.Run(ctx, "mktemp -p /tmp -d finch-XXXXXX")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	tmpdest := strings.TrimSpace(string(raw))
 	defer func() {
@@ -69,33 +69,26 @@ func (s *remote) Copy(ctx context.Context, src, dest, mode, owner string) error 
 	select {
 	case err := <-done:
 		if err != nil {
-			return err
+			return nil, err
 		}
 	case <-uploadCtx.Done():
 		_ = s.client.Close()
-		return fmt.Errorf("upload timed out after %s", s.cmdTimeout)
+		return nil, fmt.Errorf("upload timed out after %s", s.cmdTimeout)
 	}
 
-	_, err = s.Run(ctx, fmt.Sprintf("sudo mv -f %s %s", tmpdest+"/file", dest))
-	if err != nil {
-		return err
-	}
-
-	if mode != "" {
-		_, err = s.Run(ctx, fmt.Sprintf("sudo chmod %s %s", mode, dest))
-		if err != nil {
-			return err
-		}
-	}
-
+	installCmd := fmt.Sprintf("sudo install -m %s %s %s", mode, tmpdest+"/file", dest)
 	if owner != "" {
-		_, err = s.Run(ctx, fmt.Sprintf("sudo chown %s %s", owner, dest))
-		if err != nil {
-			return err
+		parts := strings.SplitN(owner, ":", 2)
+		if len(parts) == 2 {
+			installCmd = fmt.Sprintf("sudo install -m %s -o %s -g %s %s %s", mode, parts[0], parts[1], tmpdest+"/file", dest)
 		}
 	}
+	out, err := s.Run(ctx, installCmd)
+	if err != nil {
+		return out, err
+	}
 
-	return nil
+	return nil, nil
 }
 
 func newRemote(host *url.URL, opts Options) (Target, error) {

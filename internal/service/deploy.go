@@ -146,8 +146,8 @@ func (s *Service) __deployCopyTraefikHttpTlsConfig() error {
 		}
 		for k, v := range assets {
 			pem := path.Join(s.libDir(), "traefik/etc/certs.d", k+".pem")
-			if err := s.target.Copy(s.ctx, v, pem, "400", "0:0"); err != nil {
-				return &DeployServiceError{Message: err.Error(), Reason: ""}
+			if out, err := s.target.Copy(s.ctx, v, pem, "400", "0:0"); err != nil {
+				return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 			}
 		}
 	}
@@ -177,8 +177,8 @@ func (s *Service) __deployGenerateMTLSCertificates() error {
 	if _, err := f.Write(caCertPEM); err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
-	if err := s.target.Copy(s.ctx, f.Name(), caCertPath, "400", "0:0"); err != nil {
-		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	if out, err := s.target.Copy(s.ctx, f.Name(), caCertPath, "400", "0:0"); err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
 	if s.dryRun {
@@ -277,8 +277,8 @@ func (s *Service) __helperCopyConfig(filePath, mode, owner string) error {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := s.target.Copy(s.ctx, f.Name(), filePath, mode, owner); err != nil {
-		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	if out, err := s.target.Copy(s.ctx, f.Name(), filePath, mode, owner); err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
 	return nil
@@ -309,8 +309,8 @@ func (s *Service) __helperCopyTemplate(filePath, mode, owner string, data any) e
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := s.target.Copy(s.ctx, f.Name(), filePath, mode, owner); err != nil {
-		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	if out, err := s.target.Copy(s.ctx, f.Name(), filePath, mode, owner); err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
 	return nil

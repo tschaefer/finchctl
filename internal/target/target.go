@@ -27,7 +27,7 @@ const (
 
 type Target interface {
 	Run(ctx context.Context, command string) ([]byte, error)
-	Copy(ctx context.Context, src, dest, mode, owner string) error
+	Copy(ctx context.Context, src, dest, mode, owner string) ([]byte, error)
 }
 
 type Options struct {

@@ -41,8 +41,8 @@ func (a *Agent) __deployMakeDirHierarchy() error {
 }
 
 func (a *Agent) __deployCopyConfigFile() error {
-	if err := a.target.Copy(a.ctx, a.config, "/etc/alloy/alloy.config", "400", "0:0"); err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	if out, err := a.target.Copy(a.ctx, a.config, "/etc/alloy/alloy.config", "400", "0:0"); err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
 
 	return nil
@@ -67,8 +67,8 @@ func (a *Agent) __deployCopySystemdServiceUnit() error {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := a.target.Copy(a.ctx, f.Name(), dest, "444", "0:0"); err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	if out, err := a.target.Copy(a.ctx, f.Name(), dest, "444", "0:0"); err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
 
 	return nil
@@ -93,8 +93,8 @@ func (a *Agent) __deployCopyRcServiceFile() error {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := a.target.Copy(a.ctx, f.Name(), dest, "444", "0:0"); err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	if out, err := a.target.Copy(a.ctx, f.Name(), dest, "444", "0:0"); err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
 
 	out, err := a.target.Run(a.ctx, "sudo chmod +x "+dest)
@@ -124,8 +124,8 @@ func (a *Agent) __deployCopyLaunchdServiceFile() error {
 		return &DeployAgentError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := a.target.Copy(a.ctx, f.Name(), dest, "444", "0:0"); err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: ""}
+	if out, err := a.target.Copy(a.ctx, f.Name(), dest, "444", "0:0"); err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
 
 	return nil
@@ -252,9 +252,9 @@ func (a *Agent) __deployInstallBinary(binary string, machine *MachineInfo) error
 		}
 	}
 
-	err := a.target.Copy(a.ctx, binary, binPath, "755", "0:0")
+	out, err := a.target.Copy(a.ctx, binary, binPath, "755", "0:0")
 	if err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: ""}
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
 
 	return nil

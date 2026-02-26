@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/url"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -32,41 +33,27 @@ func (l *local) Run(ctx context.Context, cmd string) ([]byte, error) {
 	return exec.CommandContext(ctx, "sh", "-c", cmd).CombinedOutput()
 }
 
-func (l *local) Copy(ctx context.Context, src, dest, mode, owner string) error {
+func (l *local) Copy(ctx context.Context, src, dest, mode, owner string) ([]byte, error) {
 	PrintProgress(fmt.Sprintf("Copying from '%s' to '%s' as %s@%s", src, dest, l.User, l.Host), l.format)
 	if l.dryRun {
-		return nil
+		return nil, nil
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, l.cmdTimeout)
 	defer cancel()
 
-	c := exec.CommandContext(ctx, "sudo", "cp", "-f", src, dest)
-	c.Stdout = nil
-	c.Stderr = nil
-	if err := c.Run(); err != nil {
-		return err
-	}
-
-	if mode != "" {
-		c = exec.CommandContext(ctx, "sudo", "chmod", mode, dest)
-		c.Stdout = nil
-		c.Stderr = nil
-		if err := c.Run(); err != nil {
-			return err
-		}
-	}
-
+	installCmd := []string{"sudo", "install", "-m", mode, src, dest}
 	if owner != "" {
-		c = exec.CommandContext(ctx, "sudo", "chown", owner, dest)
-		c.Stdout = nil
-		c.Stderr = nil
-		if err := c.Run(); err != nil {
-			return err
+		parts := strings.SplitN(owner, ":", 2)
+		if len(parts) == 2 {
+			installCmd = []string{"sudo", "install", "-m", mode, "-o", parts[0], "-g", parts[1], src, dest}
 		}
 	}
+	if out, err := exec.CommandContext(ctx, installCmd[0], installCmd[1:]...).CombinedOutput(); err != nil {
+		return out, err
+	}
 
-	return nil
+	return nil, nil
 }
 
 func newLocal(host *url.URL, opts Options) (Target, error) {

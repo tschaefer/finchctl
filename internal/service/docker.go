@@ -71,8 +71,8 @@ func (s *Service) __dockerCopyConfig() error {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	if err := s.target.Copy(s.ctx, f.Name(), dest, "400", "0:0"); err != nil {
-		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	if out, err := s.target.Copy(s.ctx, f.Name(), dest, "400", "0:0"); err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
 	if out, err := s.target.Run(s.ctx, "sudo systemctl restart docker"); err != nil {
