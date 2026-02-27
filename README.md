@@ -135,6 +135,28 @@ Both `service` and `agent` commands have several subcommands, including:
 - `teardown` – Remove the deployed stack or agent
 - `update` – Upgrade stack services or agent to the latest version
 
+and further security commands:
+
+- `service rotate-certificate` - Rotate mTLS certificates for the current cli
+- `service rotate-secret` - Rotate service secret
+
+## Security model
+
+This project optimizes for **clear invariants** and **deterministic recovery** over enterprise-style session plumbing.
+
+- **No fine-grained JWT revocation lists.**
+  - Per-agent compromise: invalidate by deleting/re-registering the agent identity (RID-gated auth).
+  - Break-glass: rotate the JWT signing secret (global invalidation, followed by re-enrollment).
+
+- **Rotations should not imply data loss.**
+  Short auth outages are expected to be bridged by Alloy’s WAL/buffering (bounded by disk and outage duration).
+
+- **Not multi-tenant.**
+  Scale / isolation come from topology; run one stack per region / site to reduce blast radius and keep ops local.
+
+- **No built-in magic automation.**
+  Finch provides interfaces (CLI / API + declarative agent definitions). You automate it to fit your infrastructure.
+
 ## Contributing
 
 Contributions are welcome!
