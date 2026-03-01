@@ -2,7 +2,7 @@
 services:
   grafana:
     container_name: grafana
-    image: grafana/grafana:12.3.3
+    image: grafana/grafana:12.4.0
     environment:
       - GF_SERVER_ROOT_URL={{ .RootUrl }}/grafana
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
@@ -67,7 +67,7 @@ services:
 
   loki:
     container_name: loki
-    image: grafana/loki:3.6.6
+    image: grafana/loki:3.6.7
     command:
       - "-config.file=/etc/loki/loki.yaml"
       - "-target=all"
@@ -81,7 +81,7 @@ services:
 
   traefik:
     container_name: traefik
-    image: traefik:v3.6.8
+    image: traefik:v3.6.9
     command:
       - "--configfile=/etc/traefik/traefik.yaml"
     ports:
@@ -94,7 +94,7 @@ services:
 
   alloy:
     container_name: alloy
-    image: grafana/alloy:v1.13.1
+    image: grafana/alloy:v1.13.2
     volumes:
       - /var/lib/finch/alloy/etc:/etc/alloy
       - /var/lib/finch/alloy/data:/var/lib/alloy/data
@@ -148,7 +148,7 @@ services:
 
   hc-traefik:
     container_name: hc-traefik
-    image: curlimages/curl:8.17.0
+    image: curlimages/curl:8.18.0
     entrypoint:
       - sleep
       - infinity
@@ -164,7 +164,7 @@ services:
 
   hc-finch:
     container_name: hc-finch
-    image: curlimages/curl:8.17.0
+    image: curlimages/curl:8.18.0
     entrypoint:
       - sleep
       - infinity
@@ -180,7 +180,7 @@ services:
 
   hc-grafana:
     container_name: hc-grafana
-    image: curlimages/curl:8.17.0
+    image: curlimages/curl:8.18.0
     entrypoint:
       - sleep
       - infinity
@@ -196,7 +196,7 @@ services:
 
   hc-loki:
     container_name: hc-loki
-    image: curlimages/curl:8.17.0
+    image: curlimages/curl:8.18.0
     entrypoint:
       - sleep
       - infinity
@@ -212,7 +212,7 @@ services:
 
   hc-mimir:
     container_name: hc-mimir
-    image: curlimages/curl:8.17.0
+    image: curlimages/curl:8.18.0
     entrypoint:
       - sleep
       - infinity
@@ -228,7 +228,7 @@ services:
 
   hc-pyroscope:
     container_name: hc-pyroscope
-    image: curlimages/curl:8.17.0
+    image: curlimages/curl:8.18.0
     entrypoint:
       - sleep
       - infinity
