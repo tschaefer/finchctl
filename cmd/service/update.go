@@ -23,7 +23,10 @@ var updateCmd = &cobra.Command{
 
 func init() {
 	updateCmd.Flags().String("run.format", "progress", "output format")
-	updateCmd.Flags().Bool("run.dry-run", false, "do not deploy, just print the commands that would be run")
+	updateCmd.Flags().Bool("run.dry-run", false, "do not update, just print the commands that would be run")
+	updateCmd.Flags().Bool("service.customtls", false, "use custom TLS certificate (default: false)")
+	updateCmd.Flags().String("service.customtls.cert", "", "path to custom TLS certificate file (required if --service.customtls is true)")
+	updateCmd.Flags().String("service.customtls.key", "", "path to custom TLS key file (required if --service.customtls is true)")
 
 	_ = updateCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
@@ -36,12 +39,18 @@ func runUpdateCmd(cmd *cobra.Command, args []string) {
 	cobra.CheckErr(err)
 	dryRun, _ := cmd.Flags().GetBool("run.dry-run")
 
+	config := &service.ServiceConfig{}
+	config.CustomTLS.Enabled, _ = cmd.Flags().GetBool("service.customtls")
+	config.CustomTLS.CertFilePath, _ = cmd.Flags().GetString("service.customtls.cert")
+	config.CustomTLS.KeyFilePath, _ = cmd.Flags().GetString("service.customtls.key")
+
 	timeout, _ := cmd.Flags().GetUint("run.cmd-timeout")
 	s, err := service.New(cmd.Context(), service.Options{
 		TargetURL:  targetUrl,
 		Format:     formatType,
 		DryRun:     dryRun,
 		CmdTimeout: time.Duration(timeout) * time.Second,
+		Config:     config,
 	})
 	errors.CheckErr(err, formatType)
 

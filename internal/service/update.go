@@ -95,6 +95,10 @@ func (s *Service) updateService() error {
 		return convertError(err, &UpdateServiceError{})
 	}
 
+	if err := s.__deployCopyTraefikHttpTlsConfig(); err != nil {
+		return convertError(err, &UpdateServiceError{})
+	}
+
 	if err := s.__deployCopyAlloyConfig(); err != nil {
 		return convertError(err, &UpdateServiceError{})
 	}

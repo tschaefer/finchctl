@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/user"
 	"path"
 	"strings"
 	"text/template"
@@ -147,6 +148,10 @@ func (s *Service) __deployCopyTraefikHttpTlsConfig() error {
 			"key":  s.config.CustomTLS.KeyFilePath,
 		}
 		for k, v := range assets {
+			if _, err := os.Stat(v); err != nil {
+				s.__helperPrintProgress(fmt.Sprintf("Skipping copying custom TLS %s", k))
+				continue
+			}
 			pem := path.Join(s.libDir(), "traefik/etc/certs.d", k+".pem")
 			if out, err := s.target.Copy(s.ctx, v, pem, "400", "0:0"); err != nil {
 				return &DeployServiceError{Message: err.Error(), Reason: string(out)}
@@ -321,6 +326,16 @@ func (s *Service) __helperCopyTemplate(filePath, mode, owner string, data any) e
 	}
 
 	return nil
+}
+
+func (s *Service) __helperPrintProgress(message string) {
+	username := "unknown"
+	user, err := user.Current()
+	if err == nil {
+		username = user.Username
+	}
+
+	target.PrintProgress(fmt.Sprintf("%s as %s@localhost", message, username), s.format)
 }
 
 func (s *Service) __configHash(data ...[]byte) string {
