@@ -36,7 +36,7 @@ func Test_Deploy(t *testing.T) {
 	assert.NoError(t, err, "deploy service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 54, "number of log lines")
+	assert.Len(t, tracks, 57, "number of log lines")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
@@ -128,7 +128,7 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "update service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 50, "number of log lines")
+	assert.Len(t, tracks, 53, "number of log lines")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")

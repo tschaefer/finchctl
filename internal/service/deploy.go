@@ -44,6 +44,7 @@ func (s *Service) __deployMakeDirHierarchy() error {
 		"mimir/data",
 		"mimir/etc",
 		"pyroscope/data",
+		"pyroscope/etc",
 	}
 	for _, dir := range directories {
 		out, err := s.target.Run(s.ctx, "sudo mkdir -p "+path.Join(s.libDir(), dir))
@@ -75,6 +76,7 @@ func (s *Service) __deploySetDirHierarchyPermission() error {
 		"mimir/etc":           "10001:10001",
 		"pyroscope":           "10001:10001",
 		"pyroscope/data":      "10001:10001",
+		"pyroscope/etc":       "10001:10001",
 	}
 
 	for dir, owner := range ownership {
@@ -258,6 +260,11 @@ func (s *Service) __deployCopyMimirConfig() error {
 	return s.__helperCopyConfig(path, "400", "10001:10001")
 }
 
+func (s *Service) __deployCopyPyroscopeConfig() error {
+	path := path.Join(s.libDir(), "pyroscope/etc/pyroscope.yaml")
+	return s.__helperCopyConfig(path, "400", "10001:10001")
+}
+
 func (s *Service) __helperCopyConfig(filePath, mode, owner string) error {
 	fileName := path.Base(filePath)
 
@@ -348,6 +355,10 @@ func (s *Service) __deployCopyComposeFile() error {
 	if err != nil {
 		return &DeployServiceError{Message: err.Error(), Reason: ""}
 	}
+	pyroscopeBytes, err := fs.ReadFile(Assets, "pyroscope.yaml")
+	if err != nil {
+		return &DeployServiceError{Message: err.Error(), Reason: ""}
+	}
 
 	grafanaAssets := []string{
 		"grafana-alerts.yaml",
@@ -367,17 +378,19 @@ func (s *Service) __deployCopyComposeFile() error {
 	}
 
 	data := struct {
-		RootUrl           string
-		AlloyConfigHash   string
-		GrafanaConfigHash string
-		LokiConfigHash    string
-		MimirConfigHash   string
+		RootUrl             string
+		AlloyConfigHash     string
+		GrafanaConfigHash   string
+		LokiConfigHash      string
+		MimirConfigHash     string
+		PyroscopeConfigHash string
 	}{
-		RootUrl:           fmt.Sprintf("https://%s", s.config.Hostname),
-		AlloyConfigHash:   s.__configHash(alloyRendered.Bytes()),
-		GrafanaConfigHash: s.__configHash(grafanaChunks...),
-		LokiConfigHash:    s.__configHash(lokiBytes),
-		MimirConfigHash:   s.__configHash(mimirBytes),
+		RootUrl:             fmt.Sprintf("https://%s", s.config.Hostname),
+		AlloyConfigHash:     s.__configHash(alloyRendered.Bytes()),
+		GrafanaConfigHash:   s.__configHash(grafanaChunks...),
+		LokiConfigHash:      s.__configHash(lokiBytes),
+		MimirConfigHash:     s.__configHash(mimirBytes),
+		PyroscopeConfigHash: s.__configHash(pyroscopeBytes),
 	}
 
 	return s.__helperCopyTemplate(filePath, "400", "0:0", data)
@@ -532,6 +545,10 @@ func (s *Service) deployService() error {
 	}
 
 	if err := s.__deployCopyMimirConfig(); err != nil {
+		return err
+	}
+
+	if err := s.__deployCopyPyroscopeConfig(); err != nil {
 		return err
 	}
 

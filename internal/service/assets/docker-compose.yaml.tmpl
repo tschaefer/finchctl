@@ -137,14 +137,13 @@ services:
     image: grafana/pyroscope:1.18.1
     volumes:
       - /var/lib/finch/pyroscope/data:/var/lib/pyroscope
+      - /var/lib/finch/pyroscope/etc:/etc/pyroscope
     command:
-      - "--pyroscopedb.data-path=/var/lib/pyroscope"
-      - "--compactor.blocks-retention-period=72h"
-      - "--querier.max-query-lookback=72h"
-      - "--querier.max-query-length=72h"
-      - "--server.log-source-ips-enabled=true"
+      - "--config.file=/etc/pyroscope/pyroscope.yaml"
     user: "10001:10001"
     restart: always
+    labels:
+      finch.config-hash: "{{ .PyroscopeConfigHash }}"
 
   hc-traefik:
     container_name: hc-traefik

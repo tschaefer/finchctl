@@ -1,0 +1,16 @@
+---
+server:
+  log_source_ips_enabled: true
+
+limits:
+  compactor_blocks_retention_period: 72h
+  max_query_lookback: 72h
+  max_query_length: 72h
+
+pyroscopedb:
+  data_path: /var/lib/pyroscope
+
+storage:
+  backend: filesystem
+  filesystem:
+    dir: /var/lib/pyroscope/data-shared

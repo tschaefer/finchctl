@@ -111,6 +111,10 @@ func (s *Service) updateService() error {
 		return convertError(err, &UpdateServiceError{})
 	}
 
+	if err := s.__deployCopyPyroscopeConfig(); err != nil {
+		return convertError(err, &UpdateServiceError{})
+	}
+
 	if err := s.__updateRecomposeDockerServices(); err != nil {
 		return err
 	}
