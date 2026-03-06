@@ -29,7 +29,7 @@ const (
 	defaultLetsEncryptEmail = "acme@example.com"
 	finchDatabase           = "sqlite://finch.db"
 	finchProfiler           = "http://pyroscope:4040"
-	finchVersion            = "1.10.0"
+	finchVersion            = "1.11.0"
 )
 
 func (s *Service) __deployMakeDirHierarchy() error {
