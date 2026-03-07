@@ -13,7 +13,7 @@ import (
 
 func (s *Service) __updateSetTargetConfiguration() error {
 	cfgPath := path.Join(s.libDir(), "finch.json")
-	out, err := s.target.Run(s.ctx, "sudo cat "+cfgPath)
+	out, err := s.target.RunForce(s.ctx, "sudo cat "+cfgPath)
 	if err != nil {
 		return &UpdateServiceError{Message: err.Error(), Reason: string(out)}
 	}
@@ -22,11 +22,6 @@ func (s *Service) __updateSetTargetConfiguration() error {
 	yaml := path.Join(s.libDir(), "traefik/etc/conf.d/letsencrypt.yaml")
 	if _, err = s.target.Run(s.ctx, "test -e "+yaml); err == nil {
 		letsencrypt = true
-	}
-
-	if s.dryRun {
-		s.config.Hostname = ""
-		return nil
 	}
 
 	var cfg FinchConfig
@@ -73,10 +68,8 @@ func (s *Service) updateService() error {
 		return err
 	}
 
-	if !s.dryRun {
-		if _, err := config.LookupStack(s.config.Hostname); err != nil {
-			return &UpdateServiceError{Message: err.Error(), Reason: ""}
-		}
+	if _, err := config.LookupStack(s.config.Hostname); err != nil {
+		return &UpdateServiceError{Message: err.Error(), Reason: "stack not found"}
 	}
 
 	if err := s.__deployMakeDirHierarchy(); err != nil {

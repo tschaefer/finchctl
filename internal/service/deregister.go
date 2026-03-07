@@ -16,10 +16,8 @@ func (s *Service) deregisterService() error {
 		return convertError(err, &DeregisterServiceError{})
 	}
 
-	if !s.dryRun {
-		if _, err := config.LookupStack(s.config.Hostname); err != nil {
-			return &DeregisterServiceError{Message: err.Error(), Reason: ""}
-		}
+	if _, err := config.LookupStack(s.config.Hostname); err != nil {
+		return &DeregisterServiceError{Message: err.Error(), Reason: ""}
 	}
 
 	caCertPath := path.Join(s.libDir(), "traefik/etc/certs.d", version.ResourceID()+".pem")

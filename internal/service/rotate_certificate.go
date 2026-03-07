@@ -15,10 +15,8 @@ func (s *Service) rotateCertificate() error {
 		return convertError(err, &RotateServiceCertificateError{})
 	}
 
-	if !s.dryRun {
-		if _, err := config.LookupStack(s.config.Hostname); err != nil {
-			return &RotateServiceCertificateError{Message: err.Error(), Reason: ""}
-		}
+	if _, err := config.LookupStack(s.config.Hostname); err != nil {
+		return &RotateServiceCertificateError{Message: err.Error(), Reason: ""}
 	}
 
 	if err := s.__deployGenerateMTLSCertificates(); err != nil {

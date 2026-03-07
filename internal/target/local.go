@@ -33,6 +33,14 @@ func (l *local) Run(ctx context.Context, cmd string) ([]byte, error) {
 	return exec.CommandContext(ctx, "sh", "-c", cmd).CombinedOutput()
 }
 
+func (l *local) RunForce(ctx context.Context, cmd string) ([]byte, error) {
+	dryRun := l.dryRun
+	l.dryRun = false
+	defer func() { l.dryRun = dryRun }()
+
+	return l.Run(ctx, cmd)
+}
+
 func (l *local) Copy(ctx context.Context, src, dest, mode, owner string) ([]byte, error) {
 	PrintProgress(fmt.Sprintf("Copying from '%s' to '%s' as %s@%s", src, dest, l.User, l.Host), l.format)
 	if l.dryRun {

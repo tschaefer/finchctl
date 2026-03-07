@@ -41,6 +41,14 @@ func (s *remote) Run(ctx context.Context, cmd string) ([]byte, error) {
 	return s.client.RunContext(ctx, cmd)
 }
 
+func (s *remote) RunForce(ctx context.Context, cmd string) ([]byte, error) {
+	dryRun := s.dryRun
+	s.dryRun = false
+	defer func() { s.dryRun = dryRun }()
+
+	return s.Run(ctx, cmd)
+}
+
 func (s *remote) Copy(ctx context.Context, src, dest, mode, owner string) ([]byte, error) {
 	PrintProgress(fmt.Sprintf("Copying from '%s' to '%s' as %s@%s", src, dest, s.User, s.Host), s.format)
 	if s.dryRun {

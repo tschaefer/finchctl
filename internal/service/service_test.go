@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tschaefer/finchctl/internal/config"
 	"github.com/tschaefer/finchctl/internal/target"
 )
 
@@ -27,6 +28,9 @@ func Test_Deploy(t *testing.T) {
 		Format:     target.FormatDocumentation,
 		DryRun:     true,
 		CmdTimeout: 300 * time.Second,
+		Config: &ServiceConfig{
+			Hostname: "localhost",
+		},
 	})
 	assert.NoError(t, err, "create service")
 
@@ -49,6 +53,9 @@ func Test_Deploy(t *testing.T) {
 		Format:     target.FormatJSON,
 		DryRun:     true,
 		CmdTimeout: 300 * time.Second,
+		Config: &ServiceConfig{
+			Hostname: "localhost",
+		},
 	})
 	assert.NoError(t, err, "create service")
 
@@ -68,6 +75,9 @@ func Test_Deploy(t *testing.T) {
 }
 
 func Test_Teardown(t *testing.T) {
+	setupAssets(t)
+	defer teardownAssets(t)
+
 	s, err := New(context.Background(), Options{
 		TargetURL:  "localhost",
 		Format:     target.FormatDocumentation,
@@ -87,7 +97,7 @@ func Test_Teardown(t *testing.T) {
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
-	wanted = "Running 'sudo rm -rf /var/lib/finch' as .+@localhost"
+	wanted = "Running 'sudo rm -rf /tmp/finch-test-lib-[0-9]+' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
 	s, err = New(context.Background(), Options{
@@ -114,6 +124,9 @@ func Test_Teardown(t *testing.T) {
 }
 
 func Test_Update(t *testing.T) {
+	setupAssets(t)
+	defer teardownAssets(t)
+
 	s, err := New(context.Background(), Options{
 		TargetURL:  "localhost",
 		Format:     target.FormatDocumentation,
@@ -128,7 +141,7 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "update service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 53, "number of log lines")
+	assert.Len(t, tracks, 54, "number of log lines")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
@@ -160,6 +173,9 @@ func Test_Update(t *testing.T) {
 }
 
 func Test_RotateSecret(t *testing.T) {
+	setupAssets(t)
+	defer teardownAssets(t)
+
 	s, err := New(context.Background(), Options{
 		TargetURL:  "localhost",
 		Format:     target.FormatDocumentation,
@@ -205,6 +221,9 @@ func Test_RotateSecret(t *testing.T) {
 }
 
 func Test_RotateCertificate(t *testing.T) {
+	setupAssets(t)
+	defer teardownAssets(t)
+
 	s, err := New(context.Background(), Options{
 		TargetURL:  "localhost",
 		Format:     target.FormatDocumentation,
@@ -251,6 +270,16 @@ func Test_RotateCertificate(t *testing.T) {
 }
 
 func Test_Register(t *testing.T) {
+	setupAssets(t)
+	cfgDir := os.Getenv(config.ConfigLocationEnv)
+	err := os.Unsetenv(config.ConfigLocationEnv)
+	assert.NoError(t, err, "unset cfg dir env")
+	defer func() {
+		err := os.Setenv(config.ConfigLocationEnv, cfgDir)
+		assert.NoError(t, err, "restore cfg dir env")
+		teardownAssets(t)
+	}()
+
 	s, err := New(context.Background(), Options{
 		TargetURL:  "localhost",
 		Format:     target.FormatDocumentation,
@@ -297,6 +326,9 @@ func Test_Register(t *testing.T) {
 }
 
 func Test_Deregister(t *testing.T) {
+	setupAssets(t)
+	defer teardownAssets(t)
+
 	s, err := New(context.Background(), Options{
 		TargetURL:  "localhost",
 		Format:     target.FormatDocumentation,
@@ -353,7 +385,34 @@ func capture(f func()) string {
 	_ = w.Close()
 	os.Stdout = originalStdout
 
-	var buf = make([]byte, 5096)
+	var buf = make([]byte, 10192)
 	n, _ := r.Read(buf)
 	return string(buf[:n])
+}
+
+func setupAssets(t *testing.T) {
+	libDir, err := os.MkdirTemp("", "finch-test-lib-*")
+	assert.NoError(t, err, "create temp lib dir")
+	cfgDir, err := os.MkdirTemp("", "finchctl-test-cfg-*")
+	assert.NoError(t, err, "create temp cfg dir")
+
+	err = os.Setenv(ServiceLibEnv, libDir)
+	assert.NoError(t, err, "set lib dir env")
+	err = os.Setenv(config.ConfigLocationEnv, cfgDir)
+	assert.NoError(t, err, "set cfg dir env")
+
+	err = os.WriteFile(libDir+"/finch.json", []byte(`{ "hostname": "localhost" }`), 0600)
+	assert.NoError(t, err, "write finch.json")
+	err = os.WriteFile(cfgDir+"/finch.json", []byte(`{ "stacks": [ { "name": "localhost" } ] }`), 0600)
+	assert.NoError(t, err, "write finch.json")
+}
+
+func teardownAssets(t *testing.T) {
+	libDir := os.Getenv(ServiceLibEnv)
+	cfgDir := os.Getenv(config.ConfigLocationEnv)
+
+	err := os.RemoveAll(libDir)
+	assert.NoError(t, err, "remove temp lib dir")
+	err = os.RemoveAll(cfgDir)
+	assert.NoError(t, err, "remove temp cfg dir")
 }

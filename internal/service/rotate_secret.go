@@ -18,10 +18,8 @@ func (s *Service) rotateServiceSecret() error {
 		return convertError(err, &RotateServiceSecretError{})
 	}
 
-	if !s.dryRun {
-		if _, err := config.LookupStack(s.config.Hostname); err != nil {
-			return &RotateServiceSecretError{Message: err.Error(), Reason: ""}
-		}
+	if _, err := config.LookupStack(s.config.Hostname); err != nil {
+		return &RotateServiceSecretError{Message: err.Error(), Reason: ""}
 	}
 
 	cfgPath := path.Join(s.libDir(), "finch.json")
