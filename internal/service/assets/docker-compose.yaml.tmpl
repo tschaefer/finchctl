@@ -67,7 +67,7 @@ services:
 
   loki:
     container_name: loki
-    image: grafana/loki:3.6.7
+    image: grafana/loki:3.5.11
     command:
       - "-config.file=/etc/loki/loki.yaml"
       - "-target=all"
@@ -81,7 +81,7 @@ services:
 
   traefik:
     container_name: traefik
-    image: traefik:v3.6.9
+    image: traefik:v3.6.10
     command:
       - "--configfile=/etc/traefik/traefik.yaml"
     ports:
