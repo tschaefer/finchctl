@@ -71,7 +71,7 @@ services:
     command:
       - "-config.file=/etc/loki/loki.yaml"
       - "-target=all"
-      - "-log.level=info"
+      - "-reporting.enabled=false"
     volumes:
       - /var/lib/finch/loki/etc:/etc/loki
       - /var/lib/finch/loki/data:/var/lib/loki
@@ -99,9 +99,6 @@ services:
       - /var/lib/finch/alloy/etc:/etc/alloy
       - /var/lib/finch/alloy/data:/var/lib/alloy/data
       - /var/run/docker.sock:/var/run/docker.sock
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /run/udev:/host/run/udev:ro
       - /:/host:ro,rslave
     command:
       - "run"
@@ -127,6 +124,7 @@ services:
       - /var/lib/finch/mimir/etc:/etc/mimir
     command:
       - "--config.file=/etc/mimir/mimir.yaml"
+      - "--usage-stats.enabled=false"
     user: "10001:10001"
     restart: always
     labels:
@@ -140,6 +138,7 @@ services:
       - /var/lib/finch/pyroscope/etc:/etc/pyroscope
     command:
       - "--config.file=/etc/pyroscope/pyroscope.yaml"
+      - "--usage-stats.enabled=false"
     user: "10001:10001"
     restart: always
     labels:
@@ -152,7 +151,13 @@ services:
       - sleep
       - infinity
     healthcheck:
-      test: ["CMD-SHELL", "curl -so /dev/null -w '%{http_code}' http://traefik:80 | grep -qE '^[234][0-9]{2}$' && curl -sko /dev/null -w '%{http_code}' https://traefik:443 | grep -qE '^[234][0-9]{2}$'"]
+      test:
+        - CMD-SHELL
+        - >-
+          curl -so /dev/null -w '%{http_code}' http://traefik:80
+          | grep -qE '^[234][0-9]{2}$'
+          && curl -sko /dev/null -w '%{http_code}' https://traefik:443
+          | grep -qE '^[234][0-9]{2}$'
       interval: 5s
       timeout: 3s
       retries: 30
