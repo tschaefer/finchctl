@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -39,6 +40,13 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", r)
+			os.Exit(1)
+		}
+	}()
 
 	err := rootCmd.ExecuteContext(ctx)
 	if err != nil {

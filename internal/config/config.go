@@ -185,6 +185,10 @@ func path() string {
 		dir = filepath.Join(dir, ".config")
 	}
 
+	if _, err := os.Stat(dir); err != nil {
+		panic(&ConfigError{Message: err.Error(), Reason: ""})
+	}
+
 	return filepath.Join(dir, "finch.json")
 }
 
