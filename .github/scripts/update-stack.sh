@@ -37,6 +37,28 @@ get_latest_tag() {
     echo ""
 }
 
+check_version() {
+    local current=$1
+    local latest=$2
+
+    current_major=$(echo "$current" | cut -d. -f1)
+    current_minor=$(echo "$current" | cut -d. -f2)
+    current_patch=$(echo "$current" | cut -d. -f3)
+    latest_major=$(echo "$latest" | cut -d. -f1)
+    latest_minor=$(echo "$latest" | cut -d. -f2)
+    latest_patch=$(echo "$latest" | cut -d. -f3)
+
+    if [[ "$current_major" -lt "$latest_major" ]]; then
+        echo "available"
+    elif [[ "$current_major" -eq "$latest_major" && "$current_minor" -lt "$latest_minor" ]]; then
+        echo "available"
+    elif [[ "$current_major" -eq "$latest_major" && "$current_minor" -eq "$latest_minor" && "$current_patch" -lt "$latest_patch" ]]; then
+        echo "available"
+    else
+        echo "up-to-date"
+    fi
+}
+
 check_image() {
     local full_image=$1
 
@@ -49,7 +71,7 @@ check_image() {
         echo "{
             \"image\":\"$image_name\",
             \"current\":\"$current_version\",
-            \"latest\":null,
+            \"latest\":\"N/A\",
             \"status\":\"skipped\"
         }"
         return
@@ -75,28 +97,34 @@ check_image() {
         echo "{
             \"image\":\"$image_name\",
             \"current\":\"${prefix}${current_version}\",
-            \"latest\":null,
+            \"latest\":\"N/A\",
             \"status\":\"error\"
         }"
         return
     fi
 
-    if [[ "$current_version" == "$latest" ]]; then
+    if [[ "$prefix" == "v" ]]; then
+        latest="${latest#v}"
+    fi
+
+    check=$(check_version "$current_version" "$latest")
+
+    if [[ $check == "up-to-date" ]]; then
         echo "{
             \"image\":\"$image_name\",
             \"current\":\"${prefix}${current_version}\",
-            \"latest\":\"$latest\",
+            \"latest\":\"${prefix}${latest}\",
             \"status\":\"up-to-date\"
         }"
         return
     fi
 
     if [[ "$WRITE_MODE" == true ]]; then
-        sed -i "s|${image_name}:${prefix}${current_version}|${image_name}:${latest}|g" "$COMPOSE_FILE"
+        sed -i "s|${image_name}:${prefix}${current_version}|${image_name}:i${prefix}${latest}|g" "$COMPOSE_FILE"
         echo "{
             \"image\":\"$image_name\",
             \"current\":\"${prefix}${current_version}\",
-            \"latest\":\"$latest\",
+            \"latest\":\"${prefix}${latest}\",
             \"status\":\"updated\"
         }"
         return
@@ -105,7 +133,7 @@ check_image() {
     echo "{
         \"image\":\"$image_name\",
         \"current\":\"${prefix}${current_version}\",
-        \"latest\":\"$latest\",
+        \"latest\":\"${prefix}${latest}\",
         \"status\":\"available\"
     }"
 }
