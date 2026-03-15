@@ -2,7 +2,7 @@
 services:
   grafana:
     container_name: grafana
-    image: grafana/grafana:12.4.0
+    image: grafana/grafana:12.4.1
     environment:
       - GF_SERVER_ROOT_URL={{ .RootUrl }}/grafana
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
@@ -94,7 +94,7 @@ services:
 
   alloy:
     container_name: alloy
-    image: grafana/alloy:v1.13.2
+    image: grafana/alloy:v1.14.0
     volumes:
       - /var/lib/finch/alloy/etc:/etc/alloy
       - /var/lib/finch/alloy/data:/var/lib/alloy/data
@@ -118,7 +118,7 @@ services:
 
   mimir:
     container_name: mimir
-    image: grafana/mimir:3.0.3
+    image: grafana/mimir:3.0.4
     volumes:
       - /var/lib/finch/mimir/data:/var/lib/mimir
       - /var/lib/finch/mimir/etc:/etc/mimir
@@ -132,7 +132,7 @@ services:
 
   pyroscope:
     container_name: pyroscope
-    image: grafana/pyroscope:1.18.1
+    image: grafana/pyroscope:1.19.0
     volumes:
       - /var/lib/finch/pyroscope/data:/var/lib/pyroscope
       - /var/lib/finch/pyroscope/etc:/etc/pyroscope
