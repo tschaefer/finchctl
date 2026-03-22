@@ -81,7 +81,7 @@ services:
 
   traefik:
     container_name: traefik
-    image: traefik:v3.6.10
+    image: traefik:iv3.6.11
     command:
       - "--configfile=/etc/traefik/traefik.yaml"
     ports:
@@ -94,7 +94,7 @@ services:
 
   alloy:
     container_name: alloy
-    image: grafana/alloy:v1.14.0
+    image: grafana/alloy:iv1.14.1
     volumes:
       - /var/lib/finch/alloy/etc:/etc/alloy
       - /var/lib/finch/alloy/data:/var/lib/alloy/data
