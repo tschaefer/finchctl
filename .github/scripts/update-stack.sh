@@ -120,7 +120,7 @@ check_image() {
     fi
 
     if [[ "$WRITE_MODE" == true ]]; then
-        sed -i "s|${image_name}:${prefix}${current_version}|${image_name}:i${prefix}${latest}|g" "$COMPOSE_FILE"
+        sed -i "s|${image_name}:${prefix}${current_version}|${image_name}:${prefix}${latest}|g" "$COMPOSE_FILE"
         echo "{
             \"image\":\"$image_name\",
             \"current\":\"${prefix}${current_version}\",
