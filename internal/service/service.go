@@ -45,7 +45,6 @@ type FinchConfig struct {
 	Profiler  string `json:"profiler"`
 	Secret    string `json:"secret"`
 	Hostname  string `json:"hostname"`
-	Version   string `json:"version"`
 }
 
 type Options struct {

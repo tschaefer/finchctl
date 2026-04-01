@@ -29,7 +29,6 @@ const (
 	defaultLetsEncryptEmail = "acme@example.com"
 	finchDatabase           = "sqlite://finch.db"
 	finchProfiler           = "http://pyroscope:4040"
-	finchVersion            = "1.11.1"
 )
 
 func (s *Service) __deployMakeDirHierarchy() error {
@@ -228,7 +227,6 @@ func (s *Service) __deployCopyFinchConfig() error {
 		Database:  finchDatabase,
 		Profiler:  finchProfiler,
 		Secret:    secret,
-		Version:   finchVersion,
 	}
 
 	return s.__helperCopyTemplate(path, "400", "0:0", data)
