@@ -10,161 +10,86 @@
 [![Contributors](https://img.shields.io/github/contributors/tschaefer/finchctl)](https://github.com/tschaefer/finchctl/graphs/contributors)
 [![License](https://img.shields.io/github/license/tschaefer/finchctl)](./LICENSE)
 
-`finchctl` is used to deploy an observability stack and agents.
+Finch brings production-grade observability to your infrastructure — no
+Kubernetes, no cloud vendor, no expertise required. Deploy a full logs,
+metrics, and profiling stack in one command. Enroll agents on any Linux or
+macOS machine in one more. Everything else — TLS, authentication, agent
+configuration — is handled for you.
 
-The stack is based on Docker and consists of the following services:
-
-- **Grafana** – Visualization and dashboards
-- **Loki** – Log aggregation system
-- **Mimir** – Metrics backend
-- **Pyroscope** – Profiling data aggregation and visualization
-- **Alloy** – Client-side agent for logs, metrics, and profiling data
-- **Traefik** – Reverse proxy
-- **Finch** – Agent manager
-
-See the [Blog post](https://blog.tschaefer.org/posts/2025/08/17/finch-a-minimal-logging-stack/)
-for background, motivation, and a walkthrough before you get started.
+> Background, motivation, and a walkthrough: [Blog post](https://blog.tschaefer.org/posts/2025/08/17/finch-a-minimal-logging-stack/)
+> Technical documentation: [Finch Docs](https://tschaefer.github.io/finch-docs/)
 
 ## Getting Started
 
-Download the latest release from the
-[releases page](https://github.com/tschaefer/finchctl/releases) or build it
-from source.
+Install the Finch CLI:
 
-## Install the Observability Stack
+```bash
+curl -sSfL https://finch.coresec.zone | sudo sh -
+```
 
-You need a blank Linux machine with SSH access and superuser privileges.
+Alternatively, download a binary from the
+[releases page](https://github.com/tschaefer/finchctl/releases) or build from
+source.
 
-To install the stack with default configuration, run:
+## Deploy the Stack
+
+You need a Linux machine with SSH access and superuser privileges.
 
 ```bash
 finchctl service deploy root@10.19.80.100
 ```
 
-This deploys the stack and exposes services at `https://10.19.80.100`.
-Visualization and dashboards are available under `/grafana`. TLS uses Traefik's
-default self-signed certificate. Credentials for Grafana are user `admin` and
-password `admin`. mTLS secures communication between the Finch client and
-service. The client certificate and key are generated during deployment and
-stored in `~/.config/finch.json`.
+That's it. The full observability stack is up at `https://10.19.80.100`.
+Open `/grafana` in your browser — user `admin`, password `admin`.
+Your local mTLS credentials are saved automatically to `~/.config/finch.json`.
 
-For a public machine with DNS and Let's Encrypt certificate:
+> Need Let's Encrypt or a custom certificate? See
+[TLS options](https://tschaefer.github.io/finch-docs/deployment/tls-options/).
 
-```bash
-finchctl service deploy \
-    --service.letsencrypt --service.letsencrypt.email acme@example.com \
-    --service.host finch.example.com root@cloud.machine
-```
+## Enroll an Agent
 
-Services are exposed at `https://finch.example.com` with a Let's Encrypt
-certificate.
-
-To use a custom TLS certificate:
-
-```bash
-finchctl service deploy \
-    --service.customtls --service.customtls.cert ~/.tls/cert.pem \
-    --service.customtls.key ~/.tls/key.pem finch.example.com
-```
-
-## Enrolling an Observability Agent
+Register a new agent with the Finch service and deploy it to a target machine:
 
 ```bash
 finchctl agent register \
-    --agent.hostname sparrow.example.com \
-    --agent.logs.journal finch.example.com
+    --agent.hostname sparrow \
+    --agent.logs.journal \
+    10.19.80.100
 ```
 
-This registers a new agent for the specified Finch service.  
-The agent config file is saved as `finch-agent.cfg`, ready to deploy, including
-all endpoints and credentials. By default, it sends systemd journal records.
-
-You can also collect logs from Docker containers (`--agents.log.docker`) and
-files (`--agent.logs.file /var/log/*.log`). Node metrics can be included via
-`--agent.metrics` and metrics targets to scrape can be added with
-`--agent.metrics.targets <target>`. Profiling data collection can be enabled
-with `--agent.profiles`.
-
-Alternatively, you can register an agent with a [configuration
-file](contrib/agent-file.yml):
+The agent config is saved as `finch-agent.cfg` and contains all endpoints and
+credentials.
 
 ```bash
-finchctl agent register --agent.file agent-file.yml finch.example.com
+finchctl agent deploy --agent.config finch-agent.cfg root@172.17.0.4
 ```
 
-To deploy the agent:
+Alloy is installed and started on the target machine automatically.
+
+> Want to collect Docker logs, log files, metrics, or profiles? See
+[Agent options](https://tschaefer.github.io/finch-docs/agent/options/).
+
+## Open the Dashboard
 
 ```bash
-finchctl agent deploy --agent.config finch-agent.cfg root@app.machine
+finchctl service dashboard --web --permission.session-timeout 1800 10.19.80.100
 ```
 
-Alloy will be enrolled and started with the provided configuration. Alloy
-authenticates with the Finch service using a JWT token with a **365-day
-expiration** included in the config file. Request a new config at least after
-one year or on compromise.
+The dashboard opens in your browser with a fresh session token.
 
-```bash
-finchctl agent config --agent.rid rid:finch... finch.example.com
-```
+## What's Next
 
-## Metrics and Profiling Data Collection
-
-Applications can forward log, metrics and profiling data to Alloy:
-
-- **Logs Listen** `http://localhost:3100`
-- **Metrics Listen** `http://localhost:9091`
-- **Profiling Listen** `http://localhost:4040`
-
-Alloy is pre-configured to accept and forward this data to Loki, Mimir and
-Pyroscope.
-
-## Access Web Dashboard
-
-Finch provides a lightweight dashboard for visualizing agents with real-time
-updates. The dashboard is protected by token-based authentication.
-Retrieve token and open in browser:
-
-```bash
-finchctl service dashboard --web=true --session-timeout=1800 finch.example.com
-```
-
-## Further Controller Commands
-
-Both `service` and `agent` commands have several subcommands, including:
-
-- `teardown` – Remove the deployed stack or agent
-- `update` – Upgrade stack services or agent to the latest version
-
-and further security commands:
-
-- `service rotate-certificate` - Rotate mTLS certificates for the current cli
-- `service rotate-secret` - Rotate service secret
-
-## Security model
-
-This project optimizes for **clear invariants** and **deterministic recovery** over enterprise-style session plumbing.
-
-- **No fine-grained JWT revocation lists.**
-  - Per-agent compromise: invalidate by deleting/re-registering the agent identity (RID-gated auth).
-  - Break-glass: rotate the JWT signing secret (global invalidation, followed by re-enrollment).
-
-- **Rotations should not imply data loss.**
-  Short auth outages are expected to be bridged by Alloy’s WAL/buffering (bounded by disk and outage duration).
-
-- **Not multi-tenant.**
-  Scale / isolation come from topology; run one stack per region / site to reduce blast radius and keep ops local.
-
-- **No built-in magic automation.**
-  Finch provides interfaces (CLI / API + declarative agent definitions). You automate it to fit your infrastructure.
+- [TLS options](https://tschaefer.github.io/finch-docs/deployment/tls-options/) - Let's Encrypt, custom certificates
+- [Agent options](https://tschaefer.github.io/finch-docs/agent/options/) - Docker logs, file logs, metrics, profiles, labels
+- [Managing agents](https://tschaefer.github.io/finch-docs/agent/manage/) - list, describe, edit, deregister
+- [Token renewal](https://tschaefer.github.io/finch-docs/agent/token-renewal/) - refreshing agent credentials before expiry
+- [Security model](https://tschaefer.github.io/finch-docs/security/) - how Finch handles auth, rotation, and recovery
+- [Windows agents](https://tschaefer.github.io/finch-docs/agent/windows/) - enrolling agents on Windows
 
 ## Contributing
 
-Contributions are welcome!
 Fork the repository and submit a pull request. For major changes, open an issue
 first to discuss your proposal.
-
-Please ensure your code follows the project's style and includes appropriate
-tests.
 
 ## License
 
