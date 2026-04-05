@@ -10,8 +10,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/olekukonko/tablewriter"
 	"time"
+
+	"github.com/goccy/go-yaml"
+	"github.com/olekukonko/tablewriter"
 
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
@@ -31,6 +33,7 @@ var describeCmd = &cobra.Command{
 func init() {
 	describeCmd.Flags().String("agent.rid", "", "resource identifier of the agent to config")
 	describeCmd.Flags().Bool("output.json", false, "output in JSON format (not implemented yet)")
+	describeCmd.Flags().Bool("output.yaml", false, "output in YAML format (not implemented yet)")
 }
 
 func runDescribeCmd(cmd *cobra.Command, args []string) {
@@ -57,10 +60,20 @@ func runDescribeCmd(cmd *cobra.Command, args []string) {
 	errors.CheckErr(err, formatType)
 
 	jsonOutput, _ := cmd.Flags().GetBool("output.json")
+	yamlOutput, _ := cmd.Flags().GetBool("output.yaml")
+
+	if yamlOutput && jsonOutput {
+		errors.CheckErr("only one output format can be specified", formatType)
+	}
+
 	if jsonOutput {
 		out, err := json.MarshalIndent(desc, "", "  ")
 		errors.CheckErr(err, formatType)
 		fmt.Println(string(out))
+	} else if yamlOutput {
+		out, err := yaml.Marshal(desc)
+		errors.CheckErr(err, formatType)
+		fmt.Print(string(out))
 	} else {
 		t := tablewriter.NewWriter(os.Stdout)
 		t.Header([]string{"Property", "Value"})
