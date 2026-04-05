@@ -94,7 +94,7 @@ services:
 
   alloy:
     container_name: alloy
-    image: grafana/alloy:v1.14.2
+    image: grafana/alloy:v1.15.0
     volumes:
       - /var/lib/finch/alloy/etc:/etc/alloy
       - /var/lib/finch/alloy/data:/var/lib/alloy/data
@@ -118,7 +118,7 @@ services:
 
   mimir:
     container_name: mimir
-    image: grafana/mimir:3.0.4
+    image: grafana/mimir:3.0.5
     volumes:
       - /var/lib/finch/mimir/data:/var/lib/mimir
       - /var/lib/finch/mimir/etc:/etc/mimir
