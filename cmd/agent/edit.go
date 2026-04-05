@@ -52,6 +52,9 @@ func init() {
 	_ = viper.BindPFlag("labels", editCmd.Flags().Lookup("agent.labels"))
 
 	editCmd.Flags().String("agent.file", "", "Path to a file containing agent data")
+
+	editCmd.Flags().StringSlice("agent.logs.events", nil, "Collect windows log events")
+	_ = viper.BindPFlag("logs.events", editCmd.Flags().Lookup("agent.logs.events"))
 }
 
 func runEditPreCmd(cmd *cobra.Command, args []string) {
@@ -94,6 +97,13 @@ func editParseFlags(formatType target.Format) *agent.EditData {
 	if len(logFiles) != 0 {
 		for _, file := range logFiles {
 			logSources = append(logSources, "file://"+file)
+		}
+	}
+
+	logEvents := viper.GetStringSlice("logs.events")
+	if len(logEvents) != 0 {
+		for _, event := range logEvents {
+			logSources = append(logSources, "event://"+event)
 		}
 	}
 
