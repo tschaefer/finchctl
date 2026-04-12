@@ -81,7 +81,7 @@ services:
 
   traefik:
     container_name: traefik
-    image: traefik:v3.6.12
+    image: traefik:v3.6.13
     command:
       - "--configfile=/etc/traefik/traefik.yaml"
     ports:
@@ -132,7 +132,7 @@ services:
 
   pyroscope:
     container_name: pyroscope
-    image: grafana/pyroscope:1.19.1
+    image: grafana/pyroscope:1.20.3
     volumes:
       - /var/lib/finch/pyroscope/data:/var/lib/pyroscope
       - /var/lib/finch/pyroscope/etc:/etc/pyroscope
@@ -146,7 +146,7 @@ services:
 
   hc-traefik:
     container_name: hc-traefik
-    image: curlimages/curl:8.18.0
+    image: curlimages/curl:8.19.0
     entrypoint:
       - sleep
       - infinity
@@ -168,7 +168,7 @@ services:
 
   hc-finch:
     container_name: hc-finch
-    image: curlimages/curl:8.18.0
+    image: curlimages/curl:8.19.0
     entrypoint:
       - sleep
       - infinity
@@ -184,7 +184,7 @@ services:
 
   hc-grafana:
     container_name: hc-grafana
-    image: curlimages/curl:8.18.0
+    image: curlimages/curl:8.19.0
     entrypoint:
       - sleep
       - infinity
@@ -200,7 +200,7 @@ services:
 
   hc-loki:
     container_name: hc-loki
-    image: curlimages/curl:8.18.0
+    image: curlimages/curl:8.19.0
     entrypoint:
       - sleep
       - infinity
@@ -216,7 +216,7 @@ services:
 
   hc-mimir:
     container_name: hc-mimir
-    image: curlimages/curl:8.18.0
+    image: curlimages/curl:8.19.0
     entrypoint:
       - sleep
       - infinity
@@ -232,7 +232,7 @@ services:
 
   hc-pyroscope:
     container_name: hc-pyroscope
-    image: curlimages/curl:8.18.0
+    image: curlimages/curl:8.19.0
     entrypoint:
       - sleep
       - infinity
