@@ -15,10 +15,11 @@ import (
 )
 
 var rotateSecretCmd = &cobra.Command{
-	Use:   "rotate-secret [user@]host[:port]",
-	Short: "Rotate secret of a service on a remote host",
-	Args:  cobra.ExactArgs(1),
-	Run:   runRotateSecretCmd,
+	Use:               "rotate-secret [user@]host[:port]",
+	Short:             "Rotate secret of a service on a remote host",
+	Args:              cobra.ExactArgs(1),
+	Run:               runRotateSecretCmd,
+	ValidArgsFunction: completion.CompleteHostName,
 }
 
 func init() {

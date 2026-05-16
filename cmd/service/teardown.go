@@ -19,10 +19,11 @@ import (
 )
 
 var teardownCmd = &cobra.Command{
-	Use:   "teardown [user@]host[:port]",
-	Short: "Tear down Finch service from a remote host",
-	Args:  cobra.ExactArgs(1),
-	Run:   runTeardownCmd,
+	Use:               "teardown [user@]host[:port]",
+	Short:             "Tear down Finch service from a remote host",
+	Args:              cobra.ExactArgs(1),
+	Run:               runTeardownCmd,
+	ValidArgsFunction: completion.CompleteHostName,
 }
 
 func init() {

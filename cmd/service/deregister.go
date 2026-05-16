@@ -15,10 +15,11 @@ import (
 )
 
 var deregisterCmd = &cobra.Command{
-	Use:   "deregister [user@]host[:port]",
-	Short: "Deregister the client from a service on a remote host",
-	Args:  cobra.ExactArgs(1),
-	Run:   runDeregisterCmd,
+	Use:               "deregister [user@]host[:port]",
+	Short:             "Deregister the client from a service on a remote host",
+	Args:              cobra.ExactArgs(1),
+	Run:               runDeregisterCmd,
+	ValidArgsFunction: completion.CompleteHostName,
 }
 
 func init() {

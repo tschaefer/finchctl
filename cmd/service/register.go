@@ -15,10 +15,11 @@ import (
 )
 
 var registerCmd = &cobra.Command{
-	Use:   "register [user@]host[:port]",
-	Short: "Register the client with a service on a remote host",
-	Args:  cobra.ExactArgs(1),
-	Run:   runRegisterCmd,
+	Use:               "register [user@]host[:port]",
+	Short:             "Register the client with a service on a remote host",
+	Args:              cobra.ExactArgs(1),
+	Run:               runRegisterCmd,
+	ValidArgsFunction: completion.CompleteHostName,
 }
 
 func init() {

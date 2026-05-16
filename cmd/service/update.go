@@ -15,10 +15,11 @@ import (
 )
 
 var updateCmd = &cobra.Command{
-	Use:   "update [user@]host[:port]",
-	Short: "Update service on a remote host",
-	Args:  cobra.ExactArgs(1),
-	Run:   runUpdateCmd,
+	Use:               "update [user@]host[:port]",
+	Short:             "Update service on a remote host",
+	Args:              cobra.ExactArgs(1),
+	Run:               runUpdateCmd,
+	ValidArgsFunction: completion.CompleteHostName,
 }
 
 func init() {

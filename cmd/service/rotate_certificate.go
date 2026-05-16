@@ -15,10 +15,11 @@ import (
 )
 
 var rotateCertificateCmd = &cobra.Command{
-	Use:   "rotate-certificate [user@]host[:port]",
-	Short: "Rotate mTLS certificates of a service on a remote host",
-	Args:  cobra.ExactArgs(1),
-	Run:   runRotateCertificateCmd,
+	Use:               "rotate-certificate [user@]host[:port]",
+	Short:             "Rotate mTLS certificates of a service on a remote host",
+	Args:              cobra.ExactArgs(1),
+	Run:               runRotateCertificateCmd,
+	ValidArgsFunction: completion.CompleteHostName,
 }
 
 func init() {
