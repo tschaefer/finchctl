@@ -26,7 +26,7 @@ var infoCmd = &cobra.Command{
 }
 
 func init() {
-	infoCmd.Flags().Bool("output.json", false, "output in JSON format (not implemented yet)")
+	infoCmd.Flags().Bool("output.json", false, "output in JSON format")
 }
 
 func runInfoCmd(cmd *cobra.Command, args []string) {

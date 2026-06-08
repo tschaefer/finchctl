@@ -8,10 +8,9 @@ import (
 	"path"
 
 	"github.com/tschaefer/finchctl/internal/config"
-	"github.com/tschaefer/finchctl/internal/version"
 )
 
-func (s *Service) deregisterService() error {
+func (s *Service) deregisterService(clientID string, keepCfg bool) error {
 	if err := s.__updateSetTargetConfiguration(); err != nil {
 		return convertError(err, &DeregisterServiceError{})
 	}
@@ -20,13 +19,17 @@ func (s *Service) deregisterService() error {
 		return &DeregisterServiceError{Message: err.Error(), Reason: ""}
 	}
 
-	caCertPath := path.Join(s.libDir(), "traefik/etc/certs.d", version.ResourceID()+".pem")
+	caCertPath := path.Join(s.libDir(), "traefik/etc/certs.d", clientID+".pem")
 	out, err := s.target.Run(s.ctx, "rm -f "+caCertPath)
 	if err != nil {
 		return &DeregisterServiceError{Message: err.Error(), Reason: string(out)}
 	}
 
 	if s.dryRun {
+		return nil
+	}
+
+	if !keepCfg {
 		return nil
 	}
 

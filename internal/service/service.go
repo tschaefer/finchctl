@@ -181,7 +181,7 @@ func (s *Service) Register() error {
 	return nil
 }
 
-func (s *Service) Deregister() error {
+func (s *Service) Deregister(clientID string, keepCfg bool) error {
 	defer func() {
 		if s.format == target.FormatProgress {
 			println()
@@ -192,7 +192,7 @@ func (s *Service) Deregister() error {
 		return convertError(err, &DeregisterServiceError{})
 	}
 
-	if err := s.deregisterService(); err != nil {
+	if err := s.deregisterService(clientID, keepCfg); err != nil {
 		return err
 	}
 

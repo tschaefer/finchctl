@@ -12,11 +12,12 @@ import (
 	"github.com/tschaefer/finchctl/cmd/errors"
 	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/service"
+	"github.com/tschaefer/finchctl/internal/version"
 )
 
 var deregisterCmd = &cobra.Command{
 	Use:               "deregister [user@]host[:port]",
-	Short:             "Deregister the client from a service on a remote host",
+	Short:             "Deregister a client from a service on a remote host",
 	Args:              cobra.ExactArgs(1),
 	Run:               runDeregisterCmd,
 	ValidArgsFunction: completion.CompleteHostName,
@@ -25,6 +26,7 @@ var deregisterCmd = &cobra.Command{
 func init() {
 	deregisterCmd.Flags().String("run.format", "progress", "output format")
 	deregisterCmd.Flags().Bool("run.dry-run", false, "do not deregister, just print the commands that would be run")
+	deregisterCmd.Flags().String("client.rid", version.ResourceID(), "client resource ID (default: local client rid)")
 
 	_ = deregisterCmd.RegisterFlagCompletionFunc("run.format", completion.CompleteRunFormat)
 }
@@ -46,6 +48,8 @@ func runDeregisterCmd(cmd *cobra.Command, args []string) {
 	})
 	errors.CheckErr(err, formatType)
 
-	err = s.Deregister()
+	clientID, _ := cmd.Flags().GetString("client.rid")
+	keepCfg := cmd.Flags().Lookup("client.rid").Changed
+	err = s.Deregister(clientID, keepCfg)
 	errors.CheckErr(err, formatType)
 }

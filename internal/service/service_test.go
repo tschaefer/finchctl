@@ -338,7 +338,7 @@ func Test_Deregister(t *testing.T) {
 	assert.NoError(t, err, "create service")
 
 	record := capture(func() {
-		err = s.Deregister()
+		err = s.Deregister("rid:finchctl:1234567890abcdef", false)
 	})
 	assert.NoError(t, err, "deregister service")
 
@@ -360,7 +360,7 @@ func Test_Deregister(t *testing.T) {
 	assert.NoError(t, err, "create service")
 
 	record = capture(func() {
-		err = s.Deregister()
+		err = s.Deregister("rid:finchctl:1234567890abcdef", false)
 	})
 	assert.NoError(t, err, "deregister service")
 
