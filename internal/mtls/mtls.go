@@ -14,6 +14,8 @@ import (
 	"fmt"
 	"math/big"
 	"time"
+
+	"github.com/tschaefer/finchctl/internal/version"
 )
 
 const CertValidityDays = 90 * 24 * time.Hour
@@ -30,11 +32,8 @@ func GenerateCA(hostname string) ([]byte, []byte, error) {
 	}
 
 	template := x509.Certificate{
-		SerialNumber: serialNumber,
-		Subject: pkix.Name{
-			Organization: []string{"Finch"},
-			CommonName:   fmt.Sprintf("Finch CA - %s", hostname),
-		},
+		SerialNumber:          serialNumber,
+		Subject:               pkix.Name{CommonName: hostname},
 		NotBefore:             time.Now(),
 		NotAfter:              time.Now().Add(CertValidityDays),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageDigitalSignature,
@@ -95,14 +94,11 @@ func GenerateClient(hostname string, caCertPEM, caKeyPEM []byte) ([]byte, []byte
 
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
-		Subject: pkix.Name{
-			Organization: []string{"Finch"},
-			CommonName:   fmt.Sprintf("Finch Client - %s", hostname),
-		},
-		NotBefore:   time.Now(),
-		NotAfter:    time.Now().Add(CertValidityDays),
-		KeyUsage:    x509.KeyUsageDigitalSignature,
-		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		Subject:      pkix.Name{CommonName: version.ResourceID()},
+		NotBefore:    time.Now(),
+		NotAfter:     time.Now().Add(CertValidityDays),
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 	}
 
 	clientCertDER, err := x509.CreateCertificate(rand.Reader, &template, caCert, &clientKey.PublicKey, caKey)

@@ -12,6 +12,7 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/stretchr/testify/assert"
+	"github.com/tschaefer/finchctl/internal/version"
 )
 
 func Test_GenerateCA(t *testing.T) {
@@ -48,7 +49,7 @@ func Test_GenerateClient(t *testing.T) {
 	cert, err := x509.ParseCertificate(block.Bytes)
 	assert.NoError(t, err, "client cert should parse")
 	assert.False(t, cert.IsCA, "cert should not be CA")
-	assert.Contains(t, cert.Subject.CommonName, hostname, "cert CN should contain hostname")
+	assert.Contains(t, cert.Subject.CommonName, version.ResourceID(), "cert CN should contain client rid")
 	assert.Contains(t, cert.ExtKeyUsage, x509.ExtKeyUsageClientAuth, "cert should have client auth usage")
 }
 
