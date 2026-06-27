@@ -194,7 +194,10 @@
       {
         "allowCustomValue": false,
         "current": {},
-        "datasource": "Loki",
+        "datasource": {
+          "type": "loki",
+          "uid": "finch-loki"
+        },
         "definition": "",
         "label": "Host",
         "name": "host",
