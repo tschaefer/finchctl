@@ -2,7 +2,7 @@
 services:
   grafana:
     container_name: grafana
-    image: grafana/grafana:13.0.2
+    image: grafana/grafana:13.1.0
     environment:
       - GF_SERVER_ROOT_URL={{ .RootUrl }}/grafana
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
@@ -67,7 +67,7 @@ services:
 
   loki:
     container_name: loki
-    image: grafana/loki:3.7.2
+    image: grafana/loki:3.7.3
     command:
       - "-config.file=/etc/loki/loki.yaml"
       - "-target=all"
@@ -118,7 +118,7 @@ services:
 
   mimir:
     container_name: mimir
-    image: grafana/mimir:3.1.1
+    image: grafana/mimir:3.1.2
     volumes:
       - /var/lib/finch/mimir/data:/var/lib/mimir
       - /var/lib/finch/mimir/etc:/etc/mimir
@@ -146,7 +146,7 @@ services:
 
   hc-traefik:
     container_name: hc-traefik
-    image: curlimages/curl:8.20.0
+    image: curlimages/curl:8.21.0
     entrypoint:
       - sleep
       - infinity
@@ -168,7 +168,7 @@ services:
 
   hc-finch:
     container_name: hc-finch
-    image: curlimages/curl:8.20.0
+    image: curlimages/curl:8.21.0
     entrypoint:
       - sleep
       - infinity
@@ -184,7 +184,7 @@ services:
 
   hc-grafana:
     container_name: hc-grafana
-    image: curlimages/curl:8.20.0
+    image: curlimages/curl:8.21.0
     entrypoint:
       - sleep
       - infinity
@@ -200,7 +200,7 @@ services:
 
   hc-loki:
     container_name: hc-loki
-    image: curlimages/curl:8.20.0
+    image: curlimages/curl:8.21.0
     entrypoint:
       - sleep
       - infinity
@@ -216,7 +216,7 @@ services:
 
   hc-mimir:
     container_name: hc-mimir
-    image: curlimages/curl:8.20.0
+    image: curlimages/curl:8.21.0
     entrypoint:
       - sleep
       - infinity
@@ -232,7 +232,7 @@ services:
 
   hc-pyroscope:
     container_name: hc-pyroscope
-    image: curlimages/curl:8.20.0
+    image: curlimages/curl:8.21.0
     entrypoint:
       - sleep
       - infinity
