@@ -81,7 +81,7 @@ services:
 
   traefik:
     container_name: traefik
-    image: traefik:v3.7.6
+    image: traefik:v3.7.7
     command:
       - "--configfile=/etc/traefik/traefik.yaml"
     ports:
@@ -132,7 +132,7 @@ services:
 
   pyroscope:
     container_name: pyroscope
-    image: grafana/pyroscope:2.1.0
+    image: grafana/pyroscope:2.1.1
     volumes:
       - /var/lib/finch/pyroscope/data:/var/lib/pyroscope
       - /var/lib/finch/pyroscope/etc:/etc/pyroscope
