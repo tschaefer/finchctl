@@ -27,6 +27,11 @@ dist:
 	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o bin/finchctl-windows-amd64 -ldflags $(LDFLAGS) .
 	CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -o bin/finchctl-windows-arm64 -ldflags $(LDFLAGS) .
 
+.PHONY: build
+build:
+	mkdir -p bin
+	CGO_ENABLED=0 go build -o bin/finchctl-dev -ldflags $(LDFLAGS)
+
 .PHONY: checksum
 checksum:
 	cd bin && \
