@@ -339,16 +339,8 @@ func (a *Agent) __deployInstallBinaryOnTarget(zipfile string, machine *MachineIn
 			return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 		}
 	}
-	binFile := filepath.Join(tmpdir, release)
-	out, err = a.target.Run(a.ctx, "sudo cp -f "+binFile+" "+binPath)
-	if err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
-	}
-	out, err = a.target.Run(a.ctx, "sudo chown root:root "+binPath)
-	if err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
-	}
-	out, err = a.target.Run(a.ctx, "sudo chmod 755 "+binPath)
+	installCmd := fmt.Sprintf("sudo install -m 755 -o root -g root %s %s", filepath.Join(tmpdir, release), binPath)
+	out, err = a.target.Run(a.ctx, installCmd)
 	if err != nil {
 		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
 	}
