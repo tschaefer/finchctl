@@ -36,12 +36,12 @@ func Test_Deploy(t *testing.T) {
 	assert.NoError(t, err)
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 10, "number of log lines")
+	assert.Len(t, tracks, 17, "number of log lines")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
-	wanted = "Copying from '/tmp/.+ to '/usr/bin/alloy' as .+@localhost"
+	wanted = "Running 'rm -rf /tmp/finchctl-dry-run' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
 	a, err = New(context.Background(), Options{
@@ -127,12 +127,12 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "update agent")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 6, "number of log lines mismatch")
+	assert.Len(t, tracks, 16, "number of log lines mismatch")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
 
-	wanted = "Skipping Alloy update check for version 'latest' due to dry-run mode"
+	wanted = "Running 'rm -rf /tmp/finchctl-dry-run' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[len(tracks)-2], "last log line")
 
 	a, err = New(context.Background(), Options{

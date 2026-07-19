@@ -29,3 +29,26 @@ func (a *Agent) requirementsAgent() error {
 
 	return nil
 }
+
+func (a *Agent) __additionsHasCurl() bool {
+	if _, err := a.target.Run(a.ctx, "command -v curl"); err != nil {
+		return false
+	}
+	return true
+}
+
+func (a *Agent) __additionsHasUnzip() bool {
+	if _, err := a.target.Run(a.ctx, "command -v unzip"); err != nil {
+		return false
+	}
+	return true
+}
+
+func (a *Agent) additionsAgent() bool {
+	if !a.__additionsHasCurl() || !a.__additionsHasUnzip() {
+		return false
+	}
+
+	_, err := a.target.Run(a.ctx, "curl -sfL -o /dev/null https://github.com")
+	return err == nil
+}

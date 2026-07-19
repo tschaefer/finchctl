@@ -15,6 +15,7 @@ import (
 	"os/user"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/tschaefer/finchctl/internal/target"
@@ -296,6 +297,65 @@ func (a *Agent) __deployEnableLaunchdService() error {
 	return nil
 }
 
+func (a *Agent) __deployDownloadReleaseOnTarget(release string, version string) (string, error) {
+	raw, err := a.target.Run(a.ctx, "mktemp -p /tmp -d finch-XXXXXX")
+	if err != nil {
+		return "", &DeployAgentError{Message: err.Error(), Reason: string(raw)}
+	}
+	tmpdir := strings.TrimSpace(string(raw))
+	if a.dryRun {
+		tmpdir = "/tmp/finchctl-dry-run"
+	}
+
+	var url string
+	if version != "latest" {
+		url = fmt.Sprintf(alloyReleaseDownloadURL, version, release)
+	} else {
+		url = fmt.Sprintf(alloyReleaseLatestDownloadURL, release)
+	}
+	tmpfile := filepath.Join(tmpdir, release+"-"+time.Now().Format("19800212015200")+".zip")
+
+	out, err := a.target.Run(a.ctx, "curl -sfL -o "+tmpfile+" "+url)
+	if err != nil {
+		_, _ = a.target.Run(a.ctx, "rm -rf "+tmpdir)
+		return "", &DeployAgentError{Message: err.Error(), Reason: string(out)}
+	}
+
+	return tmpfile, nil
+}
+
+func (a *Agent) __deployInstallBinaryOnTarget(zipfile string, machine *MachineInfo, release string) error {
+	tmpdir := filepath.Dir(zipfile)
+	out, err := a.target.Run(a.ctx, "unzip -d "+tmpdir+" "+zipfile)
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+	}
+
+	binPath := "/usr/bin/alloy"
+	if machine.Kernel == "darwin" {
+		binPath = "/usr/local/bin/alloy"
+		out, err := a.target.Run(a.ctx, "sudo mkdir -p "+path.Dir(binPath))
+		if err != nil {
+			return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+		}
+	}
+	binFile := filepath.Join(tmpdir, release)
+	out, err = a.target.Run(a.ctx, "sudo cp -f "+binFile+" "+binPath)
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+	}
+	out, err = a.target.Run(a.ctx, "sudo chown root:root "+binPath)
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+	}
+	out, err = a.target.Run(a.ctx, "sudo chmod 755 "+binPath)
+	if err != nil {
+		return &DeployAgentError{Message: err.Error(), Reason: string(out)}
+	}
+
+	return nil
+}
+
 func (a *Agent) __helperPrintProgress(message string) {
 	username := "unknown"
 	user, err := user.Current()
@@ -315,27 +375,42 @@ func (a *Agent) deployAgent(machine *MachineInfo, alloyVersion string) error {
 		return err
 	}
 
-	tmpdir, err := os.MkdirTemp(os.TempDir(), "*-finch")
-	if err != nil {
-		return &DeployAgentError{Message: err.Error(), Reason: ""}
-	}
-	defer func() {
-		_ = os.RemoveAll(tmpdir)
-	}()
-
 	release := fmt.Sprintf("alloy-%s-%s", machine.Kernel, machine.Arch)
-	zip, err := a.__deployDownloadRelease(release, alloyVersion, tmpdir)
-	if err != nil {
-		return err
-	}
 
-	binary, err := a.__deployUnzipRelease(release, zip)
-	if err != nil {
-		return err
-	}
+	if a.additionsAgent() {
+		zipfile, err := a.__deployDownloadReleaseOnTarget(release, alloyVersion)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			_, _ = a.target.Run(a.ctx, "rm -rf "+filepath.Dir(zipfile))
+		}()
 
-	if err := a.__deployInstallBinary(binary, machine); err != nil {
-		return err
+		if err := a.__deployInstallBinaryOnTarget(zipfile, machine, release); err != nil {
+			return err
+		}
+	} else {
+		tmpdir, err := os.MkdirTemp(os.TempDir(), "*-finch")
+		if err != nil {
+			return &DeployAgentError{Message: err.Error(), Reason: ""}
+		}
+		defer func() {
+			_ = os.RemoveAll(tmpdir)
+		}()
+
+		zip, err := a.__deployDownloadRelease(release, alloyVersion, tmpdir)
+		if err != nil {
+			return err
+		}
+
+		binary, err := a.__deployUnzipRelease(release, zip)
+		if err != nil {
+			return err
+		}
+
+		if err := a.__deployInstallBinary(binary, machine); err != nil {
+			return err
+		}
 	}
 
 	switch machine.Kernel {

@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -63,7 +64,7 @@ func (a *Agent) __updateServiceBinaryIsNeeded(version string, machine *MachineIn
 			fmt.Sprintf("Skipping Alloy update check for version '%s' due to dry-run mode", version),
 			a.format,
 		)
-		return false, nil
+		return true, nil
 	}
 
 	latestVersion := version
@@ -125,6 +126,32 @@ func (a *Agent) __updateServiceBinary(machine *MachineInfo, version string) erro
 	return nil
 }
 
+func (a *Agent) __updateServiceBinaryOnTarget(machine *MachineInfo, version string) error {
+	ok, err := a.__updateServiceBinaryIsNeeded(version, machine)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return nil
+	}
+
+	release := fmt.Sprintf("alloy-%s-%s", machine.Kernel, machine.Arch)
+	zipfile, err := a.__deployDownloadReleaseOnTarget(release, version)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_, _ = a.target.Run(a.ctx, "rm -rf "+filepath.Dir(zipfile))
+	}()
+
+	if err := a.__deployInstallBinaryOnTarget(zipfile, machine, release); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a *Agent) updateAgent(machine *MachineInfo, skipConfig bool, skipBinaries bool, version string) error {
 	if !skipConfig {
 		if err := a.__deployCopyConfigFile(); err != nil {
@@ -133,8 +160,14 @@ func (a *Agent) updateAgent(machine *MachineInfo, skipConfig bool, skipBinaries 
 	}
 
 	if !skipBinaries {
-		if err := a.__updateServiceBinary(machine, version); err != nil {
-			return convertError(err, &UpdateAgentError{})
+		if a.additionsAgent() {
+			if err := a.__updateServiceBinaryOnTarget(machine, version); err != nil {
+				return convertError(err, &UpdateAgentError{})
+			}
+		} else {
+			if err := a.__updateServiceBinary(machine, version); err != nil {
+				return convertError(err, &UpdateAgentError{})
+			}
 		}
 	}
 
