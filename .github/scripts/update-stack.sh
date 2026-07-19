@@ -41,22 +41,10 @@ check_version() {
     local current=$1
     local latest=$2
 
-    current_major=$(echo "$current" | cut -d. -f1)
-    current_minor=$(echo "$current" | cut -d. -f2)
-    current_patch=$(echo "$current" | cut -d. -f3)
-    latest_major=$(echo "$latest" | cut -d. -f1)
-    latest_minor=$(echo "$latest" | cut -d. -f2)
-    latest_patch=$(echo "$latest" | cut -d. -f3)
+    local status="up-to-date"
+    dpkg --compare-versions $latest gt $current && status="available"
 
-    if [[ "$current_major" -lt "$latest_major" ]]; then
-        echo "available"
-    elif [[ "$current_major" -eq "$latest_major" && "$current_minor" -lt "$latest_minor" ]]; then
-        echo "available"
-    elif [[ "$current_major" -eq "$latest_major" && "$current_minor" -eq "$latest_minor" && "$current_patch" -lt "$latest_patch" ]]; then
-        echo "available"
-    else
-        echo "up-to-date"
-    fi
+    echo "$status"
 }
 
 check_image() {
