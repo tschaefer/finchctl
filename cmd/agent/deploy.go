@@ -16,10 +16,11 @@ import (
 )
 
 var deployCmd = &cobra.Command{
-	Use:   "deploy [user@]host[:port]",
-	Short: "Deploy a Finch agent to a remote host",
-	Args:  cobra.ExactArgs(1),
-	Run:   runDeployCmd,
+	Use:               "deploy [user@]host[:port]",
+	Short:             "Deploy a Finch agent to a remote host",
+	Args:              cobra.ExactArgs(1),
+	Run:               runDeployCmd,
+	ValidArgsFunction: completion.CompleteHostName,
 }
 
 func init() {
