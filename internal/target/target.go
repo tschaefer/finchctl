@@ -37,6 +37,9 @@ type Options struct {
 	CmdTimeout time.Duration
 }
 
+var newRemoteTarget = newRemote
+var newLocalTarget = newLocal
+
 func New(hostUrl string, opts Options) (Target, error) {
 	host, err := parseHostUrl(hostUrl)
 	if err != nil {
@@ -50,10 +53,10 @@ func New(hostUrl string, opts Options) (Target, error) {
 		"::1",
 	}
 	if slices.Contains(local, host.Hostname()) {
-		return newLocal(host, opts)
+		return newLocalTarget(host, opts)
 	}
 
-	return newRemote(host, opts)
+	return newRemoteTarget(host, opts)
 }
 
 func parseHostUrl(hostUrl string) (host *url.URL, err error) {
