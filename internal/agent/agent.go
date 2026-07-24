@@ -136,3 +136,7 @@ func (a *Agent) Describe(service, resourceID string) (*DescribeData, error) {
 func (a *Agent) Edit(service string, data *EditData) error {
 	return a.editAgent(service, data)
 }
+
+func (a *Agent) Doctor() (bool, *[]Health) {
+	return a.__doctor()
+}
