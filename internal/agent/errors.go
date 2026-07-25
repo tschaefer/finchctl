@@ -91,6 +91,15 @@ func (e *EditAgentError) Error() string {
 	return strings.TrimSpace(fmt.Sprintf("Failed to edit agent: %s %s", e.Message, e.Reason))
 }
 
+type DoctorAgentError struct {
+	Message string
+	Reason  string
+}
+
+func (e *DoctorAgentError) Error() string {
+	return strings.TrimSpace(fmt.Sprintf("Target not healthy: %s %s", e.Message, e.Reason))
+}
+
 func convertError(err error, to any) error {
 	if err == nil {
 		return nil

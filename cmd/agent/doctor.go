@@ -5,8 +5,8 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package agent
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tschaefer/finchctl/cmd/completion"
 	"github.com/tschaefer/finchctl/cmd/errors"
-	"github.com/tschaefer/finchctl/cmd/format"
 	"github.com/tschaefer/finchctl/internal/agent"
+	"github.com/tschaefer/finchctl/internal/target"
 
 	"github.com/olekukonko/tablewriter"
 )
@@ -30,38 +30,39 @@ var doctorCmd = &cobra.Command{
 
 func init() {
 	doctorCmd.Flags().Bool("output.json", false, "output in JSON format (not implemented yet)")
+	doctorCmd.Flags().Bool("check.ports", false, "check alloy listen ports")
+	doctorCmd.Flags().Bool("check.optionals", false, "check alloy optional tools")
 }
 
 func runDoctorCmd(cmd *cobra.Command, args []string) {
 	targetUrl := args[0]
 
-	formatType, err := format.GetRunFormat("quiet")
-	cobra.CheckErr(err)
-
 	timeout, _ := cmd.Flags().GetUint("run.cmd-timeout")
 	a, err := agent.New(cmd.Context(), agent.Options{
 		TargetURL:  targetUrl,
-		Format:     formatType,
+		Format:     target.FormatQuiet,
 		CmdTimeout: time.Duration(timeout) * time.Second,
 	})
-	errors.CheckErr(err, formatType)
+	errors.CheckErr(err, target.FormatQuiet)
 
-	healthy, list := a.Doctor()
+	checkPorts, _ := cmd.Flags().GetBool("check.ports")
+	checkOptionals, _ := cmd.Flags().GetBool("check.optionals")
+	list, err := a.Doctor(checkOptionals, checkPorts)
+
 	jsonOutput, _ := cmd.Flags().GetBool("output.json")
 	if jsonOutput {
-		out, err := json.MarshalIndent(list, "", "  ")
-		errors.CheckErr(err, formatType)
+		out, e := json.MarshalIndent(list, "", "  ")
+		errors.CheckErr(e, target.FormatJSON)
 		fmt.Println(string(out))
-	} else {
-		t := tablewriter.NewWriter(os.Stdout)
-		t.Header([]string{"Requirement", "Status", "Optional"})
-		for _, item := range *list {
-			_ = t.Append([]string{item.Requirement, item.Status, strconv.FormatBool(item.Optional)})
-		}
-		_ = t.Render()
+		errors.CheckErr(err, target.FormatJSON)
+		return
 	}
 
-	if !healthy {
-		os.Exit(1)
+	t := tablewriter.NewWriter(os.Stdout)
+	t.Header([]string{"Requirement", "Status", "Optional"})
+	for _, item := range *list {
+		_ = t.Append([]string{item.Requirement, item.Status, strconv.FormatBool(item.Optional)})
 	}
+	_ = t.Render()
+	errors.CheckErr(err, target.FormatDocumentation)
 }
