@@ -5,6 +5,7 @@ go 1.26.3
 require (
 	github.com/brianvoe/gofakeit/v7 v7.5.1
 	github.com/denisbrodbeck/machineid v1.0.1
+	github.com/fatih/color v1.15.0
 	github.com/goccy/go-yaml v1.19.2
 	github.com/melbahja/goph v1.4.0
 	github.com/olekukonko/tablewriter v1.1.0
@@ -19,7 +20,6 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/fatih/color v1.15.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

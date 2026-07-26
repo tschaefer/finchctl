@@ -137,7 +137,6 @@ func (a *Agent) Edit(service string, data *EditData) error {
 	return a.editAgent(service, data)
 }
 
-func (a *Agent) Doctor(checkOptionals, checkPorts bool) (*[]Health, error) {
-	list, err := a.__doctor(checkOptionals, checkPorts)
-	return list, err
+func (a *Agent) Doctor(checkOptionals, checkPorts bool) (*[]Health, bool) {
+	return a.__doctor(checkOptionals, checkPorts)
 }

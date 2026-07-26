@@ -37,6 +37,11 @@ func init() {
 func runDoctorCmd(cmd *cobra.Command, args []string) {
 	targetUrl := args[0]
 
+	jsonOutput, _ := cmd.Flags().GetBool("output.json")
+	if jsonOutput {
+		_ = os.Setenv("NO_COLOR", "1")
+	}
+
 	timeout, _ := cmd.Flags().GetUint("run.cmd-timeout")
 	a, err := agent.New(cmd.Context(), agent.Options{
 		TargetURL:  targetUrl,
@@ -47,22 +52,22 @@ func runDoctorCmd(cmd *cobra.Command, args []string) {
 
 	checkPorts, _ := cmd.Flags().GetBool("check.ports")
 	checkOptionals, _ := cmd.Flags().GetBool("check.optionals")
-	list, err := a.Doctor(checkOptionals, checkPorts)
+	list, ok := a.Doctor(checkOptionals, checkPorts)
 
-	jsonOutput, _ := cmd.Flags().GetBool("output.json")
 	if jsonOutput {
 		out, e := json.MarshalIndent(list, "", "  ")
 		errors.CheckErr(e, target.FormatJSON)
 		fmt.Println(string(out))
-		errors.CheckErr(err, target.FormatJSON)
-		return
+	} else {
+		t := tablewriter.NewWriter(os.Stdout)
+		t.Header([]string{"Requirement", "Status", "Optional"})
+		for _, item := range *list {
+			_ = t.Append([]string{item.Requirement, item.Status, strconv.FormatBool(item.Optional)})
+		}
+		_ = t.Render()
 	}
 
-	t := tablewriter.NewWriter(os.Stdout)
-	t.Header([]string{"Requirement", "Status", "Optional"})
-	for _, item := range *list {
-		_ = t.Append([]string{item.Requirement, item.Status, strconv.FormatBool(item.Optional)})
+	if !ok {
+		os.Exit(1)
 	}
-	_ = t.Render()
-	errors.CheckErr(err, target.FormatDocumentation)
 }
