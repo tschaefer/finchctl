@@ -234,3 +234,7 @@ func (s *Service) RotateSecret() error {
 
 	return nil
 }
+
+func (s *Service) Doctor() (*[]Health, bool) {
+	return s.__doctor()
+}

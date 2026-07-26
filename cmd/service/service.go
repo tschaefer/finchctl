@@ -21,4 +21,5 @@ func init() {
 	Cmd.AddCommand(rotateCertificateCmd)
 	Cmd.AddCommand(registerCmd)
 	Cmd.AddCommand(deregisterCmd)
+	Cmd.AddCommand(doctorCmd)
 }
