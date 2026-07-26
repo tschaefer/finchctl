@@ -36,7 +36,7 @@ func (a *Agent) __doctorRequirements() (*[]Health, bool) {
 		}
 
 		ok = ok && o
-		list = append(list, Health{Requirement: r, Status: t, Optional: false, Ok: o})
+		list = append(list, Health{r, t, false, o})
 	}
 
 	verify(a.__requirementsHasSudo, "sudo", "available", "not available")
@@ -59,7 +59,7 @@ func (a *Agent) __doctorOptionals() (*[]Health, bool) {
 		}
 
 		ok = ok && o
-		list = append(list, Health{Requirement: r, Status: t, Optional: true, Ok: o})
+		list = append(list, Health{r, t, true, o})
 	}
 
 	verify(a.__additionsHasCurl, "curl", "available", "not available")

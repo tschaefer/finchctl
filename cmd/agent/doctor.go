@@ -22,16 +22,16 @@ import (
 
 var doctorCmd = &cobra.Command{
 	Use:               "doctor [user@]host[:port]",
-	Short:             "Verify target is ready",
+	Short:             "Verify target is healthy",
 	Args:              cobra.ExactArgs(1),
 	Run:               runDoctorCmd,
 	ValidArgsFunction: completion.CompleteHostName,
 }
 
 func init() {
-	doctorCmd.Flags().Bool("output.json", false, "output in JSON format (not implemented yet)")
-	doctorCmd.Flags().Bool("check.ports", false, "check alloy listen ports")
-	doctorCmd.Flags().Bool("check.optionals", false, "check alloy optional tools")
+	doctorCmd.Flags().Bool("output.json", false, "output in JSON format")
+	doctorCmd.Flags().Bool("check.ports", false, "check agent listen ports")
+	doctorCmd.Flags().Bool("check.optionals", false, "check agent optional tools (remote setup)")
 }
 
 func runDoctorCmd(cmd *cobra.Command, args []string) {
