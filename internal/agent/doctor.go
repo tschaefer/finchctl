@@ -5,8 +5,6 @@ Licensed under the MIT license, see LICENSE in the project root for details.
 package agent
 
 import (
-	"errors"
-
 	"github.com/fatih/color"
 )
 
@@ -75,8 +73,6 @@ func (a *Agent) __doctorPorts(machine *MachineInfo) (*[]Health, bool) {
 	var list []Health
 
 	var cmd string
-	var err error
-	var errs error
 	var exec string
 	var port string
 	var status string
@@ -95,7 +91,7 @@ func (a *Agent) __doctorPorts(machine *MachineInfo) (*[]Health, bool) {
 		// pass
 	}
 
-	if _, err = a.target.Run(a.ctx, "command -v "+cmd); err != nil {
+	if _, err := a.target.Run(a.ctx, "command -v "+cmd); err != nil {
 		list = append(list, Health{"port check", color.RedString(cmd + " not found"), false, false})
 		return &list, false
 	}
@@ -110,10 +106,9 @@ func (a *Agent) __doctorPorts(machine *MachineInfo) (*[]Health, bool) {
 
 	for port, optional := range ports {
 		o := true
-		_, err = a.target.Run(a.ctx, exec)
+		_, err := a.target.Run(a.ctx, exec)
 		if err == nil {
 			o = false
-			errs = errors.Join(errs, &DoctorAgentError{Message: "port " + port + " bound", Reason: ""})
 			status = color.RedString("bound")
 		} else {
 			status = color.GreenString("unbound")
@@ -131,8 +126,10 @@ func (a *Agent) __doctor(checkOptionals, checkPorts bool) (*[]Health, bool) {
 
 	machine, err := a.machineInfo()
 	if err != nil {
+		list = append(list, Health{"os", color.RedString("unsupported"), false, false})
 		return &list, false
 	}
+	list = append(list, Health{"os", color.GreenString("supported"), false, true})
 
 	requirements, ok := a.__doctorRequirements()
 	list = append(list, *requirements...)
