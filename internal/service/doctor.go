@@ -20,7 +20,7 @@ const (
 	TRAEFIK_HTTPS_PORT = "443"
 )
 
-func (s *Service) __doctorRequirements() (*[]Health, bool) {
+func (s *Service) __examineRequirements() (*[]Health, bool) {
 	var list []Health
 	ok := true
 
@@ -45,7 +45,7 @@ func (s *Service) __doctorRequirements() (*[]Health, bool) {
 	return &list, ok
 }
 
-func (s *Service) __doctorPorts() (*[]Health, bool) {
+func (s *Service) __examinePorts() (*[]Health, bool) {
 	var list []Health
 
 	var port string
@@ -82,7 +82,7 @@ func (s *Service) __doctorPorts() (*[]Health, bool) {
 	return &list, ok
 }
 
-func (s *Service) __doctor() (*[]Health, bool) {
+func (s *Service) examineTarget() (*[]Health, bool) {
 	var list []Health
 
 	_, err := s.target.Run(s.ctx, "uname -sm | grep -qE 'Linux (x86_64|aarch64)'")
@@ -92,13 +92,13 @@ func (s *Service) __doctor() (*[]Health, bool) {
 	}
 	list = append(list, Health{"os", color.GreenString("supported"), false, true})
 
-	requirements, ok := s.__doctorRequirements()
+	requirements, ok := s.__examineRequirements()
 	list = append(list, *requirements...)
 	if !ok {
 		return &list, false
 	}
 
-	ports, ok := s.__doctorPorts()
+	ports, ok := s.__examinePorts()
 	list = append(list, *ports...)
 	if !ok {
 		return &list, false

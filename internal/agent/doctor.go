@@ -22,7 +22,7 @@ const (
 	ALLOY_PYROSCOPE_PORT = "4040"
 )
 
-func (a *Agent) __doctorRequirements() (*[]Health, bool) {
+func (a *Agent) __examineRequirements() (*[]Health, bool) {
 	var list []Health
 	ok := true
 
@@ -45,7 +45,7 @@ func (a *Agent) __doctorRequirements() (*[]Health, bool) {
 	return &list, ok
 }
 
-func (a *Agent) __doctorOptionals() (*[]Health, bool) {
+func (a *Agent) __examineOptionals() (*[]Health, bool) {
 	var list []Health
 	ok := true
 
@@ -69,7 +69,7 @@ func (a *Agent) __doctorOptionals() (*[]Health, bool) {
 	return &list, ok
 }
 
-func (a *Agent) __doctorPorts(machine *MachineInfo) (*[]Health, bool) {
+func (a *Agent) __examinePorts(machine *MachineInfo) (*[]Health, bool) {
 	var list []Health
 
 	var cmd string
@@ -121,7 +121,7 @@ func (a *Agent) __doctorPorts(machine *MachineInfo) (*[]Health, bool) {
 	return &list, ok
 }
 
-func (a *Agent) __doctor(checkOptionals, checkPorts bool) (*[]Health, bool) {
+func (a *Agent) examineTarget(checkOptionals, checkPorts bool) (*[]Health, bool) {
 	var list []Health
 
 	machine, err := a.machineInfo()
@@ -131,14 +131,14 @@ func (a *Agent) __doctor(checkOptionals, checkPorts bool) (*[]Health, bool) {
 	}
 	list = append(list, Health{"os", color.GreenString("supported"), false, true})
 
-	requirements, ok := a.__doctorRequirements()
+	requirements, ok := a.__examineRequirements()
 	list = append(list, *requirements...)
 	if !ok {
 		return &list, false
 	}
 
 	if checkOptionals {
-		optionals, ok := a.__doctorOptionals()
+		optionals, ok := a.__examineOptionals()
 		list = append(list, *optionals...)
 		if !ok {
 			return &list, false
@@ -146,7 +146,7 @@ func (a *Agent) __doctor(checkOptionals, checkPorts bool) (*[]Health, bool) {
 	}
 
 	if checkPorts {
-		ports, ok := a.__doctorPorts(machine)
+		ports, ok := a.__examinePorts(machine)
 		list = append(list, *ports...)
 		if !ok {
 			return &list, false

@@ -138,5 +138,5 @@ func (a *Agent) Edit(service string, data *EditData) error {
 }
 
 func (a *Agent) Doctor(checkOptionals, checkPorts bool) (*[]Health, bool) {
-	return a.__doctor(checkOptionals, checkPorts)
+	return a.examineTarget(checkOptionals, checkPorts)
 }

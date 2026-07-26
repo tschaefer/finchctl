@@ -236,5 +236,5 @@ func (s *Service) RotateSecret() error {
 }
 
 func (s *Service) Doctor() (*[]Health, bool) {
-	return s.__doctor()
+	return s.examineTarget()
 }
