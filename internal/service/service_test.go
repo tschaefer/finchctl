@@ -40,7 +40,7 @@ func Test_Deploy(t *testing.T) {
 	assert.NoError(t, err, "deploy service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 57, "number of log lines")
+	assert.Len(t, tracks, 58, "number of log lines")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
@@ -92,7 +92,7 @@ func Test_Teardown(t *testing.T) {
 	assert.NoError(t, err, "teardown service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 8, "number of log lines mismatch")
+	assert.Len(t, tracks, 9, "number of log lines mismatch")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
@@ -141,7 +141,7 @@ func Test_Update(t *testing.T) {
 	assert.NoError(t, err, "update service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 54, "number of log lines")
+	assert.Len(t, tracks, 55, "number of log lines")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
@@ -190,7 +190,7 @@ func Test_RotateSecret(t *testing.T) {
 	assert.NoError(t, err, "rotate secret")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 9, "number of log lines mismatch")
+	assert.Len(t, tracks, 10, "number of log lines mismatch")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
@@ -238,7 +238,7 @@ func Test_RotateCertificate(t *testing.T) {
 	assert.NoError(t, err, "rotate certificate")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 8, "number of log lines mismatch")
+	assert.Len(t, tracks, 9, "number of log lines mismatch")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
@@ -294,7 +294,7 @@ func Test_Register(t *testing.T) {
 	assert.NoError(t, err, "register service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 7, "number of log lines mismatch")
+	assert.Len(t, tracks, 8, "number of log lines mismatch")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")
@@ -343,7 +343,7 @@ func Test_Deregister(t *testing.T) {
 	assert.NoError(t, err, "deregister service")
 
 	tracks := strings.Split(record, "\n")
-	assert.Len(t, tracks, 7, "number of log lines mismatch")
+	assert.Len(t, tracks, 8, "number of log lines mismatch")
 
 	wanted := "Running 'command -v sudo' as .+@localhost"
 	assert.Regexp(t, wanted, tracks[0], "first log line")

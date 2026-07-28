@@ -25,6 +25,13 @@ func (s *Service) __requirementsHasSudoPermission() error {
 	return nil
 }
 
+func (s *Service) __requirementsGitHubConnection() error {
+	if _, err := s.target.Run(s.ctx, "curl --connect-timeout 3 -sfL -o /dev/null https://github.com"); err != nil {
+		return &DeployServiceError{Message: "GitHub connection not established", Reason: err.Error()}
+	}
+	return nil
+}
+
 func (s *Service) requirementsService() error {
 	if err := s.__requirementsHasSudo(); err != nil {
 		return err
@@ -35,6 +42,10 @@ func (s *Service) requirementsService() error {
 	}
 
 	if err := s.__requirementsHasSudoPermission(); err != nil {
+		return err
+	}
+
+	if err := s.__requirementsGitHubConnection(); err != nil {
 		return err
 	}
 

@@ -21,4 +21,5 @@ func init() {
 	Cmd.AddCommand(updateCmd)
 	Cmd.AddCommand(describeCmd)
 	Cmd.AddCommand(editCmd)
+	Cmd.AddCommand(doctorCmd)
 }

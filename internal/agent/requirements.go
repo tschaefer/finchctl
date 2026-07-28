@@ -44,11 +44,11 @@ func (a *Agent) __additionsHasUnzip() bool {
 	return true
 }
 
-func (a *Agent) additionsAgent() bool {
-	if !a.__additionsHasCurl() || !a.__additionsHasUnzip() {
-		return false
-	}
-
-	_, err := a.target.Run(a.ctx, "curl -sfL -o /dev/null https://github.com")
+func (a *Agent) __additionsGitHubConnection() bool {
+	_, err := a.target.Run(a.ctx, "curl --connect-timeout 3 -sfL -o /dev/null https://github.com")
 	return err == nil
+}
+
+func (a *Agent) additionsAgent() bool {
+	return a.__additionsHasCurl() && a.__additionsHasUnzip() && a.__additionsGitHubConnection()
 }

@@ -31,7 +31,7 @@ func CheckErr(msg any, format target.Format) {
 		}
 		fmt.Println(string(jsonData))
 	default:
-		fmt.Println(msg)
+		fmt.Fprintf(os.Stderr, "%s\n", msg)
 	}
 
 	os.Exit(1)
