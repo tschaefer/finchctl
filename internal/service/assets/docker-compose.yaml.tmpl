@@ -9,6 +9,7 @@ services:
       - GF_SMTP_ENABLED=true
       - GF_SMTP_FROM_ADDRESS=grafana@{{ .Hostname }}
       - GF_SMTP_SKIP_VERIFY=true
+      - GF_METRICS_ENABLED=false
     volumes:
       - /var/lib/finch/grafana:/var/lib/grafana
       - /var/lib/finch/grafana/alerting:/etc/grafana/provisioning/alerting
