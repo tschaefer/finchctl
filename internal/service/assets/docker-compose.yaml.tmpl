@@ -6,6 +6,9 @@ services:
     environment:
       - GF_SERVER_ROOT_URL={{ .RootUrl }}/grafana
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_FROM_ADDRESS=grafana@{{ .Hostname }}
+      - GF_SMTP_SKIP_VERIFY=true
     volumes:
       - /var/lib/finch/grafana:/var/lib/grafana
       - /var/lib/finch/grafana/alerting:/etc/grafana/provisioning/alerting
@@ -13,6 +16,7 @@ services:
       - sh
       - -euc
       - |
+        export GF_SMTP_HOST="$(ip route | awk '/default/ {print $3; exit}'):25"
         mkdir -p /etc/grafana/provisioning/datasources
         cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
         apiVersion: 1

@@ -391,6 +391,7 @@ func (s *Service) __deployCopyComposeFile() error {
 	}
 
 	data := struct {
+		Hostname            string
 		RootUrl             string
 		AlloyConfigHash     string
 		GrafanaConfigHash   string
@@ -398,6 +399,7 @@ func (s *Service) __deployCopyComposeFile() error {
 		MimirConfigHash     string
 		PyroscopeConfigHash string
 	}{
+		Hostname:            s.config.Hostname,
 		RootUrl:             fmt.Sprintf("https://%s", s.config.Hostname),
 		AlloyConfigHash:     s.__configHash(alloyRendered.Bytes()),
 		GrafanaConfigHash:   s.__configHash(grafanaChunks...),
