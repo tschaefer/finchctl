@@ -10,6 +10,11 @@ services:
       - GF_SMTP_FROM_ADDRESS=grafana@{{ .Hostname }}
       - GF_SMTP_SKIP_VERIFY=true
       - GF_METRICS_ENABLED=false
+      - GF_ANALYTICS_ENABLED=false
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+      - GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES=false
+      - GF_ANALYTICS_FEEDBACK_LINKS_ENABLED=false
     volumes:
       - /var/lib/finch/grafana:/var/lib/grafana
       - /var/lib/finch/grafana/alerting:/etc/grafana/provisioning/alerting
