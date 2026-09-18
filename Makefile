@@ -3,7 +3,7 @@ GitCommit := $(shell git rev-parse HEAD)
 LDFLAGS := "-s -w -X github.com/tschaefer/finchctl/internal/version.Version=$(Version) -X github.com/tschaefer/finchctl/internal/version.GitCommit=$(GitCommit)"
 
 .PHONY: all
-all: fmt lint test dist
+all: fmt lint test release
 
 .PHONY: fmt
 fmt:
@@ -41,6 +41,9 @@ checksum:
 		sha256sum $$f > $$f.sha256; \
 	done && \
 	cd ..
+
+.PHONY: release
+release: clean dist checksum
 
 .PHONY: test
 test:
