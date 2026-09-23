@@ -5,7 +5,7 @@ go 1.26.3
 require (
 	github.com/brianvoe/gofakeit/v7 v7.17.0
 	github.com/denisbrodbeck/machineid v1.0.1
-	github.com/fatih/color v1.18.0
+	github.com/fatih/color v1.19.0
 	github.com/goccy/go-yaml v1.19.2
 	github.com/melbahja/goph v1.5.2
 	github.com/olekukonko/tablewriter v1.1.4
