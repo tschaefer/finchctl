@@ -2,7 +2,7 @@
 services:
   grafana:
     container_name: grafana
-    image: grafana/grafana:13.2.3
+    image: grafana/grafana:13.2.4
     environment:
       - GF_SERVER_ROOT_URL={{ .RootUrl }}/grafana
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
@@ -91,7 +91,7 @@ services:
 
   traefik:
     container_name: traefik
-    image: traefik:v3.7.14
+    image: traefik:v3.7.15
     command:
       - "--configfile=/etc/traefik/traefik.yaml"
     ports:
@@ -156,7 +156,7 @@ services:
 
   hc-traefik:
     container_name: hc-traefik
-    image: curlimages/curl:8.22.0
+    image: curlimages/curl:8.23.0
     entrypoint:
       - sleep
       - infinity
@@ -178,7 +178,7 @@ services:
 
   hc-finch:
     container_name: hc-finch
-    image: curlimages/curl:8.22.0
+    image: curlimages/curl:8.23.0
     entrypoint:
       - sleep
       - infinity
@@ -194,7 +194,7 @@ services:
 
   hc-grafana:
     container_name: hc-grafana
-    image: curlimages/curl:8.22.0
+    image: curlimages/curl:8.23.0
     entrypoint:
       - sleep
       - infinity
@@ -210,7 +210,7 @@ services:
 
   hc-loki:
     container_name: hc-loki
-    image: curlimages/curl:8.22.0
+    image: curlimages/curl:8.23.0
     entrypoint:
       - sleep
       - infinity
@@ -226,7 +226,7 @@ services:
 
   hc-mimir:
     container_name: hc-mimir
-    image: curlimages/curl:8.22.0
+    image: curlimages/curl:8.23.0
     entrypoint:
       - sleep
       - infinity
@@ -242,7 +242,7 @@ services:
 
   hc-pyroscope:
     container_name: hc-pyroscope
-    image: curlimages/curl:8.22.0
+    image: curlimages/curl:8.23.0
     entrypoint:
       - sleep
       - infinity
